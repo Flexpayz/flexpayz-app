@@ -80,7 +80,7 @@ export function AnimalTagPreview() {
                         <h6>{contact.address}</h6>
                     </div>
                     <div className={"right-box"}>
-                        <a style={{textDecoration: "none"}} href={`tel:${contact.phone}`}>
+                        <a style={{textDecoration: "none"}} href={`tel:+${contact.phone}`}>
                             <div className={"call-button"}>CALL</div>
                         </a>
                         <div className={"call-button"} onClick={onSendSMS}>SMS</div>
