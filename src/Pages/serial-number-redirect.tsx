@@ -13,7 +13,7 @@ type SerialNumberDoc = {
 };
 
 const SANITAS_URL_TEMPLATE = (productID: string) =>
-    `https://sanitas-app-20caf.web.app/show/dashboard?product_id=${productID}`;
+    `https://app.sanitas.org.ro/show/dashboard?product_id=${productID}`;
 
 export function SerialNumberRedirect() {
     const navigate = useNavigate();
