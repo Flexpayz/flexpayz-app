@@ -55,56 +55,142 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
         setProgress(0);
 
         if (uploadType === "default") {
-            // =================== FLOW DEFAULT ===================
-            let skipped = 0, uploaded = 0, error = 0;
-            for (let i = 0; i < serials.length; i++) {
-                const serial = serials[i];
-                try {
-                    const serialRef = doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial);
-                    const serialSnap = await getDoc(serialRef);
+            // =================== FLOW DEFAULT cu batch și chunk-uri ===================
+            let skipped = 0,
+                uploaded = 0,
+                error = 0,
+                misscreated = 0;
 
-                    if (serialSnap.exists()) {
-                        skipped++;
-                    } else {
-                        const hexCode = random_hex_code();
-                        const productRef = await addDoc(collection(db, DB_COLLECTIONS.PRODUCTS), {
-                            activated: false,
-                            unlockCode: hexCode,
-                            name: "New Product",
-                            preview: Preview.BUSINESS_CARD,
-                            processed: false,
-                        });
+            const results: {
+                serialNumber: string;
+                productID: string;
+                unlockCode: string;
+                status: "created" | "skipped" | "misscreated" | "error";
+            }[] = [];
 
-                        setProducts((prev: any) => [
-                            ...prev,
-                            {
-                                id: productRef.id,
+            try {
+                const batchSize = 400;
+
+                for (let i = 0; i < serials.length; i += batchSize) {
+                    const chunk = serials.slice(i, i + batchSize);
+
+                    // verificăm ce seriale există deja
+                    const existingSnaps = await Promise.all(
+                        chunk.map((serial) => getDoc(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial)))
+                    );
+
+                    const batch = writeBatch(db);
+
+                    for (let j = 0; j < chunk.length; j++) {
+                        const serial = chunk[j];
+                        const snap = existingSnaps[j];
+
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            const productID = data.productID || "";
+                            let unlockCode = "";
+                            let status: "skipped" | "misscreated" = "skipped";
+
+                            if (productID) {
+                                const prodSnap = await getDoc(doc(db, DB_COLLECTIONS.PRODUCTS, productID));
+                                if (!prodSnap.exists()) {
+                                    status = "misscreated";
+                                    misscreated++;
+                                } else {
+                                    skipped++;
+                                    const prodData = prodSnap.data();
+                                    unlockCode = prodData?.unlockCode || "";
+                                }
+                            } else {
+                                status = "misscreated";
+                                misscreated++;
+                            }
+
+                            results.push({
+                                serialNumber: serial,
+                                productID,
+                                unlockCode,
+                                status,
+                            });
+                        } else {
+                            // create new product
+                            const hexCode = random_hex_code();
+                            const productRef = doc(collection(db, DB_COLLECTIONS.PRODUCTS));
+
+                            batch.set(productRef, {
                                 activated: false,
                                 unlockCode: hexCode,
                                 name: "New Product",
                                 preview: Preview.BUSINESS_CARD,
                                 processed: false,
-                            },
-                        ]);
+                            });
 
-                        await setDoc(doc(db, DB_COLLECTIONS.PERMISSIONS, productRef.id), defaultPermissions);
-                        await setDoc(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial), {
-                            productID: productRef.id,
-                            type: "default",
-                            createdAt: serverTimestamp(),
-                        });
+                            batch.set(doc(db, DB_COLLECTIONS.PERMISSIONS, productRef.id), defaultPermissions);
 
-                        uploaded++;
+                            batch.set(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial), {
+                                productID: productRef.id,
+                                type: "default",
+                                createdAt: serverTimestamp(),
+                            });
+
+                            results.push({
+                                serialNumber: serial,
+                                productID: productRef.id,
+                                unlockCode: hexCode,
+                                status: "created",
+                            });
+
+                            setProducts((prev: any) => [
+                                ...prev,
+                                {
+                                    id: productRef.id,
+                                    activated: false,
+                                    unlockCode: hexCode,
+                                    name: "New Product",
+                                    preview: Preview.BUSINESS_CARD,
+                                    processed: false,
+                                },
+                            ]);
+
+                            uploaded++;
+                        }
+
+                        setProgress(Math.round(((i + j + 1) / serials.length) * 100));
                     }
-                } catch (err) {
-                    console.error(`Error with ${serial}:`, err);
-                    error++;
+
+                    await batch.commit();
                 }
-                setProgress(Math.round(((i + 1) / serials.length) * 100));
+
+                // ==== CSV Export ====
+                if (results.length > 0) {
+                    const csvHeader = "serialNumber,productID,unlockCode,status\n";
+                    const csvRows = results
+                        .map((r) => `${r.serialNumber},${r.productID},${r.unlockCode},${r.status}`)
+                        .join("\n");
+                    const csvContent = csvHeader + csvRows;
+
+                    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute(
+                        "download",
+                        `serials_export_${new Date().toISOString().slice(0, 10)}.csv`
+                    );
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+
+                alert(
+                    `✅ Upload complete! Created: ${uploaded}, Skipped: ${skipped}, Misscreated: ${misscreated}, Errors: ${error}`
+                );
+            } catch (err) {
+                console.error("Batch error:", err);
+                alert("❌ Error during batch upload.");
             }
-            alert(`✅ Upload complete! Created: ${uploaded}, Skipped: ${skipped}, Errors: ${error}`);
         } else {
-            // =================== FLOW SANITAS ===================
+            // =================== FLOW SANITAS (nemodificat) ===================
             try {
                 const batchSize = 400;
                 for (let i = 0; i < serials.length; i += batchSize) {
@@ -133,6 +219,8 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
 
         setLoading(false);
     };
+
+
 
     return (
         <div style={{ padding: 20 }}>
