@@ -35,6 +35,7 @@ export function AdminPage() {
     const [orderedProducts, setOrderedProducts] = useState(0)
     const [products, setProducts] = useState<any[]>([])
     const {db} = useContext(MainContext)
+    const navigate = useNavigate()
 
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true); // To handle loading state
@@ -124,6 +125,9 @@ export function AdminPage() {
 
     return (<div className={"page"}>
         <div className={"modal"}>
+            <Button onClick={() => navigate("/admin/serial-migration")}>
+                Open Serial Migration Page
+            </Button>
             <Input value={orderedProducts} type={'number'} onChange={(e: any) => {
                 setOrderedProducts(e.target.value)
             }}/>
