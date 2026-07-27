@@ -23,6 +23,9 @@ import {SharedContacts} from "./components/shared-contacts";
 import {BabyJournalSettings} from "./components/baby-journal-settings";
 import {AdultJournalSettings} from "./components/adult-journal-settings";
 import {AnimalTagSettingsWrapper} from "./Pages/animal-tag/animal-tag-settings";
+import { SerialNumberRedirect } from './Pages/serial-number-redirect';
+import GetUnlockCode from "./Pages/GetUnlockCode";
+import { SerialProductMigrationPage } from "./Pages/serial-product-migration";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD95KPFA7TG3QepgOl8iJdUM3c9RnEM11Q",
@@ -60,6 +63,8 @@ function App() {
                     <Route path={'/'} element={<InitialPage/>}/>
                     <Route path={'/app'} element={<FirstPageWrapper/>}/>
                     <Route path={'/admin'} element={<AdminPage/>}/>
+                    <Route path={'/admin/unlock-code'} element={<GetUnlockCode/>}/>
+                    <Route path={'/admin/serial-migration'} element={<SerialProductMigrationPage/>}/>
                     <Route path={'/manage-devices'} element={<ManageDevices/>}/>
                     <Route path={'/manage-device'} element={<ManageDevice/>}/>
                     <Route path={'/manage-device/business-card'} element={<BusinessSettingsWrapper/>}/>
@@ -71,6 +76,7 @@ function App() {
                     <Route path={'/manage-device/baby-journal'} element={<BabyJournalSettings/>}/>
                     <Route path={'/manage-device/adult-journal'} element={<AdultJournalSettings/>}/>
                     <Route path={'/manage-device/animal-tag'} element={<AnimalTagSettingsWrapper/>}/>
+                    <Route path={'/redirect'} element={<SerialNumberRedirect/>}/>
 
                     <Route path={'/show-product'} element={<ShowProduct/>}/>
                 </Routes>

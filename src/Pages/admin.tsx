@@ -10,6 +10,10 @@ import {db} from "../App";
 import {DB_COLLECTIONS, DB_STORAGE} from "../components/baby-journal-settings";
 import {defaultPermissions, Permissions} from "../components/usePermission";
 import {QRCodeCanvas} from "qrcode.react";
+import SerialUploader from "../components/serial-number-uploader";
+import ExportSerialsCSVButton from "../components/serial-csv-buton";
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Modular import for auth
+import { getIdTokenResult } from 'firebase/auth';  // To get custom claims
 
 export enum Preview {
     BUSINESS_CARD = 'business_card',
@@ -22,7 +26,7 @@ export enum Preview {
     ANIMAL_TAG = "animal_tag",
 }
 
-const random_hex_code = () => {
+export const random_hex_code = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
     return n.slice(0, 6).toLocaleUpperCase();
 };
@@ -31,6 +35,40 @@ export function AdminPage() {
     const [orderedProducts, setOrderedProducts] = useState(0)
     const [products, setProducts] = useState<any[]>([])
     const {db} = useContext(MainContext)
+    const navigate = useNavigate()
+
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [loading, setLoading] = useState(true); // To handle loading state
+
+    useEffect(() => {
+        const auth = getAuth(); // Get the auth instance
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            // Get ID token result to check for custom claims (like admin)
+            user.getIdTokenResult()
+              .then((idTokenResult) => {
+                if (idTokenResult.claims.admin) {
+                  setIsAdmin(true);
+                } else {
+                  setIsAdmin(false);
+                }
+              })
+              .catch((error) => {
+                console.error('Error checking admin claim:', error);
+                setIsAdmin(false);
+              })
+              .finally(() => setLoading(false)); // Set loading to false after the check
+          } else {
+            setIsAdmin(false);
+            setLoading(false); // If no user, set loading to false
+          }
+        });
+    
+        // Clean up the subscription when the component unmounts
+        return () => unsubscribe();
+      }, []);
+
+  console.log(isAdmin, 'isAdmin')
 
     const createProducts = async () => {
 
@@ -63,6 +101,7 @@ export function AdminPage() {
 
 
     useEffect(() => {
+        if (!isAdmin) return;
         (async () => {
             const q = query(collection(db, "products"), where("activated", "==", false));
             const querySnapshot = await getDocs(q);
@@ -71,13 +110,24 @@ export function AdminPage() {
                 setProducts((prev: any) => [...prev, {id: doc.id, ...doc.data()}])
             });
         })()
-console.log(products)
-    }, [])
+    }, [isAdmin])
 
     const [changePermissionsProduct, setChangePermissionsProduct] = useState<string>("")
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAdmin) {
+    return <div>You do not have admin permissions.</div>;
+  }
+
+
     return (<div className={"page"}>
         <div className={"modal"}>
+            <Button onClick={() => navigate("/admin/serial-migration")}>
+                Open Serial Migration Page
+            </Button>
             <Input value={orderedProducts} type={'number'} onChange={(e: any) => {
                 setOrderedProducts(e.target.value)
             }}/>
@@ -90,7 +140,8 @@ console.log(products)
             </div>
         </div>
         <ChangePermissionsModal productId={changePermissionsProduct}/>
-
+        <SerialUploader setProducts={setProducts}/>
+        <ExportSerialsCSVButton/>
 
     </div>)
 }

@@ -26,11 +26,13 @@ import {useNavigate} from "react-router";
 // import {InvestigationsJournalSegment} from "./investigations-journal-segment";
 
 export enum DB_COLLECTIONS {
+    PRODUCTS = 'products',
+    SERIAL_NUMBERS = 'serial_numbers',
     BABY_JOURNALS = 'baby_journals',
     ADULT_JOURNALS = 'adult_journals',
     PERMISSIONS = 'permissions',
     ANIMAL_TAG = 'animal_tag',
-    MAIL= 'mail'
+    MAIL = 'mail'
 }
 
 export enum DB_STORAGE {
