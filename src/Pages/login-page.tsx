@@ -1,10 +1,8 @@
-import {Button, Checkbox, FormControlLabel, Input, InputLabel} from "@mui/material";
 import './login-page.css'
-import {useCallback, useContext, useState} from "react";
+import {useContext, useState} from "react";
 import {LoginFormContext, MainContext, RegisterFormContext} from "../contexts";
 import {ConfigInput} from "../components/config-input";
 import {useLogin, useRegisterForm} from "../forms";
-import {stat} from "fs";
 import {
     getAuth,
     createUserWithEmailAndPassword,
@@ -27,9 +25,10 @@ export const notify = (message?: string) => toast(message, {
 });
 
 
-export function FirstPageWrapper() {
+export function LoginPageWrapper() {
     const loginForm = useLogin()
     const registerForm = useRegisterForm()
+
     return (<LoginFormContext.Provider value={loginForm}>
         <RegisterFormContext.Provider value={registerForm}>
             <LoginPage/>

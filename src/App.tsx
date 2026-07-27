@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import './App.css';
 import './Pages/basic.css';
 import {Route, Routes} from "react-router";
-import {LoginPage, FirstPageWrapper} from "./Pages/login-page";
-import {LoginFormContext, MainContext, RegisterFormContext} from "./contexts";
-import {InitialPage} from "./Pages/initial-page";
+import {LoginPageWrapper} from "./Pages/login-page";
+import {FirstPageWrapper} from "./Pages/landing-page";
+import {MainContext} from "./contexts";
 import {initializeApp} from 'firebase/app';
 import {getFirestore} from "firebase/firestore";
 import {AdminPage} from "./Pages/admin";
@@ -63,8 +63,9 @@ function App() {
         <div className="App">
             <MainContext.Provider value={{state, setState, db}}>
                 <Routes>
-                    <Route path={'/'} element={<InitialPage/>}/>
+                    <Route path={'/'} element={<FirstPageWrapper/>}/>
                     <Route path={'/app'} element={<FirstPageWrapper/>}/>
+                    <Route path={'/login'} element={<LoginPageWrapper/>}/>
                     <Route path={'/admin'} element={<AdminPage/>}/>
                     <Route path={'/admin/unlock-code'} element={<GetUnlockCode/>}/>
                     <Route path={'/admin/serial-migration'} element={<SerialProductMigrationPage/>}/>
