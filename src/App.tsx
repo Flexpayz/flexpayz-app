@@ -26,6 +26,7 @@ import {AnimalTagSettingsWrapper} from "./Pages/animal-tag/animal-tag-settings";
 import { SerialNumberRedirect } from './Pages/serial-number-redirect';
 import GetUnlockCode from "./Pages/GetUnlockCode";
 import { SerialProductMigrationPage } from "./Pages/serial-product-migration";
+import { DesignSystemPreview } from "./components/design-system/DesignSystemPreview";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD95KPFA7TG3QepgOl8iJdUM3c9RnEM11Q",
@@ -52,12 +53,14 @@ const defaultState: any = {
 
 function App() {
     const [state, setState] = useState(defaultState)
+    const showDesignSystemPreview = process.env.NODE_ENV === "development" && window.location.pathname === "/__design-system";
+
+    if (showDesignSystemPreview) {
+        return <DesignSystemPreview />;
+    }
 
     return (
         <div className="App">
-            <link rel="preconnect" href="https://fonts.googleapis.com"/>
-                <link rel="preconnect" href="https://fonts.gstatic.com"/>
-                    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
             <MainContext.Provider value={{state, setState, db}}>
                 <Routes>
                     <Route path={'/'} element={<InitialPage/>}/>
