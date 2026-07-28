@@ -20,6 +20,7 @@ import {
     PUBLIC_SECTION_ORDER,
 } from "../product-visibility";
 import {BusinessCardPublicPage} from "../components/business-card-public";
+import {CustomLinkPublicPage} from "../components/custom-link-public";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -264,12 +265,6 @@ export function ShowProduct() {
         : publicRoutingMode === 'single' ? visibleSections[0] : product.preview;
     const showSectionDashboard = publicRoutingMode === 'dashboard' && !opensSectionFromDashboard;
 
-    useEffect(() => {
-        if (loaded && !passwordProtected && (publicRoutingMode === 'single' || opensSectionFromDashboard) && activePreview === Preview.CUSTOM_LINK && product.customLink) {
-            window.location.replace(product.customLink);
-        }
-    }, [activePreview, loaded, opensSectionFromDashboard, passwordProtected, product.customLink, publicRoutingMode]);
-
     return (<div style={colorsStyle}>
         {passwordProtected && <div className={'password-page'}>
             <TextField label={'Unlock page'} type={'password'} className={'form-manager-input'} value={password}
@@ -295,6 +290,12 @@ export function ShowProduct() {
                 profileImageURL={profileImageURL}
                 logoImageURL={logoImageURL}
                 onDownloadCV={downloadCV}
+            />}
+        {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.CUSTOM_LINK &&
+            <CustomLinkPublicPage
+                product={product}
+                productId={productId || ""}
+                fromDashboard={opensSectionFromDashboard}
             />}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE && <div className={'page-show-product'}>
             {product.filename1 && <div className={'file-container'}>
