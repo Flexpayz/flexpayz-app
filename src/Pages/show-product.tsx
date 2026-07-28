@@ -6,10 +6,8 @@ import {getDownloadURL, ref} from "firebase/storage";
 import {storage} from "../App";
 import {Preview} from "../preview";
 import './show-product.css'
-import YouTube from "react-youtube";
 import {defaultProduct, Product} from "../control-state";
 import {TextField} from "@mui/material";
-import {AudioPage} from "../components/audio-page";
 import {BabyJournalPreview} from "../components/baby-journal-preview";
 import {AdultJournalPreview} from "../components/adult-journal-preview";
 import { AnimalTagPreviewWrapper} from "./animal-tag/animal-tag-preview";
@@ -21,6 +19,8 @@ import {
 import {BusinessCardPublicPage} from "../components/business-card-public";
 import {CustomLinkPublicPage} from "../components/custom-link-public";
 import {UploadFilesPublicPage} from "../components/upload-files-public";
+import {UploadSongsPublicPage} from "../components/upload-songs-public";
+import {UploadVideoPublicPage} from "../components/upload-video-public";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -34,11 +34,6 @@ export function ShowProduct() {
     const [passwordProtected, setPasswordProtected] = useState(false)
     const [password, setPassword] = useState('')
     const [loaded, setLoaded] = useState(false)
-    const [songs, setSongs] = useState<any[]>([])
-
-
-    getYoutubeLink('//https://youtu.be/GF8hpmGhBtI?si=W3ww_cb9OBGhuBIO')
-
     useEffect(() => {
         (async () => {
             if (productId) {
@@ -53,46 +48,6 @@ export function ShowProduct() {
                     setProduct((prev: Product) => ({...prev, ...docSnap.data() as Product}))
                     setPasswordProtected((docSnap.data() as Product).publicPagePasswordActivated)
                     setLoaded(true)
-                    const song1Ref = ref(storage, `audio/${productId}/song1`)
-                    const song2Ref = ref(storage, `audio/${productId}/song2`)
-                    const song3Ref = ref(storage, `audio/${productId}/song3`)
-                    getDownloadURL(song1Ref)
-                        .then(url => {
-                            setSongs((prev) => [...prev, {title: docSnap.data().song1, src: url}])
-                            return Promise.resolve(true);
-                        })
-                        .catch(error => {
-                            if (error.code === 'storage/object-not-found') {
-                                return Promise.resolve(false);
-                            } else {
-                                return Promise.reject(error);
-                            }
-                        });
-                    getDownloadURL(song2Ref)
-                        .then(url => {
-                            console.log('song2', product.song2)
-                            setSongs((prev) => [...prev, {title: docSnap.data().song2, src: url}])
-                            return Promise.resolve(true);
-                        })
-                        .catch(error => {
-                            if (error.code === 'storage/object-not-found') {
-                                return Promise.resolve(false);
-                            } else {
-                                return Promise.reject(error);
-                            }
-                        });
-                    getDownloadURL(song3Ref)
-                        .then(url => {
-                            setSongs((prev) => [...prev, {title: docSnap.data().song3, src: url}])
-                            return Promise.resolve(true);
-                        })
-                        .catch(error => {
-                            if (error.code === 'storage/object-not-found') {
-                                return Promise.resolve(false);
-                            } else {
-                                return Promise.reject(error);
-                            }
-                        });
                 } else {
                     // navigate('/app')
                 }
@@ -157,13 +112,6 @@ export function ShowProduct() {
             });
     }
 
-    const post = getYoutubeLink(product.youtubeLink)
-    const youtubeID = post?.split('v=')[1];
-    const onReady = (event: any) => {
-        console.log(event.target)
-        event.target.playVideo();
-    };
-
     console.log('product, product', product)
     console.log(product.color1, product.color2)
 
@@ -214,24 +162,10 @@ export function ShowProduct() {
             />}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE &&
             <UploadFilesPublicPage product={product} productId={productId || ""}/>}
-        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO && <div className={'page-show-product'}>
-            <YouTube className={'youtube'} videoId={youtubeID} onReady={onReady} opts={
-                {
-                    playerVars: {
-                        start: 0,
-                        autoplay: 1,
-                        color: 'white',
-                        modestbranding: 1,
-                        controls: 1,
-                        rel: 0,
-                        loop: 1
-                    }
-                }
-            }/>
-        </div>}
-        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS && <div className={'page-show-product'}>
-            <AudioPage songs={songs} language={product.previewLanguage}/>
-        </div>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO &&
+            <UploadVideoPublicPage product={product} productId={productId || ""} fromDashboard={opensSectionFromDashboard}/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS &&
+            <UploadSongsPublicPage product={product} productId={productId || ""}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL && <BabyJournalPreview/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ADULT_JOURNAL && <AdultJournalPreview/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
@@ -276,15 +210,4 @@ function PublicSectionDashboard({product, sections, productId}: { product: Produ
             </div>
         </div>
     );
-}
-
-const getYoutubeLink = (link: string) => {
-    const mobileStartPosition =link?.search('youtu.be')
-    if( mobileStartPosition > -1) {
-       const mobileEndPosition = link?.search('si=')
-        const videoCode = link?.substring(mobileStartPosition + 9, mobileEndPosition-1)
-        return `https://www.youtube.com/watch?v=${videoCode}`
-    } else {
-        return link
-    }
 }

@@ -1534,3 +1534,336 @@
         transition: none;
     }
 }
+
+.upload-songs-public-page {
+    position: relative;
+    min-height: 100svh;
+    overflow-x: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: calc(var(--fp-space-8) + env(safe-area-inset-top)) var(--fp-space-8) calc(var(--fp-space-6) + env(safe-area-inset-bottom));
+    background: var(--fp-color-canvas);
+    color: var(--fp-color-ink);
+}
+
+.upload-songs-public-main,
+.upload-songs-public-page > header,
+.upload-songs-public-page > footer {
+    position: relative;
+    z-index: 1;
+}
+
+.upload-songs-public-main {
+    width: min(100%, 92rem);
+    margin: 0 auto;
+    display: grid;
+    align-content: center;
+    gap: var(--fp-space-8);
+}
+
+.upload-songs-public-hero {
+    display: flex;
+    align-items: center;
+    gap: var(--fp-space-4);
+    max-width: 44rem;
+}
+
+.upload-songs-public-titlemark {
+    width: 4.5rem;
+    height: 4.5rem;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-ink);
+    color: var(--fp-color-white);
+}
+
+.upload-songs-public-hero h1,
+.upload-songs-now-playing h2 {
+    margin: 0;
+    font-family: var(--fp-font-family-display);
+    font-weight: 500;
+    color: var(--fp-color-ink);
+}
+
+.upload-songs-public-hero h1 {
+    font-size: clamp(2.6rem, 5vw, 4.7rem);
+    line-height: 0.96;
+}
+
+.upload-songs-public-hero p:not(.business-kicker),
+.upload-songs-playlist small,
+.upload-songs-now-playing > span,
+.upload-songs-playback-message {
+    color: var(--fp-color-text-muted);
+}
+
+.upload-songs-public-workspace {
+    display: grid;
+    grid-template-columns: minmax(24rem, 0.84fr) minmax(30rem, 1fr);
+    gap: var(--fp-space-10);
+    align-items: center;
+}
+
+.upload-songs-playlist,
+.upload-songs-now-playing {
+    animation: custom-link-public-in var(--fp-transition-slow) both;
+}
+
+.upload-songs-playlist ol {
+    display: grid;
+    gap: var(--fp-space-4);
+    padding: 0;
+    margin: var(--fp-space-4) 0 0;
+    list-style: none;
+}
+
+.upload-songs-playlist button {
+    width: 100%;
+    min-height: 5.75rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(10rem, 0.8fr) auto auto;
+    gap: var(--fp-space-4);
+    align-items: center;
+    padding: var(--fp-space-4) var(--fp-space-5);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    cursor: pointer;
+    text-align: left;
+    transition: transform var(--fp-transition-fast), border-color var(--fp-transition-fast), background-color var(--fp-transition-fast), box-shadow var(--fp-transition-fast);
+}
+
+.upload-songs-playlist button.is-active,
+.upload-songs-playlist button:hover {
+    border-color: color-mix(in srgb, var(--fp-color-champagne) 55%, var(--fp-color-border));
+    background: var(--fp-color-champagne-soft);
+    transform: translateY(-1px);
+    box-shadow: var(--fp-shadow-soft);
+}
+
+.upload-songs-playlist button:focus-visible,
+.upload-songs-now-playing button:focus-visible,
+.upload-songs-now-playing input:focus-visible {
+    outline: var(--fp-focus-outline);
+    outline-offset: var(--fp-focus-offset);
+    box-shadow: var(--fp-focus-ring);
+}
+
+.upload-songs-playlist button > span:first-child {
+    color: var(--fp-color-champagne-dark);
+    font-weight: 900;
+}
+
+.upload-songs-playlist strong,
+.upload-songs-playlist small {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.upload-songs-playlist em {
+    color: var(--fp-color-text-muted);
+    font-style: normal;
+}
+
+.upload-songs-playlist svg:last-child {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: var(--fp-space-2);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-champagne-dark);
+}
+
+.upload-songs-public-note {
+    margin-top: var(--fp-space-8);
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-caption);
+    font-weight: 900;
+    letter-spacing: 0.28em;
+}
+
+.upload-songs-now-playing {
+    display: grid;
+    gap: var(--fp-space-5);
+    padding: var(--fp-space-7);
+    border-radius: var(--fp-radius-xl);
+    background: var(--fp-color-ink);
+    color: var(--fp-color-white);
+    box-shadow: var(--fp-shadow-raised);
+}
+
+.upload-songs-now-playing .business-kicker,
+.upload-songs-now-playing h2,
+.upload-songs-now-playing > span,
+.upload-songs-now-playing .upload-songs-playback-message {
+    color: var(--fp-color-white);
+}
+
+.upload-songs-now-playing h2 {
+    font-size: clamp(2.25rem, 4vw, 4rem);
+}
+
+.upload-songs-waveform-public {
+    min-height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fp-space-1);
+}
+
+.upload-songs-waveform-public i {
+    width: var(--fp-space-1);
+    height: var(--wave-height);
+    min-height: var(--fp-space-2);
+    border-radius: var(--fp-radius-pill);
+    background: color-mix(in srgb, var(--fp-color-champagne) 78%, var(--fp-color-surface-primary));
+    opacity: 0.45;
+    transform-origin: center;
+}
+
+.upload-songs-waveform-public.is-active i {
+    opacity: 1;
+    animation: fp-audio-wave 2.6s ease-in-out infinite;
+}
+
+@keyframes fp-audio-wave {
+    0%, 100% {
+        transform: scaleY(0.86);
+        opacity: 0.72;
+    }
+
+    50% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+.upload-songs-progress-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: var(--fp-space-3);
+    align-items: center;
+}
+
+.upload-songs-progress-row input,
+.upload-songs-volume input {
+    accent-color: var(--fp-color-champagne);
+}
+
+.upload-songs-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--fp-space-6);
+}
+
+.upload-songs-controls button {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    cursor: pointer;
+    transition: transform var(--fp-transition-fast), opacity var(--fp-transition-fast);
+}
+
+.upload-songs-controls button:nth-child(2) {
+    width: 4rem;
+    height: 4rem;
+}
+
+.upload-songs-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.upload-songs-controls button:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.02);
+}
+
+.upload-songs-volume {
+    display: grid;
+    grid-template-columns: auto auto minmax(10rem, 1fr);
+    gap: var(--fp-space-3);
+    align-items: center;
+}
+
+.upload-songs-volume span,
+.upload-songs-playback-message {
+    font-size: var(--fp-font-size-caption);
+    font-weight: 800;
+}
+
+@media (max-width: 899px) {
+    .upload-songs-public-page {
+        padding: calc(var(--fp-space-5) + env(safe-area-inset-top)) var(--fp-space-4) calc(var(--fp-space-6) + env(safe-area-inset-bottom));
+    }
+
+    .upload-songs-public-main {
+        align-content: start;
+        padding-top: var(--fp-space-8);
+    }
+
+    .upload-songs-public-workspace {
+        grid-template-columns: 1fr;
+        gap: var(--fp-space-5);
+    }
+
+    .upload-songs-public-hero {
+        align-items: flex-start;
+    }
+
+    .upload-songs-playlist {
+        order: 2;
+    }
+
+    .upload-songs-now-playing {
+        order: 1;
+        padding: var(--fp-space-5);
+    }
+
+    .upload-songs-playlist button {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .upload-songs-playlist button .upload-songs-waveform-public,
+    .upload-songs-playlist button em {
+        grid-column: 2 / 3;
+    }
+
+    .upload-songs-volume {
+        grid-template-columns: auto auto 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .upload-songs-public-page .upload-files-public-header {
+        align-items: flex-start;
+    }
+
+    .upload-songs-public-page .upload-files-public-header > div {
+        display: grid;
+        justify-items: end;
+    }
+
+    .upload-songs-controls {
+        gap: var(--fp-space-4);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .upload-songs-playlist,
+    .upload-songs-now-playing,
+    .upload-songs-playlist button,
+    .upload-songs-controls button,
+    .upload-songs-waveform-public.is-active i {
+        animation: none;
+        transition: none;
+    }
+}

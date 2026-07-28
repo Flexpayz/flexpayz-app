@@ -1,5 +1,5 @@
 import {FullMetadata} from "firebase/storage";
-import {Product} from "./control-state";
+import type {Product} from "./control-state";
 
 export type UploadFileSlotId = "file1" | "file2" | "file3";
 export type UploadFileFieldName = "filename1" | "filename2" | "filename3";

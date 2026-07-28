@@ -19,6 +19,10 @@ export type FileUploadFieldProps = {
     label: string;
     accept: string[];
     maxSizeBytes: number;
+    emptyTitle?: string;
+    emptyDescription?: string;
+    browseLabel?: string;
+    acceptedFormatLabel?: string;
     file?: UploadedFileState;
     disabled?: boolean;
     helperText?: ReactNode;
@@ -35,6 +39,10 @@ export function FileUploadField({
     label,
     accept,
     maxSizeBytes,
+    emptyTitle = "Drop a PDF here",
+    emptyDescription = "or choose a file from your computer",
+    browseLabel = "Browse files",
+    acceptedFormatLabel = "PDF only",
     file,
     disabled = false,
     helperText,
@@ -121,10 +129,10 @@ export function FileUploadField({
                     {hasReadyFile || isUploading ? <DescriptionRoundedIcon/> : <UploadRoundedIcon/>}
                 </span>
                 <div>
-                    <strong>{isUploading ? displayName : hasReadyFile ? displayName : "Drop a PDF here"}</strong>
-                    <small>{isUploading ? `${formatFileSize(uploadState?.fileSize || 0)} · Uploading securely…` : hasReadyFile ? `${file?.typeLabel || "PDF"} · ${file?.sizeLabel || "PDF"}` : "or choose a file from your computer"}</small>
+                    <strong>{isUploading ? displayName : hasReadyFile ? displayName : emptyTitle}</strong>
+                    <small>{isUploading ? `${formatFileSize(uploadState?.fileSize || 0)} · Uploading securely…` : hasReadyFile ? `${file?.typeLabel || acceptedFormatLabel} · ${file?.sizeLabel || acceptedFormatLabel}` : emptyDescription}</small>
                 </div>
-                {!hasReadyFile && !isUploading && <button type="button" disabled={disabled} onClick={(event) => { event.stopPropagation(); openPicker(); }}>Browse files</button>}
+                {!hasReadyFile && !isUploading && <button type="button" disabled={disabled} onClick={(event) => { event.stopPropagation(); openPicker(); }}>{browseLabel}</button>}
             </div>
             {isUploading && (
                 <div className="file-upload-field-progress">
@@ -150,7 +158,7 @@ export function FileUploadField({
                     {onRemove && <button type="button" onClick={onRemove}>Remove</button>}
                 </div>
             )}
-            <p id={`${inputId}-help`} className="file-upload-field-help">{helperText || `PDF only · maximum ${formatFileSize(maxSizeBytes)}`}</p>
+            <p id={`${inputId}-help`} className="file-upload-field-help">{helperText || `${acceptedFormatLabel} · maximum ${formatFileSize(maxSizeBytes)}`}</p>
             <p id={`${inputId}-status`} className="file-upload-field-status" aria-live="polite">
                 {isUploading ? `${label} upload ${progress}% complete.` : errorMessage || (hasReadyFile ? `${label} is ready.` : `${label} is empty.`)}
             </p>
