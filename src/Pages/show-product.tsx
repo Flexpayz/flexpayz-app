@@ -10,7 +10,6 @@ import YouTube from "react-youtube";
 import {defaultProduct, Product} from "../control-state";
 import {TextField} from "@mui/material";
 import {AudioPage} from "../components/audio-page";
-import {translatedText} from "../languages";
 import {BabyJournalPreview} from "../components/baby-journal-preview";
 import {AdultJournalPreview} from "../components/adult-journal-preview";
 import { AnimalTagPreviewWrapper} from "./animal-tag/animal-tag-preview";
@@ -21,6 +20,7 @@ import {
 } from "../product-visibility";
 import {BusinessCardPublicPage} from "../components/business-card-public";
 import {CustomLinkPublicPage} from "../components/custom-link-public";
+import {UploadFilesPublicPage} from "../components/upload-files-public";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -157,91 +157,6 @@ export function ShowProduct() {
             });
     }
 
-    const downloadFile1 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file1` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${product.filename1}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-    const downloadFile2 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file2` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${product.filename2}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-    const downloadFile3 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file3` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${product.filename3}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-
     const post = getYoutubeLink(product.youtubeLink)
     const youtubeID = post?.split('v=')[1];
     const onReady = (event: any) => {
@@ -297,26 +212,8 @@ export function ShowProduct() {
                 productId={productId || ""}
                 fromDashboard={opensSectionFromDashboard}
             />}
-        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE && <div className={'page-show-product'}>
-            {product.filename1 && <div className={'file-container'}>
-                <span>{product.filename1}</span>
-                <div className={'download-button'}
-                     onClick={downloadFile1}>{translatedText[product.previewLanguage].Download}</div>
-                {/*<div className={'share-button'} onClick={shareFile1}>Share</div>*/}
-            </div>}
-            {product.filename2 && <div className={'file-container'}>
-                <span>{product.filename2}</span>
-                <div className={'download-button'}
-                     onClick={downloadFile2}>{translatedText[product.previewLanguage].Download}</div>
-                {/*<div className={'share-button'} onClick={shareFile2}>Share</div>*/}
-            </div>}
-            {product.filename3 && <div className={'file-container'}>
-                <span>{product.filename3}</span>
-                <div className={'download-button'}
-                     onClick={downloadFile3}>{translatedText[product.previewLanguage].Download}</div>
-                {/*<div className={'share-button'} onClick={shareFile3}>Share</div>*/}
-            </div>}
-        </div>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE &&
+            <UploadFilesPublicPage product={product} productId={productId || ""}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO && <div className={'page-show-product'}>
             <YouTube className={'youtube'} videoId={youtubeID} onReady={onReady} opts={
                 {

@@ -15,3 +15,15 @@
 - Avoid large page rewrites. Migrate one flow at a time.
 - Do not silently modify unrelated legacy styles.
 - Run the build and relevant tests after every implementation task.
+
+## Non-image file uploads
+
+- All new or redesigned non-image file-upload flows must use the shared `FileUploadField` component and its approved `useResumableFileUpload` adapter.
+- Do not create page-local raw `<input type="file">` implementations for documents, PDFs, audio, video, archives or other non-image files.
+- Configure accepted formats, MIME types, extensions and size limits through the shared component’s typed API.
+- Reuse its validation, progress, cancellation, retry, replace, removal, accessibility and error states.
+- Keep Firebase Storage paths and persistence logic in a feature adapter or hook, not inside the generic visual component.
+- This rule does not apply to photos or images.
+- Profile photos, logos, gallery images and other visual-media workflows must use the dedicated image uploader/cropper components.
+- Do not migrate image uploaders to `FileUploadField`.
+- Client-side validation is UX protection, not a security boundary; preserve or strengthen server-side Storage validation when explicitly in scope.
