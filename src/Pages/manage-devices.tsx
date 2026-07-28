@@ -1,160 +1,1025 @@
-import {ConfigInput} from "../components/config-input";
-import {Button, Input} from "@mui/material";
-import {useNavigate} from "react-router";
-import {useContext, useEffect, useState} from "react";
+import './manage-devices.css'
 import {
+    Alert,
+    Box,
+    CircularProgress,
+    IconButton,
+    InputAdornment,
+    Menu,
+    MenuItem,
+    Skeleton,
+    Stack,
+    TextField,
+} from "@mui/material";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import {getAuth, onAuthStateChanged, signOut} from "firebase/auth";
+import {
+    arrayUnion,
     collection,
+    doc,
+    getDoc,
     getDocs,
     query,
-    where,
-    doc,
-    setDoc,
-    addDoc,
     updateDoc,
-    arrayUnion,
-    getDoc
+    where,
 } from "firebase/firestore";
+import {FormEvent, KeyboardEvent, RefObject, useCallback, useEffect, useRef, useState} from "react";
+import {useNavigate} from "react-router";
 import {MainContext} from "../contexts";
-import {getAuth, onAuthStateChanged, signOut} from "firebase/auth";
-import './manage-devices.css'
-import Logo from '../assets/flexpayz-logo.svg'
-import AddDevice from '../assets/add-device.svg'
-import ManageDevicesLogo from '../assets/manage-devices.svg'
-import BackArrowIcon from "../assets/back_arrow_icon.svg";
+import {useContext} from "react";
+import {AppButton} from "../components/design-system/AppButton";
+import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
+import {PageShell} from "../components/design-system/PageShell";
+import {Surface} from "../components/design-system/Surface";
+
+type DashboardMode = 'dashboard' | 'activate';
+type FilterValue = 'all' | 'business' | 'personal';
+type WizardStep = 'code' | 'confirm' | 'success';
+type WizardIssue = 'incomplete' | 'not-found' | 'already-activated' | 'activation-failed' | 'network' | 'permission' | null;
+
+type ManagedDevice = {
+    id: string;
+    name?: string;
+    activated?: boolean;
+    unlockCode?: string;
+    preview?: string;
+    category?: string;
+    updatedAt?: any;
+    [key: string]: any;
+};
+
+const SUPPORT_URL = 'https://www.flexpayz.se/pages/get-started';
+const CODE_LENGTH = 6;
 
 export function ManageDevices() {
-    const [newProductCode, setNewProductCode] = useState("")
-    const [availableProducts, setAvailableProducts] = useState<any[]>([])
-    const {db, state, setState} = useContext(MainContext)
-    const [userProducts, setUserProducts] = useState<any>([])
-    const [userId, setuserId] = useState("")
+    const {db} = useContext(MainContext);
+    const navigate = useNavigate();
+    const [userId, setUserId] = useState('');
+    const [devices, setDevices] = useState<ManagedDevice[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [fetchError, setFetchError] = useState('');
+    const [mode, setMode] = useState<DashboardMode>('dashboard');
+    const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState<FilterValue>('all');
+    const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
+    const [highlightedDeviceId, setHighlightedDeviceId] = useState('');
 
     useEffect(() => {
         const auth = getAuth();
-        onAuthStateChanged(auth, (user) => {
+        return onAuthStateChanged(auth, (user) => {
             if (user) {
-                const uid = user.uid;
-                setuserId(user.uid)
+                setUserId(user.uid);
             } else {
-                navigate('/app')
+                navigate('/app');
             }
         });
+    }, [navigate]);
 
-        (async () => {
+    const loadDevices = useCallback(async (keepExisting = false) => {
+        if (!userId) return;
+        if (keepExisting) {
+            setRefreshing(true);
+        } else {
+            setLoading(true);
+            setDevices([]);
+        }
+        setFetchError('');
 
-            const q = query(collection(db, "products"), where("activated", "==", false));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach((doc) => {
-                console.log('doc', doc.data())
-                setAvailableProducts((prev: any) => [...prev, {id: doc.id, ...doc.data()}])
-            });
-        })()
-
-
-    }, [])
+        try {
+            const userRef = doc(db, "users", userId);
+            const userSnap = await getDoc(userRef);
+            const productIds = userSnap.exists() ? userSnap.data()?.products || [] : [];
+            const productDocs = await Promise.all(
+                productIds.map(async (id: string) => {
+                    const productRef = doc(db, "products", id);
+                    const productSnap = await getDoc(productRef);
+                    return productSnap.exists() ? {id, ...productSnap.data()} as ManagedDevice : null;
+                })
+            );
+            setDevices(productDocs.filter(Boolean) as ManagedDevice[]);
+        } catch (error: any) {
+            setFetchError(getDashboardError(error?.code));
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [db, userId]);
 
     useEffect(() => {
+        loadDevices();
+    }, [loadDevices]);
 
-        (async () => {
-            if (userId) {
-
-                const userRef = doc(db, "users", userId)
-                console.log(userRef)
-                console.log('ref', userId)
-                const docSnap = await getDoc(userRef);
-                if (docSnap) {
-                    setUserProducts(docSnap.data()?.products)
-                    console.log(userProducts)
-                } else {
-                    console.log('Error')
-                }
-            }
-        })()
-    }, [userId]);
-
-    const activateProduct = () => {
-        const newProduct = availableProducts.find((product) => product.unlockCode === newProductCode)
-        if (newProduct && userId) {
-            const newProductRef = doc(db, "products", newProduct.id);
-            updateDoc(newProductRef, {activated: true})
-            const userRef = doc(db, "users", userId)
-            updateDoc(userRef, {
-                products: arrayUnion(newProduct.id)
-            })
-            // setUserProducts((prev: any) => [...prev, newProduct.id])
-            navigate(`/manage-device?product_id=${newProduct.id}`)
-        }
-    }
-
-    const [open, setOpen] = useState(false)
-    const [showAddDevice, setShowAddDevice] = useState(false)
     const onLogout = () => {
         const auth = getAuth();
         signOut(auth).then(() => {
-            navigate('/app')
+            navigate('/app');
         }).catch((error) => {
-            console.log(error)
+            setFetchError(getDashboardError(error?.code));
         });
+    };
+
+    const onActivationComplete = (device: ManagedDevice) => {
+        setDevices((currentDevices) => {
+            const withoutExisting = currentDevices.filter((current) => current.id !== device.id);
+            return [...withoutExisting, {...device, activated: true}];
+        });
+        setHighlightedDeviceId(device.id);
+        setMode('dashboard');
+    };
+
+    if (mode === 'activate') {
+        return (
+            <ActivationWizard
+                userId={userId}
+                onCancel={() => setMode('dashboard')}
+                onComplete={onActivationComplete}
+            />
+        );
     }
 
+    const deviceCount = devices.length;
+    const showDiscovery = deviceCount > 1;
+    const filteredDevices = filterDevices(devices, search, filter);
+    const profileMenuOpen = Boolean(profileAnchor);
 
-    const navigate = useNavigate()
-    return (<div className={"page-devices"}>
-        <div className={'header-devices'}>
-            {showAddDevice && <img className={'back-button'} onClick={() => {
-                setShowAddDevice(false)
-            }} src={BackArrowIcon}/>}
-            <img className={'logo-devices'} src={Logo} alt={'logo'}/>
-            <button onClick={onLogout} className={'logout-button reset-button'}>Logout</button>
-        </div>
-        <div className={'main-devices'}>
-            {!showAddDevice && <div className={'left-container-devices'}>
-                <span className={'helpers'}>
-Locate your stored devices within this section. Effortlessly update or alter previously stored information about your devices. This feature lets you maintain accurate and current details for all your devices with ease.</span>
-                <div className={'button-manage-devices'} onClick={() => {
-                    setOpen((prev: boolean) => !prev)
-                }}>
-                    <img className={'new-device-img'} src={ManageDevicesLogo}/> Manage Devices
-                </div>
-                {open && <div className={'manage-devices-selector'}>
-                    {userProducts.map((id: string) => (<ProductButton id={id}/>))}
-                </div>}
-                <span className={'helpers'}>Begin by inputting the code provided in your package. Once done, proceed to enter your personal details. This step allows you to seamlessly set up your new device and make it uniquely yours.</span>
-                <div className={'button-add-new-devices'} onClick={() => {
-                    setShowAddDevice(true)
-                }}>
-                    <img className={'new-device-img'} src={AddDevice}/> Add new device
-                </div>
+    return (
+        <PageShell bleed className="devices-page-shell" sx={{py: 0}}>
+            <Box className="devices-page">
+                <Box className="devices-decor devices-decor-top" aria-hidden="true"/>
+                <Box className="devices-decor devices-decor-bottom" aria-hidden="true"/>
+                <Box className="devices-container">
+                    <Box component="header" className="devices-header">
+                        <FlexPayzLogo className="devices-logo"/>
+                        <Stack direction="row" className="devices-header-actions">
+                            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="devices-support-link">
+                                Help & support
+                            </a>
+                            <button
+                                type="button"
+                                className={`devices-profile-button ${profileMenuOpen ? 'devices-profile-button-open' : ''}`}
+                                aria-label="Open profile menu"
+                                aria-haspopup="menu"
+                                aria-expanded={profileMenuOpen}
+                                onClick={(event) => setProfileAnchor(event.currentTarget)}
+                            >
+                                <PersonOutlineRoundedIcon aria-hidden="true"/>
+                            </button>
+                            <Menu
+                                anchorEl={profileAnchor}
+                                open={profileMenuOpen}
+                                onClose={() => setProfileAnchor(null)}
+                                className="devices-profile-menu"
+                            >
+                                <MenuItem onClick={() => {
+                                    setProfileAnchor(null);
+                                    onLogout();
+                                }}>
+                                    Logout
+                                </MenuItem>
+                            </Menu>
+                        </Stack>
+                    </Box>
 
-            </div>}
-            {showAddDevice && <div className={'left-container-devices'}>
-                <input className={'add-device-input'} placeholder={'Enter unlock code'} value={newProductCode}
-                       onChange={(e) => setNewProductCode(e.target.value.toUpperCase())}></input>
-                <button className={'go-button-devices'} onClick={activateProduct}>Go</button>
-            </div>}
-        </div>
+                    <Box component="section" className="devices-main" aria-busy={loading || refreshing} aria-label="My devices content">
+                        <span className="devices-live-region" aria-live="polite">
+                            {loading ? 'Loading your devices.' : refreshing ? 'Refreshing your devices.' : ''}
+                        </span>
+                        <Box className="devices-title-row">
+                            <Box>
+                                <Box component="p" className="devices-kicker">DEVICE MANAGER</Box>
+                                <Box component="h1" className="devices-heading">My devices</Box>
+                                <Box component="p" className="devices-count">
+                                    {loading ? 'Loading active products' : pluralizeDevices(deviceCount)}
+                                </Box>
+                            </Box>
+                            <AppButton
+                                type="button"
+                                variant="contained"
+                                className="devices-add-button"
+                                onClick={() => setMode('activate')}
+                                endIcon={<AddRoundedIcon aria-hidden="true"/>}
+                            >
+                                Add a device
+                            </AppButton>
+                        </Box>
 
+                        {fetchError && (
+                            <Surface className="devices-error-state" role="alert">
+                                <strong>Couldn’t load your devices</strong>
+                                <p>{fetchError}</p>
+                                <AppButton type="button" variant="contained" className="devices-primary-button" onClick={() => loadDevices()}>
+                                    Retry
+                                </AppButton>
+                            </Surface>
+                        )}
 
-    </div>)
+                        {!fetchError && loading && <DashboardSkeleton/>}
+
+                        {!fetchError && !loading && deviceCount === 0 && (
+                            <EmptyDashboard onAddDevice={() => setMode('activate')}/>
+                        )}
+
+                        {!fetchError && !loading && deviceCount > 0 && (
+                            <>
+                                {showDiscovery && (
+                                    <DashboardDiscovery
+                                        search={search}
+                                        onSearch={setSearch}
+                                        filter={filter}
+                                        onFilter={setFilter}
+                                    />
+                                )}
+                                {filteredDevices.length === 0 ? (
+                                    <NoResults onClear={() => {
+                                        setSearch('');
+                                        setFilter('all');
+                                    }}/>
+                                ) : (
+                                    <Box className="devices-grid">
+                                        {filteredDevices.map((device, index) => (
+                                            <DeviceCard
+                                                key={device.id}
+                                                device={device}
+                                                index={index}
+                                                highlighted={device.id === highlightedDeviceId}
+                                                onManage={() => navigate(`/manage-device?product_id=${device.id}`)}
+                                            />
+                                        ))}
+                                    </Box>
+                                )}
+                                <SupportPanel/>
+                            </>
+                        )}
+                    </Box>
+                </Box>
+            </Box>
+        </PageShell>
+    );
 }
 
-const ProductButton = ({id}: { id: string }) => {
-    const {db, state, setState} = useContext(MainContext)
-    const [product, setProduct] = useState<any>({})
+function EmptyDashboard({onAddDevice}: {onAddDevice: () => void}) {
+    return (
+        <Box className="devices-empty-grid">
+            <Surface className="devices-empty-hero">
+                <ProductVisual/>
+                <Box component="h2">Your collection starts here.</Box>
+                <Box component="p">Activate your first FlexPayz product using the code included in its packaging.</Box>
+                <AppButton type="button" variant="contained" className="devices-primary-button" onClick={onAddDevice} endIcon={<ArrowForwardRoundedIcon aria-hidden="true"/>}>
+                    Add your first device
+                </AppButton>
+                <button type="button" className="devices-text-button" onClick={openSupport}>
+                    Where can I find my code?
+                </button>
+            </Surface>
+            <Surface className="devices-help-card">
+                <strong>Already have a FlexPayz product?</strong>
+                <p>The six-character activation code is printed inside the product packaging.</p>
+                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">View activation guide</a>
+            </Surface>
+        </Box>
+    );
+}
+
+function DashboardDiscovery({
+    search,
+    onSearch,
+    filter,
+    onFilter,
+}: {
+    search: string;
+    onSearch: (value: string) => void;
+    filter: FilterValue;
+    onFilter: (value: FilterValue) => void;
+}) {
+    return (
+        <Box className="devices-discovery">
+            <TextField
+                className="devices-search"
+                label="Search your devices"
+                value={search}
+                onChange={(event) => onSearch(event.target.value)}
+                fullWidth
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchRoundedIcon aria-hidden="true"/>
+                        </InputAdornment>
+                    ),
+                    endAdornment: search ? (
+                        <InputAdornment position="end">
+                            <IconButton aria-label="Clear search" onClick={() => onSearch('')}>
+                                <CloseRoundedIcon/>
+                            </IconButton>
+                        </InputAdornment>
+                    ) : undefined,
+                }}
+            />
+            <Box className="devices-filters" role="radiogroup" aria-label="Device category filter">
+                {[
+                    {value: 'all', label: 'All'},
+                    {value: 'business', label: 'Business'},
+                    {value: 'personal', label: 'Personal'},
+                ].map((option) => (
+                    <button
+                        key={option.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={filter === option.value}
+                        className={`devices-filter-pill ${filter === option.value ? 'devices-filter-pill-active' : ''}`}
+                        onClick={() => onFilter(option.value as FilterValue)}
+                    >
+                        {option.label}
+                    </button>
+                ))}
+            </Box>
+        </Box>
+    );
+}
+
+function DeviceCard({
+    device,
+    index,
+    highlighted,
+    onManage,
+}: {
+    device: ManagedDevice;
+    index: number;
+    highlighted: boolean;
+    onManage: () => void;
+}) {
+    const category = getDeviceCategory(device);
+    const contentType = getContentType(device);
+
+    return (
+        <Surface
+            component="article"
+            className={`devices-card ${highlighted ? 'devices-card-highlight' : ''}`}
+            aria-label={`${getDeviceName(device)} device`}
+            style={{'--device-card-delay': `${Math.min(index, 5) * 45}ms`} as any}
+        >
+            <Box className={`devices-card-visual devices-card-visual-${category.kind}`}>
+                <ProductVisual variant={category.kind}/>
+                <span className="devices-status"><span aria-hidden="true"/>Active</span>
+            </Box>
+            <Box className="devices-card-body">
+                <Box className="devices-card-meta-row">
+                    <Box component="p" className="devices-card-kicker">{category.label}</Box>
+                    <button type="button" className="devices-overflow-button" aria-label={`Open actions for ${getDeviceName(device)}`}>
+                        <MoreHorizRoundedIcon aria-hidden="true"/>
+                    </button>
+                </Box>
+                <Box component="h2" className="devices-card-title">{getDeviceName(device)}</Box>
+                {contentType && <span className="devices-content-pill">{contentType}</span>}
+                <Box component="p" className="devices-updated">{formatUpdated(device.updatedAt)}</Box>
+                <AppButton type="button" variant="contained" className="devices-card-action" onClick={onManage} endIcon={<ArrowForwardRoundedIcon aria-hidden="true"/>}>
+                    Manage device
+                </AppButton>
+            </Box>
+        </Surface>
+    );
+}
+
+function ActivationWizard({
+    userId,
+    onCancel,
+    onComplete,
+}: {
+    userId: string;
+    onCancel: () => void;
+    onComplete: (device: ManagedDevice) => void;
+}) {
+    const {db} = useContext(MainContext);
+    const navigate = useNavigate();
+    const [step, setStep] = useState<WizardStep>('code');
+    const [direction, setDirection] = useState<'forward' | 'back' | 'initial'>('initial');
+    const [code, setCode] = useState('');
+    const [matchedDevice, setMatchedDevice] = useState<ManagedDevice | null>(null);
+    const [issue, setIssue] = useState<WizardIssue>(null);
+    const [loading, setLoading] = useState(false);
+    const [activationLoading, setActivationLoading] = useState(false);
+    const [liveMessage, setLiveMessage] = useState('');
+    const headingRef = useRef<HTMLHeadingElement>(null);
+
     useEffect(() => {
-        (async () => {
-            const productRef = doc(db, "products", id)
-            const docSnap = await getDoc(productRef);
-            if (docSnap.exists()) {
-                setProduct(docSnap.data())
+        headingRef.current?.focus();
+    }, [step, issue]);
+
+    const verifyCode = async (event?: FormEvent) => {
+        event?.preventDefault();
+        if (loading) return;
+        if (code.length < CODE_LENGTH) {
+            setIssue('incomplete');
+            return;
+        }
+
+        setLoading(true);
+        setIssue(null);
+        setLiveMessage('Verifying activation code.');
+        try {
+            const q = query(collection(db, "products"), where("unlockCode", "==", code));
+            const querySnapshot = await getDocs(q);
+            const found: ManagedDevice[] = [];
+            querySnapshot.forEach((productDoc: any) => {
+                found.push({id: productDoc.id, ...productDoc.data()});
+            });
+            const product = found[0];
+            if (!product) {
+                setIssue('not-found');
+                setLiveMessage('Activation code was not found.');
+                return;
             }
-        })()
+            if (product.activated) {
+                setIssue('already-activated');
+                setLiveMessage('Product is already activated.');
+                return;
+            }
+            setMatchedDevice(product);
+            setDirection('forward');
+            setStep('confirm');
+            setLiveMessage('Product found. Confirm before activating.');
+        } catch (error: any) {
+            setIssue(mapWizardIssue(error?.code, 'not-found'));
+            setLiveMessage('Activation code could not be verified.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    }, []);
-    const navigate = useNavigate()
-    const openProduct = () => {
-        navigate(`/manage-device?product_id=${id}`)
+    const activateDevice = async () => {
+        if (!matchedDevice || !userId || activationLoading) return;
+        setActivationLoading(true);
+        setIssue(null);
+        setLiveMessage('Activating device.');
+
+        try {
+            const productRef = doc(db, "products", matchedDevice.id);
+            const latestProduct = await getDoc(productRef);
+            if (!latestProduct.exists()) {
+                setIssue('not-found');
+                return;
+            }
+            if (latestProduct.data()?.activated) {
+                setIssue('already-activated');
+                return;
+            }
+            await updateDoc(productRef, {activated: true});
+            const userRef = doc(db, "users", userId);
+            await updateDoc(userRef, {
+                products: arrayUnion(matchedDevice.id)
+            });
+            const activatedDevice = {...matchedDevice, ...latestProduct.data(), activated: true};
+            setMatchedDevice(activatedDevice);
+            setDirection('forward');
+            setStep('success');
+            setLiveMessage('Activation complete.');
+        } catch (error: any) {
+            setIssue(mapWizardIssue(error?.code, 'activation-failed'));
+            setLiveMessage('Activation failed.');
+        } finally {
+            setActivationLoading(false);
+        }
+    };
+
+    const returnToDashboard = () => {
+        if (matchedDevice && step === 'success') {
+            onComplete(matchedDevice);
+            return;
+        }
+        onCancel();
+    };
+
+    const goToSetup = () => {
+        if (matchedDevice) {
+            onComplete(matchedDevice);
+            navigate(`/manage-device?product_id=${matchedDevice.id}`);
+        }
+    };
+
+    return (
+        <PageShell bleed className="activation-page-shell" sx={{py: 0}}>
+            <Box className="activation-page">
+                <Box className="devices-decor devices-decor-top" aria-hidden="true"/>
+                <Box className="devices-decor devices-decor-bottom" aria-hidden="true"/>
+                <Box className="activation-container">
+                    <Box component="header" className="activation-mobile-header">
+                        <FlexPayzLogo className="devices-logo"/>
+                        <button type="button" className="devices-profile-button" aria-label={step === 'confirm' ? 'Back to activation code' : 'Close activation'} onClick={step === 'confirm' ? () => {
+                            setDirection('back');
+                            setStep('code');
+                            setMatchedDevice(null);
+                            setIssue(null);
+                        } : onCancel}>
+                            {step === 'confirm' ? <ArrowBackRoundedIcon aria-hidden="true"/> : <CloseRoundedIcon aria-hidden="true"/>}
+                        </button>
+                    </Box>
+                    <Surface className="activation-card">
+                        <ActivationBrandPanel step={step}/>
+                        <Box component="section" className="activation-content" aria-label="Device activation">
+                            <MobileStepper step={step}/>
+                            <span className="devices-live-region" aria-live="polite">{liveMessage}</span>
+                            <Box key={`${step}-${issue || 'content'}`} className={`activation-step activation-step-${direction}`}>
+                                {step === 'code' && (
+                                    <CodeStep
+                                        headingRef={headingRef}
+                                        code={code}
+                                        onCode={setCode}
+                                        onSubmit={verifyCode}
+                                        loading={loading}
+                                        issue={issue}
+                                        onDismissIssue={() => setIssue(null)}
+                                        onCancel={onCancel}
+                                    />
+                                )}
+                                {step === 'confirm' && matchedDevice && (
+                                    <ConfirmStep
+                                        headingRef={headingRef}
+                                        device={matchedDevice}
+                                        code={code}
+                                        loading={activationLoading}
+                                        issue={issue}
+                                        onActivate={activateDevice}
+                                        onDifferentCode={() => {
+                                            setDirection('back');
+                                            setStep('code');
+                                            setMatchedDevice(null);
+                                            setIssue(null);
+                                        }}
+                                    />
+                                )}
+                                {step === 'success' && matchedDevice && (
+                                    <SuccessStep
+                                        headingRef={headingRef}
+                                        device={matchedDevice}
+                                        onSetup={goToSetup}
+                                        onBack={returnToDashboard}
+                                    />
+                                )}
+                            </Box>
+                        </Box>
+                    </Surface>
+                </Box>
+            </Box>
+        </PageShell>
+    );
+}
+
+function ActivationBrandPanel({step}: {step: WizardStep}) {
+    return (
+        <Box component="aside" className="activation-brand-panel" aria-label="Activation progress">
+            <FlexPayzLogo className="devices-logo"/>
+            <Box className="activation-brand-copy">
+                <Box component="p" className="devices-kicker">ADD A DEVICE</Box>
+                <Box component="h2">Activate your <span>FlexPayz product.</span></Box>
+            </Box>
+            <ol className="activation-desktop-steps">
+                {activationSteps.map((item, index) => {
+                    const state = getStepState(step, item.step);
+                    return (
+                        <li key={item.step} className={`activation-desktop-step activation-desktop-step-${state}`} aria-current={state === 'active' ? 'step' : undefined}>
+                            <span>{state === 'complete' ? <CheckRoundedIcon fontSize="small" aria-hidden="true"/> : index + 1}</span>
+                            <strong>{item.label}</strong>
+                            <small>{item.description}</small>
+                        </li>
+                    );
+                })}
+            </ol>
+            <Surface tone="soft" className="activation-brand-help">
+                <strong>Need help?</strong>
+                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">Open the FlexPayz activation guide →</a>
+            </Surface>
+        </Box>
+    );
+}
+
+function MobileStepper({step}: {step: WizardStep}) {
+    return (
+        <Box className="activation-mobile-stepper" role="list" aria-label="Activation steps">
+            {activationSteps.map((item, index) => {
+                const state = getStepState(step, item.step);
+                return (
+                    <span key={item.step} role="listitem" className={`activation-mobile-step activation-mobile-step-${state}`} aria-current={state === 'active' ? 'step' : undefined}>
+                        <span>{state === 'complete' ? <CheckRoundedIcon fontSize="small" aria-hidden="true"/> : index + 1}</span>
+                        <span className="devices-live-region">{item.label}</span>
+                    </span>
+                );
+            })}
+        </Box>
+    );
+}
+
+function CodeStep({
+    headingRef,
+    code,
+    onCode,
+    onSubmit,
+    loading,
+    issue,
+    onDismissIssue,
+    onCancel,
+}: {
+    headingRef: RefObject<HTMLHeadingElement>;
+    code: string;
+    onCode: (value: string) => void;
+    onSubmit: (event?: FormEvent) => void;
+    loading: boolean;
+    issue: WizardIssue;
+    onDismissIssue: () => void;
+    onCancel: () => void;
+}) {
+    return (
+        <Box component="form" className="activation-form" onSubmit={onSubmit} noValidate>
+            <Box component="p" className="devices-kicker">ADD A DEVICE</Box>
+            <Box component="h1" ref={headingRef} tabIndex={-1} className="activation-heading">Enter your code.</Box>
+            <Box component="p" className="activation-description">Use the unique six-character code included inside your FlexPayz product packaging.</Box>
+            <ActivationGuideCard/>
+            <ActivationCodeInput value={code} onChange={(value) => {
+                onCode(value);
+                if (issue === 'incomplete' || issue === 'not-found') onDismissIssue();
+            }}/>
+            <WizardIssuePanel issue={issue} onAction={issue === 'already-activated' ? openSupport : onDismissIssue}/>
+            <Stack direction={{xs: 'column', md: 'row'}} className="activation-actions">
+                <AppButton
+                    type="submit"
+                    variant="contained"
+                    className="devices-primary-button"
+                    disabled={loading || code.length < CODE_LENGTH}
+                    endIcon={loading ? <CircularProgress size={18} color="inherit" aria-label="Verifying code"/> : <ArrowForwardRoundedIcon aria-hidden="true"/>}
+                >
+                    Continue
+                </AppButton>
+                <AppButton type="button" variant="outlined" className="devices-secondary-button" onClick={onCancel}>
+                    Cancel activation
+                </AppButton>
+            </Stack>
+            <Surface className="activation-support-card">
+                <strong>Having trouble?</strong>
+                <p>Contact FlexPayz support for help with your code.</p>
+            </Surface>
+        </Box>
+    );
+}
+
+function ConfirmStep({
+    headingRef,
+    device,
+    code,
+    loading,
+    issue,
+    onActivate,
+    onDifferentCode,
+}: {
+    headingRef: RefObject<HTMLHeadingElement>;
+    device: ManagedDevice;
+    code: string;
+    loading: boolean;
+    issue: WizardIssue;
+    onActivate: () => void;
+    onDifferentCode: () => void;
+}) {
+    const category = getDeviceCategory(device);
+    return (
+        <Box className="activation-form">
+            <Box component="p" className="devices-kicker">PRODUCT FOUND</Box>
+            <Box component="h1" ref={headingRef} tabIndex={-1} className="activation-heading">Confirm your product.</Box>
+            <Box component="p" className="activation-description">We found a FlexPayz product matching the activation code you entered.</Box>
+            <Surface className="activation-product-card">
+                <Box className={`activation-product-visual devices-card-visual-${category.kind}`}>
+                    <ProductVisual variant={category.kind}/>
+                    <span className="devices-status"><span aria-hidden="true"/>Available</span>
+                </Box>
+                <Box className="devices-card-kicker">{category.label}</Box>
+                <Box component="h2">{getDeviceName(device)}</Box>
+                <Box className="activation-product-meta">
+                    <span>{getContentType(device) || 'Business card'}</span>
+                    <span>Code {code}</span>
+                </Box>
+            </Surface>
+            <WizardIssuePanel issue={issue} onAction={issue === 'already-activated' ? openSupport : onActivate}/>
+            <Stack direction={{xs: 'column', md: 'row'}} className="activation-actions">
+                <AppButton
+                    type="button"
+                    variant="contained"
+                    className="devices-primary-button"
+                    disabled={loading}
+                    onClick={onActivate}
+                    endIcon={loading ? <CircularProgress size={18} color="inherit" aria-label="Activating device"/> : <ArrowForwardRoundedIcon aria-hidden="true"/>}
+                >
+                    Activate this device
+                </AppButton>
+                <AppButton type="button" variant="outlined" className="devices-secondary-button" onClick={onDifferentCode}>
+                    Use a different code
+                </AppButton>
+            </Stack>
+            <Surface tone="soft" className="activation-support-card">
+                <strong>Is this your product?</strong>
+                <p>Activation permanently links the product to your FlexPayz account.</p>
+            </Surface>
+        </Box>
+    );
+}
+
+function SuccessStep({
+    headingRef,
+    device,
+    onSetup,
+    onBack,
+}: {
+    headingRef: RefObject<HTMLHeadingElement>;
+    device: ManagedDevice;
+    onSetup: () => void;
+    onBack: () => void;
+}) {
+    return (
+        <Box className="activation-form activation-success">
+            <Box className="activation-success-visual">
+                <ProductVisual variant={getDeviceCategory(device).kind}/>
+                <span aria-hidden="true"><CheckRoundedIcon/></span>
+            </Box>
+            <Box component="p" className="devices-kicker">ACTIVATION COMPLETE</Box>
+            <Box component="h1" ref={headingRef} tabIndex={-1} className="activation-heading">Your device is ready.</Box>
+            <Box component="p" className="activation-description">{getDeviceName(device)} is now linked to your account. You can start personalizing it right away.</Box>
+            <Surface tone="soft" className="activation-ready-card">
+                <span>New device</span>
+                <strong>{getDeviceName(device)}</strong>
+                <small>{getContentType(device) || 'Business card'}</small>
+            </Surface>
+            <Stack direction={{xs: 'column', md: 'row'}} className="activation-actions">
+                <AppButton type="button" variant="contained" className="devices-primary-button" onClick={onSetup} endIcon={<ArrowForwardRoundedIcon aria-hidden="true"/>}>
+                    Set up your device
+                </AppButton>
+                <AppButton type="button" variant="outlined" className="devices-secondary-button" onClick={onBack}>
+                    Back to My Devices
+                </AppButton>
+            </Stack>
+            <Surface tone="soft" className="activation-support-card">
+                <strong>What happens next?</strong>
+                <p>Choose what your device shares and preview the public experience before publishing.</p>
+            </Surface>
+        </Box>
+    );
+}
+
+function ActivationCodeInput({value, onChange}: {value: string; onChange: (value: string) => void}) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const chars = Array.from({length: CODE_LENGTH}, (_, index) => value[index] || '');
+
+    const setNormalizedValue = (nextValue: string) => {
+        onChange(normalizeCode(nextValue));
+    };
+
+    const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            return;
+        }
+        if (event.key === 'Backspace') {
+            setNormalizedValue(value.slice(0, -1));
+            event.preventDefault();
+        }
+    };
+
+    return (
+        <Box className="activation-code-field">
+            <label htmlFor="activation-code">Activation code</label>
+            <input
+                ref={inputRef}
+                id="activation-code"
+                value={value}
+                onChange={(event) => setNormalizedValue(event.target.value)}
+                onKeyDown={onKeyDown}
+                maxLength={CODE_LENGTH}
+                autoCapitalize="characters"
+                autoComplete="one-time-code"
+                inputMode="text"
+                aria-describedby="activation-code-help"
+            />
+            <Box className="activation-code-cells" aria-hidden="true" onClick={() => inputRef.current?.focus()}>
+                {chars.map((char, index) => (
+                    <span key={index} className={char ? 'activation-code-cell-filled' : ''}>{char}</span>
+                ))}
+            </Box>
+            <p id="activation-code-help">Letters are automatically capitalized. Enter all six characters before continuing.</p>
+        </Box>
+    );
+}
+
+function WizardIssuePanel({issue, onAction}: {issue: WizardIssue; onAction: () => void}) {
+    if (!issue) return null;
+    const details = wizardIssues[issue];
+
+    return (
+        <Alert severity="warning" className="activation-issue" role="alert">
+            <strong>{details.title}</strong>
+            <p>{details.message}</p>
+            <button type="button" onClick={onAction}>{details.action}</button>
+        </Alert>
+    );
+}
+
+function ProductVisual({variant = 'ring'}: {variant?: string}) {
+    if (variant === 'card') {
+        return <Box className="devices-card-shape" aria-hidden="true"><span/></Box>;
     }
+    if (variant === 'tag') {
+        return <Box className="devices-tag-shape" aria-hidden="true"><span/></Box>;
+    }
+    return (
+        <Box className="entry-product-visual devices-ring-visual" aria-hidden="true">
+            <Box className="entry-product-ring"/>
+            <Box className="entry-product-shine"/>
+        </Box>
+    );
+}
 
-    return (<div className={'product-devices'} onClick={openProduct}>{product.name}</div>)
+function ActivationGuideCard() {
+    return (
+        <Surface tone="soft" className="activation-guide-card">
+            <Box className="activation-code-example" aria-hidden="true">
+                <span/>
+                <strong>ACTIVATION CODE<br/>A7C9F2</strong>
+            </Box>
+            <Box>
+                <strong>Where can I find the code?</strong>
+                <p>Look for the activation card inside your FlexPayz product packaging.</p>
+                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">View the full activation guide</a>
+            </Box>
+        </Surface>
+    );
+}
+
+function DashboardSkeleton() {
+    return (
+        <Box className="devices-grid" aria-label="Loading device cards">
+            {[0, 1, 2].map((item) => (
+                <Surface className="devices-card devices-card-skeleton" key={item}>
+                    <Skeleton variant="rounded" className="devices-skeleton-visual"/>
+                    <Skeleton width="40%"/>
+                    <Skeleton width="70%"/>
+                    <Skeleton width="35%"/>
+                    <Skeleton variant="rounded" height={52}/>
+                </Surface>
+            ))}
+        </Box>
+    );
+}
+
+function NoResults({onClear}: {onClear: () => void}) {
+    return (
+        <Surface className="devices-no-results">
+            <strong>No matching devices</strong>
+            <p>Try another search or filter.</p>
+            <AppButton type="button" variant="outlined" className="devices-secondary-button" onClick={onClear}>
+                Clear search
+            </AppButton>
+        </Surface>
+    );
+}
+
+function SupportPanel() {
+    return (
+        <Surface tone="soft" className="devices-support-panel">
+            <Box>
+                <strong>Need help with a product?</strong>
+                <p>Find activation guides, setup instructions and FlexPayz support.</p>
+            </Box>
+            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">Open support →</a>
+        </Surface>
+    );
+}
+
+const activationSteps = [
+    {step: 'code' as WizardStep, label: 'Enter activation code', description: 'Find it inside your packaging'},
+    {step: 'confirm' as WizardStep, label: 'Confirm product', description: 'Review before activation'},
+    {step: 'success' as WizardStep, label: 'Start setup', description: 'Personalize your device'},
+];
+
+const wizardIssues = {
+    incomplete: {
+        title: 'Incomplete code',
+        message: 'Enter all six characters before continuing.',
+        action: 'Continue entering code',
+    },
+    'not-found': {
+        title: 'Code not found',
+        message: 'Check the code and try again. Letters are not case-sensitive.',
+        action: 'Try another code',
+    },
+    'already-activated': {
+        title: 'Already activated',
+        message: 'This product is already linked. Contact support if it belongs to you.',
+        action: 'Contact support',
+    },
+    'activation-failed': {
+        title: 'Couldn’t activate',
+        message: 'Your connection may have been interrupted. No changes were made.',
+        action: 'Try activation again',
+    },
+    network: {
+        title: 'Couldn’t activate',
+        message: 'Your connection may have been interrupted. No changes were made.',
+        action: 'Try activation again',
+    },
+    permission: {
+        title: 'Couldn’t activate',
+        message: 'You do not have permission to activate this product.',
+        action: 'Try activation again',
+    },
+};
+
+function filterDevices(devices: ManagedDevice[], search: string, filter: FilterValue) {
+    const normalizedSearch = search.trim().toLowerCase();
+    return devices.filter((device) => {
+        const category = getDeviceCategory(device);
+        const matchesFilter = filter === 'all' || category.intent === filter;
+        const searchableText = [
+            getDeviceName(device),
+            category.label,
+            getContentType(device),
+        ].join(' ').toLowerCase();
+        return matchesFilter && (!normalizedSearch || searchableText.includes(normalizedSearch));
+    });
+}
+
+function getDeviceName(device: ManagedDevice) {
+    return device.name?.trim() || 'FlexPayz product';
+}
+
+function getDeviceCategory(device: ManagedDevice) {
+    const raw = `${device.category || device.type || device.productType || ''}`.toLowerCase();
+    if (raw.includes('card')) return {label: 'Flex Card', kind: 'card', intent: 'business' as FilterValue};
+    if (raw.includes('tag') || device.preview === 'animal_tag') return {label: 'Pet Tag', kind: 'tag', intent: 'personal' as FilterValue};
+    if (device.preview === 'baby-journal' || device.preview === 'adult-journal') return {label: 'Flex Ring', kind: 'ring', intent: 'personal' as FilterValue};
+    return {label: 'Flex Ring', kind: 'ring', intent: 'business' as FilterValue};
+}
+
+function getContentType(device: ManagedDevice) {
+    switch (device.preview) {
+        case 'custom_link':
+            return 'Custom link';
+        case 'upload_file':
+            return 'Files';
+        case 'upload_video':
+            return 'Video';
+        case 'upload-songs':
+            return 'Songs';
+        case 'baby-journal':
+            return 'Baby journal';
+        case 'adult-journal':
+            return 'Adult journal';
+        case 'animal_tag':
+            return 'Animal tag';
+        default:
+            return 'Business card';
+    }
+}
+
+function formatUpdated(updatedAt: any) {
+    if (!updatedAt) return 'Updated today';
+    const date = typeof updatedAt?.toDate === 'function' ? updatedAt.toDate() : new Date(updatedAt);
+    if (Number.isNaN(date.getTime())) return 'Updated today';
+    const days = Math.floor((Date.now() - date.getTime()) / 86400000);
+    if (days <= 0) return 'Updated today';
+    if (days === 1) return 'Updated yesterday';
+    return `Updated ${days} days ago`;
+}
+
+function pluralizeDevices(count: number) {
+    if (count === 0) return 'No active products yet';
+    if (count === 1) return '1 active FlexPayz product';
+    return `${count} active FlexPayz products`;
+}
+
+function normalizeCode(value: string) {
+    return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, CODE_LENGTH);
+}
+
+function getStepState(activeStep: WizardStep, step: WizardStep) {
+    const activeIndex = activationSteps.findIndex((item) => item.step === activeStep);
+    const stepIndex = activationSteps.findIndex((item) => item.step === step);
+    if (stepIndex < activeIndex) return 'complete';
+    if (stepIndex === activeIndex) return 'active';
+    return 'upcoming';
+}
+
+function getDashboardError(code?: string) {
+    if (code === 'permission-denied') return 'Your session may have expired. Please sign in again.';
+    if (code === 'unavailable') return 'Network unavailable. Please try again.';
+    return 'We could not load your devices. Please try again.';
+}
+
+function mapWizardIssue(code: string | undefined, fallback: WizardIssue) {
+    if (code === 'permission-denied') return 'permission';
+    if (code === 'unavailable' || code === 'deadline-exceeded') return 'network';
+    return fallback;
+}
+
+function openSupport() {
+    window.open(SUPPORT_URL, '_blank', 'noopener,noreferrer');
 }
