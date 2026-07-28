@@ -1,18 +1,14 @@
-import {onChangeWrapper} from "../utils";
-import {Button, TextField} from "@mui/material";
-import {useEditState, useProductInformation} from "../control-state";
-import {useSaveProductData} from "../useProductData";
-import {useContext} from "react";
-import {ManageProductContext} from "../contexts";
+import {useProductInformation} from "../control-state";
 import VCard from "vcard-creator";
 import {SettingsHeader} from "../Pages/manage-device";
+import {normalizeSharedContacts, SharedContact} from "../business-card";
 
-function Contact({contact}: any) {
+function Contact({contact}: {contact: SharedContact}) {
     const saveContact = () => {
         const contactVCard = new VCard()
         contactVCard.addName(contact.name)
-        contactVCard.addEmail(contact.email)
-        contactVCard.addPhoneNumber(contact.phone)
+        if (contact.email) contactVCard.addEmail(contact.email)
+        if (contact.phone) contactVCard.addPhoneNumber(contact.phone)
         const blob = new Blob([contactVCard.toString()], {type: "text/vcard"})
         const file = new File([blob], 'vCard.vcf', {type: "text/vcard"})
         const url = window.URL.createObjectURL(file);
@@ -28,6 +24,9 @@ function Contact({contact}: any) {
     return (
         <div className={'contact-box'}>
             <span>{contact.name}</span>
+            {contact.email && <small>{contact.email}</small>}
+            {contact.phone && <small>{contact.phone}</small>}
+            {contact.message && <p>{contact.message}</p>}
             <button onClick={saveContact}>Save Contact</button>
         </div>
     )
@@ -37,7 +36,7 @@ export function SharedContacts() {
 
     // const {productState} = useContext(ManageProductContext)
     const {productState} = useProductInformation()
-    const contacts = productState?.sharedContacts || []
+    const contacts = normalizeSharedContacts(productState?.sharedContacts)
     const contactsExist = contacts.length > 0
 
 
@@ -45,7 +44,7 @@ export function SharedContacts() {
         <SettingsHeader/>
         <div className={'section-title'}>Shared Contacts</div>
         {!contactsExist && <div className={'explanation-text'}> You have no shared contacts yet.</div>}
-        {contacts.map((contact) => (<Contact contact={contact}/>))}
+        {contacts.map((contact) => (<Contact key={`${contact.date}-${contact.email}-${contact.phone}`} contact={contact}/>))}
 
 
     </div>)

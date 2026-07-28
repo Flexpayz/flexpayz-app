@@ -65,6 +65,7 @@ export const flexPayzTokens = {
     4: "1rem",
     5: "1.25rem",
     6: "1.5rem",
+    7: "1.75rem",
     8: "2rem",
     10: "2.5rem",
     12: "3rem",
@@ -73,6 +74,7 @@ export const flexPayzTokens = {
     24: "6rem",
   },
   radius: {
+    xs: "8px",
     sm: "12px",
     md: "16px",
     lg: "24px",

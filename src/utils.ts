@@ -3,7 +3,7 @@ import {db, storage} from "./App";
 import {Product, useProductInformation} from "./control-state";
 import {useContext} from "react";
 import {ManageProductContext} from "./contexts";
-import {Preview} from "./Pages/admin";
+import {Preview} from "./preview";
 import {doc, updateDoc} from "firebase/firestore";
 import {notify} from "./Pages/login-page";
 

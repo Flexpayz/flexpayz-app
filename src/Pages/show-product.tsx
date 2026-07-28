@@ -1,96 +1,25 @@
 import {useNavigate} from "react-router";
-import {CSSProperties, useContext, useEffect, useMemo, useState} from "react";
-import {arrayUnion, doc, getDoc, updateDoc} from "firebase/firestore";
-import {MainContext, ManageProductContext} from "../contexts";
+import {CSSProperties, useContext, useEffect, useState} from "react";
+import {doc, getDoc} from "firebase/firestore";
+import {MainContext} from "../contexts";
 import {getDownloadURL, ref} from "firebase/storage";
-import {db, storage} from "../App";
-import {Preview} from "./admin";
+import {storage} from "../App";
+import {Preview} from "../preview";
 import './show-product.css'
-import ShareButton from '../assets/share.svg'
-import Logo from '../assets/flexpayz-logo.svg'
-import InstagramLogo from '../assets/instagram.svg'
-import FacebookLogo from '../assets/facebook.svg'
-import LinkedInLogo from '../assets/linkedin.svg'
-import YoutubeLogo from '../assets/youtube-svgrepo-com.svg'
 import YouTube from "react-youtube";
-import WorkIcon from '../assets/work-icon.svg'
-import LocationIcon from '../assets/location-icon.svg'
-import WebsiteIcon from '../assets/website-icon.svg'
-import TikTokLogo from '../assets/tiktok-square-icon.svg'
 import {defaultProduct, Product} from "../control-state";
-import {Box, Modal, TextField} from "@mui/material";
-import {getProductIdFromURL, onChangeWrapper} from "../utils";
+import {TextField} from "@mui/material";
 import {AudioPage} from "../components/audio-page";
-import {useResetDevice} from "../useProductData";
-import {notify} from "./login-page";
 import {translatedText} from "../languages";
 import {BabyJournalPreview} from "../components/baby-journal-preview";
 import {AdultJournalPreview} from "../components/adult-journal-preview";
 import { AnimalTagPreviewWrapper} from "./animal-tag/animal-tag-preview";
-function addHttps(site: string) {
-    if (site.trim().startsWith('http')) {
-        return site
-    } else {
-        return `https://${site}`
-    }
-}
-
-function GetContact({product}: { product: Product }) {
-    const [showModal, setShowModal] = useState(false)
-    const onResetProduct = useResetDevice()
-    const handleCloseModal = () => {
-        setShowModal(false)
-    }
-    console.log('product', product.previewLanguage)
-    const handleOpenModal = () => {
-        setShowModal(true)
-    }
-
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [phone, setPhone] = useState("")
-
-    const handleShareContact = async () => {
-        const productId = getProductIdFromURL()
-        const date = Date.now()
-        if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {sharedContacts: arrayUnion({name, email, phone, date})})
-            notify('Shared contact')
-            handleCloseModal()
-        }
-
-    }
-
-    return (<div className={'reset-product-container'}>
-        <button className={'share-contact-with-me'}
-                onClick={handleOpenModal}>{translatedText[product.previewLanguage]["Share your contact with me"]}
-        </button>
-        <Modal open={showModal} onClose={handleCloseModal}>
-            <Box className={'inside-modal-2'}>
-                <div className={'modal-inputs'}>
-                    <TextField label={'Name'} type={'text'} className={'form-manager-input'} value={name}
-                               onChange={(e) => {
-                                   setName(e.target.value)
-                               }} variant={"outlined"} size={"small"} sx={{textarea: {color: 'white'}}}/>
-                    <TextField label={'Phone'} type={'text'} value={phone} className={'form-manager-input'}
-                               onChange={(e) => {
-                                   setPhone(e.target.value)
-                               }} variant={"outlined"} size={"small"}/>
-                    <TextField label={'Email'} type={'email'} className={'form-manager-input'} value={email}
-                               onChange={(e) => {
-                                   setEmail(e.target.value)
-                               }} variant={"outlined"} size={"small"}/>
-                </div>
-                <button style={{marginBottom: '12px'}} className={'reset-button'}
-                        onClick={handleShareContact}>{translatedText[product.previewLanguage].Share}
-                </button>
-
-            </Box>
-
-        </Modal>
-    </div>)
-}
+import {
+    getPublicRoutingMode,
+    getVisibleSections,
+    PUBLIC_SECTION_ORDER,
+} from "../product-visibility";
+import {BusinessCardPublicPage} from "../components/business-card-public";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -123,9 +52,6 @@ export function ShowProduct() {
                     setProduct((prev: Product) => ({...prev, ...docSnap.data() as Product}))
                     setPasswordProtected((docSnap.data() as Product).publicPagePasswordActivated)
                     setLoaded(true)
-                    if (docSnap.data().preview === Preview.CUSTOM_LINK) {
-                        window.location.replace(docSnap.data().customLink)
-                    }
                     const song1Ref = ref(storage, `audio/${productId}/song1`)
                     const song2Ref = ref(storage, `audio/${productId}/song2`)
                     const song3Ref = ref(storage, `audio/${productId}/song3`)
@@ -200,16 +126,6 @@ export function ShowProduct() {
             }
         })()
     }, [])
-
-    const share = () => {
-        const url = window.location.href
-        if(navigator.share) {
-            navigator.share({
-                title: `${product.firstName} ${product.lastName} - Business Card`,
-                url: url
-            }).catch(console.error)
-        }
-    }
 
     const downloadCV = () => {
         const documentRef = ref(storage, `documents/${productId}/CV` )
@@ -325,70 +241,6 @@ export function ShowProduct() {
             });
     }
 
-    const downloadVCard = () => {
-        const documentRef = ref(storage, `documents/${productId}/vCard` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `vCard.vcf`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-
-    const shareFile1 = () => {
-    }
-
-    const shareFile2 = () => {
-
-    }
-    const shareFile3 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file3` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const file = new File([blob], `${product.filename3}.pdf`, {
-                        type: blob.type,
-                    });
-                    navigator.share({
-                        title: product.filename3,
-                        files:[file]
-                    })
-                };
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-
     const post = getYoutubeLink(product.youtubeLink)
     const youtubeID = post?.split('v=')[1];
     const onReady = (event: any) => {
@@ -403,6 +255,20 @@ export function ShowProduct() {
         "--color1": product.color1 || '#467083',
         "--color2": product.color2 || "#A3B0B5",
     } as CSSProperties;
+    const visibleSections = loaded ? getVisibleSections(product) : [];
+    const publicRoutingMode = getPublicRoutingMode(visibleSections);
+    const requestedSection = urlParams.get('section') as Preview | null;
+    const opensSectionFromDashboard = publicRoutingMode === 'dashboard' && Boolean(requestedSection && visibleSections.includes(requestedSection));
+    const activePreview = opensSectionFromDashboard
+        ? requestedSection
+        : publicRoutingMode === 'single' ? visibleSections[0] : product.preview;
+    const showSectionDashboard = publicRoutingMode === 'dashboard' && !opensSectionFromDashboard;
+
+    useEffect(() => {
+        if (loaded && !passwordProtected && (publicRoutingMode === 'single' || opensSectionFromDashboard) && activePreview === Preview.CUSTOM_LINK && product.customLink) {
+            window.location.replace(product.customLink);
+        }
+    }, [activePreview, loaded, opensSectionFromDashboard, passwordProtected, product.customLink, publicRoutingMode]);
 
     return (<div style={colorsStyle}>
         {passwordProtected && <div className={'password-page'}>
@@ -414,59 +280,23 @@ export function ShowProduct() {
                            }
                        }} variant={"outlined"} size={"small"}/>
         </div>}
-        {loaded && !passwordProtected && product.preview === Preview.BUSINESS_CARD &&
-            <div className={"page-show-product-business"}>
-            <div className={'profile-picture-container'}>
-                <img className={'profile-picture'} src={profileImageURL}/>
-                <div className={'profile-data'}>
-                    <div className={'name-title'}>
-                        <div className={'name-container'}>{product.firstName} {product.lastName}</div>
-                        <div className={'title-container'}>{product.title}</div>
-                    </div>
-                    {logoImageURL && <img className={'logo-profile'} src={logoImageURL}/>}
-                </div>
-            </div>
-            <div className={'share-button'} onClick={share}><img className={'share-icon'} src={ShareButton}/></div>
-            <div className={'data-selectors'}>
-                <div className={'data-line'}><img src={WorkIcon} className={'presentation-icon'}/>{product.companyName}
-                </div>
-                <div className={'data-line'}><img src={LocationIcon} className={'presentation-icon'}/>{product.city}
-                </div>
-                <div className={'data-line'} onClick={() => {
-                    window.open(addHttps(product.website))
-                }}><img src={WebsiteIcon} className={'presentation-icon'}/>{product.website}</div>
-            </div>
-            <div className={'about-container'}>
-                <div className={'about-me-title'}>{translatedText[product.previewLanguage]["About me"]}</div>
-                <div className={'about-me-text'}>{product.about}</div>
-            </div>
-
-            <div className={'social-media-bar'}>
-                {product.instagram && <img src={InstagramLogo} onClick={() => {
-                    window.location.replace(product.instagram)
-                }}/>}
-                {product.facebook && <img src={FacebookLogo} onClick={() => {
-                    window.location.replace(product.facebook)
-                }}/>}
-                {product.linkedIn && <img src={LinkedInLogo} onClick={() => {
-                    window.location.replace(product.linkedIn)
-                }}/>}
-                {product.youtube && <img src={YoutubeLogo} onClick={() => {
-                    window.location.replace(product.youtube)
-                }}/>}
-                {product.tiktok && <img src={TikTokLogo} onClick={() => {
-                    window.location.replace(product.tiktok)
-                }}/>}
-
-            </div>
-                {!passwordProtected && product.cv &&
-                    <div className={'download-button-profile'}
-                         onClick={downloadCV}>{translatedText[product.previewLanguage]['Download document']}</div>}
-                <div className={'download-button-profile'}
-                     onClick={downloadVCard}>{translatedText[product.previewLanguage]["Save my contact details"]}</div>
-                <GetContact product={product}/>
-        </div>}
-        {!passwordProtected && product.preview === Preview.UPLOAD_FILE && <div className={'page-show-product'}>
+        {loaded && !passwordProtected && publicRoutingMode === 'empty' && <PublicNotConfigured/>}
+        {loaded && !passwordProtected && showSectionDashboard && (
+            <PublicSectionDashboard
+                product={product}
+                sections={visibleSections}
+                productId={productId || ''}
+            />
+        )}
+        {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.BUSINESS_CARD &&
+            <BusinessCardPublicPage
+                product={product}
+                productId={productId || ""}
+                profileImageURL={profileImageURL}
+                logoImageURL={logoImageURL}
+                onDownloadCV={downloadCV}
+            />}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE && <div className={'page-show-product'}>
             {product.filename1 && <div className={'file-container'}>
                 <span>{product.filename1}</span>
                 <div className={'download-button'}
@@ -486,7 +316,7 @@ export function ShowProduct() {
                 {/*<div className={'share-button'} onClick={shareFile3}>Share</div>*/}
             </div>}
         </div>}
-        {!passwordProtected && product.preview === Preview.UPLOAD_VIDEO && <div className={'page-show-product'}>
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO && <div className={'page-show-product'}>
             <YouTube className={'youtube'} videoId={youtubeID} onReady={onReady} opts={
                 {
                     playerVars: {
@@ -501,15 +331,53 @@ export function ShowProduct() {
                 }
             }/>
         </div>}
-        {!passwordProtected && product.preview === Preview.UPLOAD_SONGS && <div className={'page-show-product'}>
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS && <div className={'page-show-product'}>
             <AudioPage songs={songs} language={product.previewLanguage}/>
         </div>}
-        {!passwordProtected && product.preview === Preview.BABY_JOURNAL && <BabyJournalPreview/>}
-        {!passwordProtected && product.preview === Preview.ADULT_JOURNAL && <AdultJournalPreview/>}
-        {!passwordProtected && product.preview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL && <BabyJournalPreview/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.ADULT_JOURNAL && <AdultJournalPreview/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
 
     </div>)
 
+}
+
+function PublicNotConfigured() {
+    return (
+        <div className="public-routing-state">
+            <div className="public-routing-card">
+                <p>FLEXPAYZ</p>
+                <h1>This device is not configured.</h1>
+                <span>No public sections are visible yet.</span>
+            </div>
+        </div>
+    );
+}
+
+function PublicSectionDashboard({product, sections, productId}: { product: Product; sections: Preview[]; productId: string }) {
+    const visibleDefinitions = PUBLIC_SECTION_ORDER.filter((section) => sections.includes(section.id));
+
+    return (
+        <div className="public-routing-state">
+            <div className="public-routing-card public-routing-dashboard">
+                <p>FLEXPAYZ</p>
+                <h1>{product.name || 'FlexPayz product'}</h1>
+                <span>Choose what you want to open.</span>
+                <div className="public-routing-section-list">
+                    {visibleDefinitions.map((section) => (
+                        <a
+                            key={section.id}
+                            href={`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}`}
+                            className="public-routing-section"
+                        >
+                            <strong>{section.title}</strong>
+                            <small>{section.description}</small>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 }
 
 const getYoutubeLink = (link: string) => {

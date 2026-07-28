@@ -1,4 +1,4 @@
-import {Preview} from "./Pages/admin";
+import {Preview} from "./preview";
 import {useContext, useEffect, useState} from "react";
 import {ManageProductContext} from "./contexts";
 import {Languages} from "./languages";
@@ -58,13 +58,15 @@ export const defaultProduct: Product = {
     song3: '',
     businessFile: '',
     sharedContacts: [],
-    previewLanguage: Languages.ENGLISH
+    previewLanguage: Languages.ENGLISH,
+    visibleSections: undefined
 }
 
 export interface Product {
     name: string
     activated: boolean,
     preview: Preview
+    visibleSections?: Preview[]
     unlockCode: string,
     firstName: string,
     lastName: string,

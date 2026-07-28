@@ -14,17 +14,9 @@ import SerialUploader from "../components/serial-number-uploader";
 import ExportSerialsCSVButton from "../components/serial-csv-buton";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Modular import for auth
 import { getIdTokenResult } from 'firebase/auth';  // To get custom claims
+import {Preview} from "../preview";
 
-export enum Preview {
-    BUSINESS_CARD = 'business_card',
-    CUSTOM_LINK = 'custom_link',
-    UPLOAD_FILE = 'upload_file',
-    UPLOAD_VIDEO = "upload_video",
-    UPLOAD_SONGS = "upload-songs",
-    BABY_JOURNAL = "baby-journal",
-    ADULT_JOURNAL = "adult-journal",
-    ANIMAL_TAG = "animal_tag",
-}
+export {Preview};
 
 export const random_hex_code = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
