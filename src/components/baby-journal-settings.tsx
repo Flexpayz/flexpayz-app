@@ -1,27 +1,37 @@
-import {createContext, useCallback, useContext, useEffect, useMemo, useState} from "react";
-import {getAuth, onAuthStateChanged} from "firebase/auth";
+import {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
+import type {ReactNode} from "react";
 import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {db} from "../App";
-import {JOURNAL_SEGMENTS, JournalNavbar} from "./journal-navbar";
-import {HomeJournalSegment} from "./home-journal-segment";
-import dayjs, {Dayjs} from "dayjs";
-import {HealthJournalSegment} from "./health-journal-segment";
 import {notify} from "../Pages/login-page";
 import {getProductIdFromURL} from "../utils";
-import {SaveJournalButton} from "./save-journal-button";
-import {LoadingScreen, LoadingScreenContext} from "./loading-sreen";
+import {LoadingScreenContext} from "./loading-sreen";
 import {
-    AdultJournalStateContext,
     defaultMultipleInvestigations,
     InvestigationHandler,
-    ModificationJournalContextProvider,
     MultipleInvestigations,
     MultipleInvestigationsHandler,
     MultipleSleepScheduleHandler,
     useCreateMultipleSleepScheduleHandler
 } from "./adult-journal-settings";
-import {NotSavedScreen} from "./not-saved-screen";
 import {useNavigate} from "react-router";
+import {FlexPayzLogo} from "./design-system";
+import {ProfileUpload} from "./profile-upload";
+import AssetUpload3 from "./asset-upload-3";
+import {
+    babyFeedingFields,
+    babyMilestones,
+    buildBabyJournalUpdate,
+    deriveBabyAgeLabel,
+    emptyBabyJournalInformation,
+    formatJournalDate,
+    getBabyJournalCompletion,
+    getDatedMilestones,
+    getLatestSleepEntry,
+    hasBabyJournalChanges,
+    healthCategories,
+    normalizeBabyJournal,
+    sortJournalDateKeysNewestFirst,
+} from "../baby-journal";
 
 // import {InvestigationsJournalSegment} from "./investigations-journal-segment";
 
@@ -176,22 +186,12 @@ interface useBabyJournalEditInterface {
 }
 
 export function BabyJournalSettings() {
-    const [activeSegment, setActiveSegment] = useState<JOURNAL_SEGMENTS>(JOURNAL_SEGMENTS.HOME)
     const [isLoading, setIsLoading] = useState(false)
-    return <div style={{position: "relative", maxWidth: "1000px", margin: "0 auto"}}>
+    return <div className="baby-journal-editor-shell">
         <LoadingScreenContext.Provider value={{isLoading, setIsLoading}}>
             <BabyJournalStateContextProvider>
-                <BabyJournalEditContextProvider>
-                    <ModificationJournalContextProvider journalType={'baby'}>
-                        <JournalNavbar activeSegment={activeSegment} setActiveSegment={setActiveSegment} home health/>
-                        {isLoading && <LoadingScreen/>}
-                        {activeSegment === JOURNAL_SEGMENTS.HOME && <HomeJournalSegment/>}
-                        {/*{activeSegment === JOURNAL_SEGMENTS.INVESTIGATIONS && <InvestigationsJournalSegment/>}*/}
-                        {activeSegment === JOURNAL_SEGMENTS.HEALTH && <HealthJournalSegment/>}
-                        <SaveJournalButton collection={DB_COLLECTIONS.BABY_JOURNALS}/>
-                        <NotSavedScreen/>
-                    </ModificationJournalContextProvider>
-                </BabyJournalEditContextProvider>
+                {isLoading && <BabyJournalEditorLoading/>}
+                {!isLoading && <BabyJournalWorkspace/>}
             </BabyJournalStateContextProvider>
         </LoadingScreenContext.Provider>
     </div>
@@ -203,7 +203,7 @@ const defaultInvestigation: Investigation = {
     assets: []
 }
 
-const defaultInformation: BabyJournalInformation = {
+export const defaultInformation: BabyJournalInformation = {
     name: "",
     gender: "",
     birthDate: "",
@@ -258,48 +258,449 @@ const defaultInformation: BabyJournalInformation = {
     europeanHealthCard: [],
 }
 
-interface useBabyJournalInformation {
+interface UseBabyJournalInformationValue {
     babyJournalState: BabyJournalInformation,
     setBabyJournalState: any,
     originalBabyJournalState: BabyJournalInformation,
     setOriginalBabyJournalState: any,
 }
 
-export function useBabyJournalInformation(): useBabyJournalInformation {
+export function useBabyJournalInformation(): UseBabyJournalInformationValue {
 
-    const [babyJournalState, setBabyJournalState] = useState<BabyJournalInformation>(defaultInformation)
-    const [originalBabyJournalState, setOriginalBabyJournalState] = useState<BabyJournalInformation>(defaultInformation)
-    const navigate = useNavigate()
+    const [babyJournalState, setBabyJournalState] = useState<BabyJournalInformation>(emptyBabyJournalInformation)
+    const [originalBabyJournalState, setOriginalBabyJournalState] = useState<BabyJournalInformation>(emptyBabyJournalInformation)
     const {setIsLoading} = useContext(LoadingScreenContext)
 
     useEffect(() => {
             (async () => {
                 setIsLoading(true)
-                const auth = getAuth();
-                // onAuthStateChanged(auth, (user) => {
-                //     if (user) {
-                //     } else {
-                //         navigate('/app')
-                //     }
-                // });
-
                 const urlParams = new URLSearchParams(window.location.search)
                 const productId = urlParams.get('product_id')
                 if (productId) {
                     const productRef = doc(db, DB_COLLECTIONS.BABY_JOURNALS, productId)
                     const docSnap = await getDoc(productRef);
-                    console.log(docSnap, docSnap.exists(), docSnap.data())
                     if (docSnap.exists()) {
-                        setBabyJournalState((prev: BabyJournalInformation) => ({...prev, ...docSnap.data() as BabyJournalInformation}))
-                        setIsLoading(false)
-                        setOriginalBabyJournalState((prev: BabyJournalInformation) => ({...prev, ...docSnap.data() as BabyJournalInformation}))
+                        const normalized = normalizeBabyJournal(docSnap.data())
+                        setBabyJournalState(normalized)
+                        setOriginalBabyJournalState(normalized)
                     }
                 }
+                setIsLoading(false)
             })()
             // notify(`Don't forget to save after changes`)
-        }, []
+        }, [setIsLoading]
     );
     return {babyJournalState, setBabyJournalState, originalBabyJournalState, setOriginalBabyJournalState}
+}
+
+type BabyJournalEditorTab = "home" | "health";
+type BabyJournalSaveState = "clean" | "dirty" | "saving" | "saved" | "failed";
+
+function BabyJournalEditorLoading() {
+    return (
+        <div className="baby-journal-editor-state" role="status" aria-live="polite">
+            <span className="baby-journal-spinner" aria-hidden="true"/>
+            <p>Loading Baby Journal workspace</p>
+        </div>
+    );
+}
+
+function BabyJournalWorkspace() {
+    const navigate = useNavigate();
+    const productId = getProductIdFromURL();
+    const {babyJournalState, setBabyJournalState, originalBabyJournalState, setOriginalBabyJournalState} = useContext(BabyJournalStateContext);
+    const [activeTab, setActiveTab] = useState<BabyJournalEditorTab>("home");
+    const [saveState, setSaveState] = useState<BabyJournalSaveState>("clean");
+    const [saveMessage, setSaveMessage] = useState("No unsaved changes");
+    const headingRef = useRef<HTMLHeadingElement | null>(null);
+
+    const completion = useMemo(() => getBabyJournalCompletion(babyJournalState), [babyJournalState]);
+    const dirty = useMemo(() => hasBabyJournalChanges(babyJournalState, originalBabyJournalState), [babyJournalState, originalBabyJournalState]);
+    const latestSleep = useMemo(() => getLatestSleepEntry(babyJournalState.sleepSchedule), [babyJournalState.sleepSchedule]);
+    const milestones = useMemo(() => getDatedMilestones(babyJournalState), [babyJournalState]);
+
+    useEffect(() => {
+        if (saveState !== "saving" && saveState !== "failed") {
+            setSaveState(dirty ? "dirty" : "clean");
+            setSaveMessage(dirty ? "Unsaved changes" : "No unsaved changes");
+        }
+    }, [dirty, saveState]);
+
+    useEffect(() => {
+        headingRef.current?.focus();
+    }, [activeTab]);
+
+    const updateField = <K extends keyof BabyJournalInformation>(field: K, value: BabyJournalInformation[K]) => {
+        setBabyJournalState((previous: BabyJournalInformation) => ({...previous, [field]: value}));
+    };
+
+    const updateSleepEntry = (dateKey: string, field: keyof SleepSchedule, value: string) => {
+        setBabyJournalState((previous: BabyJournalInformation) => ({
+            ...previous,
+            sleepSchedule: {
+                ...previous.sleepSchedule,
+                [dateKey]: {
+                    ...(previous.sleepSchedule[dateKey] || {daySleeping: "", nightSleeping: "", waysOfSleeping: "", nightSleepingProgress: ""}),
+                    [field]: value,
+                },
+            },
+        }));
+    };
+
+    const addSleepEntry = () => {
+        const dateKey = new Date().toISOString().slice(0, 10);
+        setBabyJournalState((previous: BabyJournalInformation) => ({
+            ...previous,
+            sleepSchedule: {
+                ...previous.sleepSchedule,
+                [dateKey]: previous.sleepSchedule[dateKey] || {daySleeping: "", nightSleeping: "", waysOfSleeping: "", nightSleepingProgress: ""},
+            },
+        }));
+    };
+
+    const saveJournal = async () => {
+        if (!productId || saveState === "saving") return;
+        const updates = buildBabyJournalUpdate(babyJournalState, originalBabyJournalState);
+        if (Object.keys(updates).length === 0) {
+            setSaveState("clean");
+            setSaveMessage("No changes to save");
+            return;
+        }
+        setSaveState("saving");
+        setSaveMessage("Saving journal…");
+        try {
+            await updateDoc(doc(db, DB_COLLECTIONS.BABY_JOURNALS, productId), updates as Record<string, any>);
+            setOriginalBabyJournalState(babyJournalState);
+            setSaveState("saved");
+            setSaveMessage("Changes saved");
+            notify("Baby Journal saved");
+        } catch {
+            setSaveState("failed");
+            setSaveMessage("Save failed. Your changes are still here.");
+            notify("Baby Journal could not be saved");
+        }
+    };
+
+    const goBack = () => {
+        navigate(`/manage-device?product_id=${productId || ""}`);
+    };
+
+    const scrollToSection = (sectionId: string) => {
+        const element = document.getElementById(sectionId);
+        element?.scrollIntoView({behavior: "smooth", block: "start"});
+        if (element instanceof HTMLElement) element.focus({preventScroll: true});
+    };
+
+    return (
+        <main className="baby-journal-editor-layout" aria-label="Baby Journal editor">
+            <aside className="baby-journal-editor-sidebar" aria-label="Journal navigation">
+                <FlexPayzLogo className="baby-journal-editor-logo"/>
+                <BabyJournalIdentity journal={babyJournalState} completion={completion}/>
+                <nav className="baby-journal-editor-tabs" aria-label="Baby Journal sections">
+                    <button type="button" className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}>⌂ Home</button>
+                    <button type="button" className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}>♡ Health</button>
+                </nav>
+                <div className="baby-journal-editor-section-links">
+                    {(activeTab === "home" ? homeSectionLinks : healthSectionLinks).map((link) => (
+                        <button key={link.id} type="button" onClick={() => scrollToSection(link.id)}>{link.label}</button>
+                    ))}
+                </div>
+                <div className="baby-journal-editor-status-card">
+                    <strong>{completion}%</strong>
+                    <span>Complete</span>
+                    <div><span style={{transform: `scaleX(${completion / 100})`}}/></div>
+                </div>
+                <div className={`baby-journal-editor-status-card ${saveState}`}>
+                    <strong>{saveState === "saving" ? "Saving" : saveState === "failed" ? "Needs retry" : saveState === "saved" ? "Saved" : "Autosave off"}</strong>
+                    <span>{saveMessage}</span>
+                </div>
+            </aside>
+
+            <section className="baby-journal-editor-main">
+                <header className="baby-journal-editor-header">
+                    <div>
+                        <p className="business-kicker">BABY JOURNAL SETTINGS</p>
+                        <h1 ref={headingRef} tabIndex={-1}>{activeTab === "home" ? "A clear record of every chapter" : "Health records, kept readable"}</h1>
+                        <p>{activeTab === "home" ? "Complete one meaningful section at a time. Health information stays in its own workspace." : "Review private health records, medical files and parent profiles without changing the data model."}</p>
+                    </div>
+                    <div className="baby-journal-editor-actions">
+                        <span>{completion}% complete</span>
+                        <button type="button" onClick={goBack} className="baby-journal-button secondary">Back</button>
+                    </div>
+                    <nav className="baby-journal-mobile-tabs" role="tablist" aria-label="Baby Journal sections">
+                        <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}>⌂ Home</button>
+                        <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}>♡ Health</button>
+                    </nav>
+                </header>
+
+                <div className="baby-journal-editor-content">
+                    {activeTab === "home" ? (
+                        <BabyJournalHomeEditor
+                            journal={babyJournalState}
+                            updateField={updateField}
+                            updateSleepEntry={updateSleepEntry}
+                            addSleepEntry={addSleepEntry}
+                            latestSleep={latestSleep}
+                            milestones={milestones}
+                        />
+                    ) : (
+                        <BabyJournalHealthEditor journal={babyJournalState} setJournal={setBabyJournalState}/>
+                    )}
+                </div>
+
+                <footer className="baby-journal-savebar" aria-live="polite">
+                    <span>{saveMessage}</span>
+                    <button type="button" className="baby-journal-button primary" disabled={!dirty || saveState === "saving"} onClick={saveJournal}>
+                        {saveState === "saving" ? "Saving…" : "Save journal"} →
+                    </button>
+                </footer>
+            </section>
+        </main>
+    );
+}
+
+const homeSectionLinks = [
+    {id: "baby-profile-birth", label: "Profile & birth"},
+    {id: "baby-biography", label: "Biography"},
+    {id: "baby-milestones", label: "Milestones"},
+    {id: "baby-feeding", label: "Feeding"},
+    {id: "baby-sleep", label: "Sleep schedule"},
+];
+
+const healthSectionLinks = [
+    {id: "baby-health-summary", label: "Summary"},
+    {id: "baby-health-records", label: "Medical records"},
+    {id: "baby-health-categories", label: "Health categories"},
+    {id: "baby-parent-profiles", label: "Parent profiles"},
+];
+
+function BabyJournalIdentity({journal, completion}: {journal: BabyJournalInformation; completion: number}) {
+    const photo = journal.profilePicture[0];
+    return (
+        <div className="baby-journal-editor-identity">
+            {photo ? <img src={photo.url} alt="" aria-hidden="true"/> : <span aria-hidden="true">⌒</span>}
+            <p>{journal.name || "Baby Journal"}</p>
+            <strong>{journal.name || "Unnamed child"}</strong>
+            <small>{formatJournalDate(journal.birthDate, "Birth date not set")} · {deriveBabyAgeLabel(journal.birthDate) || "age pending"}</small>
+            <em>{completion}% complete</em>
+        </div>
+    );
+}
+
+function BabyJournalHomeEditor({
+    journal,
+    updateField,
+    updateSleepEntry,
+    addSleepEntry,
+    latestSleep,
+    milestones,
+}: {
+    journal: BabyJournalInformation;
+    updateField: <K extends keyof BabyJournalInformation>(field: K, value: BabyJournalInformation[K]) => void;
+    updateSleepEntry: (dateKey: string, field: keyof SleepSchedule, value: string) => void;
+    addSleepEntry: () => void;
+    latestSleep: {dateKey: string; value: SleepSchedule} | null;
+    milestones: ReturnType<typeof getDatedMilestones>;
+}) {
+    return (
+        <>
+            <EditorCard id="baby-profile-birth" kicker="01 · PROFILE & BIRTH" title="Profile and birth data">
+                <div className="baby-journal-profile-row">
+                    <ProfileUpload value={journal.profilePicture} onChange={(profilePicture) => updateField("profilePicture", profilePicture)} storageFolder={DB_STORAGE.BABY_JOURNAL}/>
+                    <div className="baby-journal-field-grid">
+                        <BabyField label="Full name" value={journal.name} onChange={(value) => updateField("name", value)}/>
+                        <BabyField label="Gender" value={journal.gender} onChange={(value) => updateField("gender", value)}/>
+                        <BabyField label="Birth date" value={journal.birthDate} onChange={(value) => updateField("birthDate", value)}/>
+                        <BabyField label="Blood type" value={journal.bloodType} onChange={(value) => updateField("bloodType", value)}/>
+                        <BabyField label="Time of birth" value={journal.timeOfBirth} onChange={(value) => updateField("timeOfBirth", value)}/>
+                        <BabyField label="APGAR" value={journal.apgar} onChange={(value) => updateField("apgar", value)}/>
+                        <BabyField label="Birth weight" value={journal.weightOnBirth} onChange={(value) => updateField("weightOnBirth", value)}/>
+                        <BabyField label="Birth height" value={journal.heightOnBirth} onChange={(value) => updateField("heightOnBirth", value)}/>
+                        <BabyField label="Place of birth" value={journal.placeOfBirth} onChange={(value) => updateField("placeOfBirth", value)}/>
+                    </div>
+                </div>
+            </EditorCard>
+
+            <EditorCard id="baby-biography" kicker="02 · BIOGRAPHY" title="Child biography">
+                <BabyTextArea label="Biography" value={journal.biography} onChange={(value) => updateField("biography", value)} rows={5}/>
+            </EditorCard>
+
+            <EditorCard id="baby-milestones" kicker="03 · PHYSICAL MILESTONES" title="Milestones">
+                <div className="baby-journal-two-column">
+                    <div className="baby-journal-field-grid">
+                        {babyMilestones.map((milestone) => (
+                            <BabyField key={milestone.field} label={milestone.label} value={journal[milestone.field]} onChange={(value) => updateField(milestone.field, value)}/>
+                        ))}
+                    </div>
+                    <div className="baby-journal-timeline" aria-label="Dated milestone summary">
+                        {milestones.length > 0 ? milestones.map((milestone) => (
+                            <div key={milestone.field}>
+                                <strong>{milestone.label}</strong>
+                                <span>{formatJournalDate(milestone.value)}</span>
+                            </div>
+                        )) : <p>No milestones dated yet.</p>}
+                    </div>
+                </div>
+            </EditorCard>
+
+            <EditorCard id="baby-feeding" kicker="04 · FEEDING" title="Feeding">
+                <div className="baby-journal-field-grid">
+                    {babyFeedingFields.map((field) => (
+                        <BabyField key={field.field} label={field.label} value={journal[field.field]} onChange={(value) => updateField(field.field, value)}/>
+                    ))}
+                </div>
+            </EditorCard>
+
+            <EditorCard id="baby-sleep" kicker="05 · SLEEP SCHEDULE" title="Sleep schedule" action={<button type="button" onClick={addSleepEntry}>Add dated entry +</button>}>
+                <div className="baby-journal-sleep-list">
+                    {sortJournalDateKeysNewestFirst(Object.keys(journal.sleepSchedule)).map((dateKey) => (
+                        <div className="baby-journal-sleep-entry" key={dateKey}>
+                            <strong>{formatJournalDate(dateKey)}</strong>
+                            <BabyField label="Day sleep" value={journal.sleepSchedule[dateKey].daySleeping} onChange={(value) => updateSleepEntry(dateKey, "daySleeping", value)}/>
+                            <BabyField label="Night sleep" value={journal.sleepSchedule[dateKey].nightSleeping} onChange={(value) => updateSleepEntry(dateKey, "nightSleeping", value)}/>
+                            <BabyField label="Ways of sleeping" value={journal.sleepSchedule[dateKey].waysOfSleeping} onChange={(value) => updateSleepEntry(dateKey, "waysOfSleeping", value)}/>
+                            <BabyTextArea label="Progress" value={journal.sleepSchedule[dateKey].nightSleepingProgress} onChange={(value) => updateSleepEntry(dateKey, "nightSleepingProgress", value)} rows={3}/>
+                        </div>
+                    ))}
+                    {!latestSleep && <div className="baby-journal-empty-card">No sleep entries yet. Add a dated entry when ready.</div>}
+                </div>
+            </EditorCard>
+        </>
+    );
+}
+
+function BabyJournalHealthEditor({journal, setJournal}: {journal: BabyJournalInformation; setJournal: any}) {
+    const updateParent = (parentKey: "mother" | "father", field: keyof BabyJournalInformation["mother"], value: any) => {
+        setJournal((previous: BabyJournalInformation) => ({
+            ...previous,
+            [parentKey]: {...previous[parentKey], [field]: value},
+        }));
+    };
+
+    const updateInvestigation = (category: typeof healthCategories[number]["field"], dateKey: string, description: string) => {
+        setJournal((previous: BabyJournalInformation) => ({
+            ...previous,
+            [category]: {
+                ...previous[category],
+                [dateKey]: {
+                    ...(previous[category][dateKey] || {description: "", assets: []}),
+                    description,
+                },
+            },
+        }));
+    };
+
+    const addInvestigation = (category: typeof healthCategories[number]["field"]) => {
+        const dateKey = new Date().toISOString().slice(0, 10);
+        setJournal((previous: BabyJournalInformation) => ({
+            ...previous,
+            [category]: {
+                ...previous[category],
+                [dateKey]: previous[category][dateKey] || {description: "", assets: []},
+            },
+        }));
+    };
+
+    return (
+        <>
+            <EditorCard id="baby-health-summary" kicker="01 · HEALTH OVERVIEW" title="Health overview">
+                <div className="baby-journal-health-summary">
+                    {healthCategories.map((category) => (
+                        <div key={category.field}>
+                            <strong>{category.label}</strong>
+                            <span>{Object.keys(journal[category.field]).length} dated records</span>
+                        </div>
+                    ))}
+                    <BabyTextArea label="Other health conditions" value={journal.otherHealthConditions} onChange={(value) => setJournal((previous: BabyJournalInformation) => ({...previous, otherHealthConditions: value}))} rows={4}/>
+                </div>
+            </EditorCard>
+
+            <EditorCard id="baby-health-records" kicker="02 · MEDICAL RECORDS" title="Medical files">
+                <div className="baby-journal-two-column">
+                    <div>
+                        <strong>Medical records</strong>
+                        <AssetUpload3 value={journal.medicalRecords} onChange={(medicalRecords) => setJournal((previous: BabyJournalInformation) => ({...previous, medicalRecords}))} storageFolder={DB_STORAGE.BABY_JOURNAL} multiple maxFiles={3}/>
+                    </div>
+                    <div>
+                        <strong>European Health Card</strong>
+                        <AssetUpload3 value={journal.europeanHealthCard} onChange={(europeanHealthCard) => setJournal((previous: BabyJournalInformation) => ({...previous, europeanHealthCard}))} storageFolder={DB_STORAGE.BABY_JOURNAL} multiple={false} maxFiles={1}/>
+                    </div>
+                </div>
+            </EditorCard>
+
+            <EditorCard id="baby-health-categories" kicker="03 · DATED HEALTH RECORDS" title="Dated categories">
+                <div className="baby-journal-health-categories">
+                    {healthCategories.map((category) => {
+                        const dateKeys = sortJournalDateKeysNewestFirst(Object.keys(journal[category.field]));
+                        return (
+                            <section key={category.field} className="baby-journal-health-category">
+                                <div>
+                                    <h3>{category.label}</h3>
+                                    <button type="button" onClick={() => addInvestigation(category.field)}>Add record +</button>
+                                </div>
+                                {dateKeys.length === 0 && <p>{category.empty}</p>}
+                                {dateKeys.map((dateKey) => (
+                                    <div key={`${category.field}-${dateKey}`} className="baby-journal-investigation-row">
+                                        <strong>{formatJournalDate(dateKey)}</strong>
+                                        <BabyTextArea label={`${category.label} details`} value={journal[category.field][dateKey].description} onChange={(value) => updateInvestigation(category.field, dateKey, value)} rows={3}/>
+                                    </div>
+                                ))}
+                            </section>
+                        );
+                    })}
+                </div>
+            </EditorCard>
+
+            <EditorCard id="baby-parent-profiles" kicker="04 · PARENT PROFILES" title="Parent profiles">
+                <div className="baby-journal-two-column">
+                    {(["mother", "father"] as const).map((parentKey) => (
+                        <section key={parentKey} className="baby-journal-parent-card">
+                            <h3>{parentKey === "mother" ? "Mother" : "Father"}</h3>
+                            <ProfileUpload value={journal[parentKey].profilePicture} onChange={(profilePicture) => updateParent(parentKey, "profilePicture", profilePicture)} storageFolder={DB_STORAGE.BABY_JOURNAL}/>
+                            <BabyField label="Name" value={journal[parentKey].name} onChange={(value) => updateParent(parentKey, "name", value)}/>
+                            <BabyField label="Allergies" value={journal[parentKey].allergies} onChange={(value) => updateParent(parentKey, "allergies", value)}/>
+                            <BabyField label="Diseases" value={journal[parentKey].diseases} onChange={(value) => updateParent(parentKey, "diseases", value)}/>
+                            <BabyField label="Chronic adverse reactions" value={journal[parentKey].chronicAversions} onChange={(value) => updateParent(parentKey, "chronicAversions", value)}/>
+                            <BabyField label="Blood type" value={journal[parentKey].bloodType} onChange={(value) => updateParent(parentKey, "bloodType", value)}/>
+                        </section>
+                    ))}
+                </div>
+            </EditorCard>
+        </>
+    );
+}
+
+function EditorCard({id, kicker, title, action, children}: {id: string; kicker: string; title: string; action?: ReactNode; children: ReactNode}) {
+    return (
+        <section className="baby-journal-editor-card" id={id} tabIndex={-1}>
+            <header>
+                <div>
+                    <p className="business-kicker">{kicker}</p>
+                    <h2>{title}</h2>
+                </div>
+                {action}
+            </header>
+            {children}
+        </section>
+    );
+}
+
+function BabyField({label, value, onChange}: {label: string; value: string; onChange: (value: string) => void}) {
+    return (
+        <label className="baby-journal-field">
+            <span>{label}</span>
+            <input value={value} onChange={(event) => onChange(event.target.value)} autoComplete="off"/>
+        </label>
+    );
+}
+
+function BabyTextArea({label, value, onChange, rows = 4}: {label: string; value: string; onChange: (value: string) => void; rows?: number}) {
+    return (
+        <label className="baby-journal-field baby-journal-textarea">
+            <span>{label}</span>
+            <textarea value={value} rows={rows} onChange={(event) => onChange(event.target.value)}/>
+        </label>
+    );
 }
 
 export interface EditContext<T> {
@@ -361,7 +762,7 @@ function useCreateMultipleInvestigationsHandlerBaby(field: keyof BabyJournalInfo
                 [dateKey]: defaultInvestigation
             }
         }))
-    }, [])
+    }, [field, setBabyJournalState])
 
     const onDelete = useCallback((dateKey: string) => {
         setBabyJournalState((prev: BabyJournalInformation) => {
@@ -371,10 +772,9 @@ function useCreateMultipleInvestigationsHandlerBaby(field: keyof BabyJournalInfo
                 [field]: investigationsLeft
             }
         })
-    }, [])
+    }, [field, setBabyJournalState])
 
     const getInvestigations = useGetInvestigations()
-    // console.log("Multiple, inves", investigations)
     return useMemo(() => ({
         onDelete,
         onAdd,
@@ -683,7 +1083,7 @@ function useBabyJournalEdit(): useBabyJournalEditInterface {
 // }
 
 export const BabyJournalEditContext = createContext<useBabyJournalEditInterface | null>(null)
-export const BabyJournalStateContext = createContext<useBabyJournalInformation>({
+export const BabyJournalStateContext = createContext<UseBabyJournalInformationValue>({
     babyJournalState: defaultInformation,
     setBabyJournalState: () => {
     },

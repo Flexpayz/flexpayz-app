@@ -3740,3 +3740,478 @@ h2.pinline span:after {
         transition: none;
     }
 }
+
+.baby-journal-editor-shell {
+    min-height: 100svh;
+    background:
+        radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--fp-color-champagne-soft) 76%, transparent), transparent 24rem),
+        radial-gradient(circle at 10% 94%, color-mix(in srgb, var(--fp-color-champagne) 16%, transparent), transparent 20rem),
+        var(--fp-color-canvas);
+    color: var(--fp-color-ink);
+    overflow-x: hidden;
+}
+
+.baby-journal-editor-layout {
+    width: min(100%, 92rem);
+    min-height: 100svh;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 18rem 1fr;
+    background: var(--fp-color-surface-primary);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-xl);
+    box-shadow: var(--fp-shadow-raised);
+    overflow: hidden;
+    animation: fp-workspace-enter var(--fp-transition-slow) both;
+}
+
+.baby-journal-editor-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fp-space-5);
+    padding: var(--fp-space-7);
+    background: var(--fp-color-surface-sand);
+    border-right: 1px solid var(--fp-color-border);
+}
+
+.baby-journal-editor-logo {
+    width: 11rem;
+}
+
+.baby-journal-editor-identity,
+.baby-journal-editor-status-card,
+.baby-journal-editor-card,
+.baby-journal-empty-card,
+.baby-journal-parent-card {
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-surface-primary);
+    box-shadow: var(--fp-shadow-raised);
+}
+
+.baby-journal-editor-identity,
+.baby-journal-editor-status-card {
+    padding: var(--fp-space-4);
+    display: grid;
+    gap: var(--fp-space-2);
+}
+
+.baby-journal-editor-identity img,
+.baby-journal-editor-identity > span {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: var(--fp-radius-pill);
+    object-fit: cover;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--fp-color-champagne), var(--fp-color-champagne-dark));
+    color: var(--fp-color-white);
+    font-family: var(--fp-font-family-display);
+    font-size: var(--fp-font-size-display);
+}
+
+.baby-journal-editor-identity p,
+.baby-journal-editor-identity strong,
+.baby-journal-editor-identity small,
+.baby-journal-editor-identity em,
+.baby-journal-editor-status-card span {
+    margin: 0;
+}
+
+.baby-journal-editor-identity p,
+.baby-journal-editor-section-links button,
+.baby-journal-editor-status-card span {
+    color: var(--fp-color-text-muted);
+}
+
+.baby-journal-editor-identity strong,
+.baby-journal-editor-status-card strong {
+    font-size: var(--fp-font-size-title-small);
+}
+
+.baby-journal-editor-identity em {
+    width: max-content;
+    padding: var(--fp-space-1) var(--fp-space-3);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-success-soft);
+    color: var(--fp-color-success);
+    font-style: normal;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.baby-journal-editor-tabs,
+.baby-journal-mobile-tabs {
+    display: grid;
+    gap: var(--fp-space-2);
+}
+
+.baby-journal-editor-tabs button,
+.baby-journal-mobile-tabs button,
+.baby-journal-editor-section-links button,
+.baby-journal-button,
+.baby-journal-editor-card header button {
+    min-height: var(--fp-size-interactive-min);
+    border: 1px solid transparent;
+    border-radius: var(--fp-radius-md);
+    background: transparent;
+    color: var(--fp-color-ink);
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform var(--fp-transition-fast), box-shadow var(--fp-transition-fast), border-color var(--fp-transition-fast), background-color var(--fp-transition-fast);
+}
+
+.baby-journal-editor-tabs button:hover,
+.baby-journal-mobile-tabs button:hover,
+.baby-journal-editor-section-links button:hover,
+.baby-journal-button:hover,
+.baby-journal-editor-card header button:hover {
+    transform: translateY(-1px);
+    border-color: var(--fp-color-champagne);
+    box-shadow: var(--fp-shadow-raised);
+}
+
+.baby-journal-editor-tabs button:focus-visible,
+.baby-journal-mobile-tabs button:focus-visible,
+.baby-journal-editor-section-links button:focus-visible,
+.baby-journal-button:focus-visible,
+.baby-journal-editor-card:focus-visible,
+.baby-journal-field input:focus-visible,
+.baby-journal-field textarea:focus-visible {
+    outline: var(--fp-focus-outline);
+    outline-offset: var(--fp-focus-offset);
+    box-shadow: var(--fp-focus-ring);
+}
+
+.baby-journal-editor-tabs button.active,
+.baby-journal-mobile-tabs button.active,
+.baby-journal-mobile-tabs button[aria-selected="true"] {
+    background: var(--fp-color-ink);
+    color: var(--fp-color-white);
+}
+
+.baby-journal-editor-section-links {
+    display: grid;
+    gap: var(--fp-space-2);
+    padding-top: var(--fp-space-4);
+    border-top: 1px solid var(--fp-color-border);
+}
+
+.baby-journal-editor-section-links button {
+    text-align: left;
+    padding: 0 var(--fp-space-3);
+}
+
+.baby-journal-editor-status-card div {
+    height: var(--fp-space-1);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-border);
+    overflow: hidden;
+}
+
+.baby-journal-editor-status-card div span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: left center;
+    background: var(--fp-color-champagne);
+    transition: transform var(--fp-transition-slow);
+}
+
+.baby-journal-editor-status-card.failed {
+    border-color: var(--fp-color-danger);
+    background: color-mix(in srgb, var(--fp-color-danger) 8%, var(--fp-color-surface-primary));
+}
+
+.baby-journal-editor-status-card.saved {
+    background: var(--fp-color-success-soft);
+}
+
+.baby-journal-editor-main {
+    min-width: 0;
+    padding: var(--fp-space-8);
+    display: grid;
+    gap: var(--fp-space-6);
+    align-content: start;
+}
+
+.baby-journal-editor-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--fp-space-5);
+    align-items: start;
+}
+
+.baby-journal-editor-header h1 {
+    margin: 0;
+    font-family: var(--fp-font-family-display);
+    font-size: clamp(var(--fp-font-size-display), 6vw, 4.75rem);
+    font-weight: 500;
+    line-height: 0.95;
+}
+
+.baby-journal-editor-header p {
+    margin: var(--fp-space-2) 0 0;
+    color: var(--fp-color-text-muted);
+}
+
+.baby-journal-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--fp-space-3);
+}
+
+.baby-journal-editor-actions span {
+    padding: var(--fp-space-2) var(--fp-space-4);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-champagne-dark);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.baby-journal-mobile-tabs {
+    display: none;
+}
+
+.baby-journal-editor-content {
+    display: grid;
+    gap: var(--fp-space-5);
+}
+
+.baby-journal-editor-card {
+    padding: var(--fp-space-6);
+    display: grid;
+    gap: var(--fp-space-5);
+    animation: fp-section-enter var(--fp-transition-slow) both;
+    scroll-margin-top: var(--fp-space-6);
+}
+
+.baby-journal-editor-card > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--fp-space-4);
+}
+
+.baby-journal-editor-card h2,
+.baby-journal-health-category h3,
+.baby-journal-parent-card h3 {
+    margin: 0;
+    font-family: var(--fp-font-family-display);
+    font-size: var(--fp-font-size-heading);
+    font-weight: 500;
+}
+
+.baby-journal-profile-row,
+.baby-journal-two-column {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.32fr) minmax(0, 1fr);
+    gap: var(--fp-space-5);
+    align-items: start;
+}
+
+.baby-journal-profile-row > div:first-child,
+.baby-journal-parent-card > div {
+    width: 100% !important;
+}
+
+.baby-journal-field-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--fp-space-3);
+}
+
+.baby-journal-field {
+    display: grid;
+    gap: var(--fp-space-1);
+    color: var(--fp-color-text-muted);
+    font-weight: 900;
+}
+
+.baby-journal-field span {
+    font-size: var(--fp-font-size-caption);
+}
+
+.baby-journal-field input,
+.baby-journal-field textarea {
+    min-height: var(--fp-size-interactive-min);
+    width: 100%;
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-sm);
+    background: color-mix(in srgb, var(--fp-color-surface-primary) 92%, var(--fp-color-champagne-soft));
+    color: var(--fp-color-ink);
+    padding: var(--fp-space-3);
+    font: inherit;
+    transition: border-color var(--fp-transition-fast), box-shadow var(--fp-transition-fast), background-color var(--fp-transition-fast);
+}
+
+.baby-journal-field textarea {
+    resize: vertical;
+}
+
+.baby-journal-timeline,
+.baby-journal-health-summary,
+.baby-journal-sleep-list,
+.baby-journal-health-categories {
+    display: grid;
+    gap: var(--fp-space-3);
+}
+
+.baby-journal-timeline {
+    padding: var(--fp-space-4);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-champagne-soft);
+}
+
+.baby-journal-timeline div,
+.baby-journal-health-summary > div,
+.baby-journal-public-info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--fp-space-3);
+    border-bottom: 1px solid var(--fp-color-border);
+    padding-bottom: var(--fp-space-2);
+}
+
+.baby-journal-sleep-entry,
+.baby-journal-health-category,
+.baby-journal-investigation-row,
+.baby-journal-empty-card,
+.baby-journal-parent-card {
+    padding: var(--fp-space-4);
+    display: grid;
+    gap: var(--fp-space-3);
+}
+
+.baby-journal-sleep-entry,
+.baby-journal-health-category,
+.baby-journal-investigation-row {
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-surface-primary);
+}
+
+.baby-journal-health-category > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-3);
+}
+
+.baby-journal-savebar {
+    position: sticky;
+    bottom: var(--fp-space-4);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-4);
+    padding: var(--fp-space-3);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-ink);
+    color: var(--fp-color-white);
+    box-shadow: var(--fp-shadow-floating);
+}
+
+.baby-journal-button {
+    padding: 0 var(--fp-space-5);
+}
+
+.baby-journal-button.primary {
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+}
+
+.baby-journal-button.secondary {
+    background: var(--fp-color-surface-primary);
+    border-color: var(--fp-color-border);
+}
+
+.baby-journal-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.baby-journal-editor-state {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fp-space-3);
+    color: var(--fp-color-text-muted);
+}
+
+.baby-journal-spinner {
+    width: var(--fp-space-6);
+    height: var(--fp-space-6);
+    border-radius: var(--fp-radius-pill);
+    border: 3px solid var(--fp-color-border);
+    border-top-color: var(--fp-color-champagne);
+    animation: fp-spin 800ms linear infinite;
+}
+
+@keyframes fp-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 960px) {
+    .baby-journal-editor-layout {
+        width: 100%;
+        min-height: 100svh;
+        display: block;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .baby-journal-editor-sidebar {
+        display: none;
+    }
+
+    .baby-journal-editor-main {
+        padding: calc(var(--fp-space-5) + env(safe-area-inset-top)) var(--fp-space-4) calc(var(--fp-space-8) + env(safe-area-inset-bottom));
+    }
+
+    .baby-journal-editor-header {
+        grid-template-columns: 1fr;
+    }
+
+    .baby-journal-editor-actions {
+        justify-content: space-between;
+    }
+
+    .baby-journal-mobile-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        position: sticky;
+        top: var(--fp-space-2);
+        z-index: 4;
+        padding: var(--fp-space-1);
+        border: 1px solid var(--fp-color-border);
+        border-radius: var(--fp-radius-md);
+        background: var(--fp-color-surface-primary);
+        box-shadow: var(--fp-shadow-raised);
+    }
+
+    .baby-journal-profile-row,
+    .baby-journal-two-column,
+    .baby-journal-field-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .baby-journal-savebar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .baby-journal-editor-layout,
+    .baby-journal-editor-card,
+    .baby-journal-spinner {
+        animation: none;
+    }
+}

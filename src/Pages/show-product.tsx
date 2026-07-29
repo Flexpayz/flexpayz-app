@@ -166,7 +166,8 @@ export function ShowProduct() {
             <UploadVideoPublicPage product={product} productId={productId || ""} fromDashboard={opensSectionFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS &&
             <UploadSongsPublicPage product={product} productId={productId || ""}/>}
-        {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL && <BabyJournalPreview/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL &&
+            <BabyJournalPreview product={product} productId={productId || ""} fromDashboard={opensSectionFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ADULT_JOURNAL && <AdultJournalPreview/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
 
