@@ -2241,6 +2241,20 @@
     text-decoration: none;
 }
 
+.adult-journal-public-page .baby-journal-button {
+    min-height: var(--fp-size-interactive-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-md);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    padding: 0 var(--fp-space-4);
+    font-weight: 900;
+    cursor: pointer;
+}
+
 .baby-journal-public-lock {
     color: var(--fp-color-success);
 }
@@ -2482,6 +2496,10 @@
         border-radius: var(--fp-radius-md);
         background: var(--fp-color-surface-primary);
         box-shadow: var(--fp-shadow-raised);
+    }
+
+    .adult-journal-public-tabs {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .baby-journal-public-hero {

@@ -4118,6 +4118,10 @@ h2.pinline span:after {
 
 .baby-journal-button {
     padding: 0 var(--fp-space-5);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
 }
 
 .baby-journal-button.primary {
@@ -4196,6 +4200,10 @@ h2.pinline span:after {
         box-shadow: var(--fp-shadow-raised);
     }
 
+    .adult-journal-mobile-tabs {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
     .baby-journal-profile-row,
     .baby-journal-two-column,
     .baby-journal-field-grid {
@@ -4205,6 +4213,41 @@ h2.pinline span:after {
     .baby-journal-savebar {
         flex-direction: column;
         align-items: stretch;
+    }
+}
+
+.baby-journal-editor-card-header-inline,
+.adult-sensitive-id-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-3);
+}
+
+.adult-sensitive-id {
+    padding: var(--fp-space-4);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-champagne-soft);
+}
+
+.adult-sensitive-id strong {
+    min-height: var(--fp-size-interactive-min);
+    display: flex;
+    align-items: center;
+    color: var(--fp-color-ink);
+    font-family: var(--fp-font-mono);
+    letter-spacing: 0.08em;
+}
+
+.adult-sensitive-id small {
+    color: var(--fp-color-text-muted);
+    font-weight: 700;
+}
+
+@media (min-width: 961px) {
+    .adult-journal-editor-layout {
+        min-height: 100svh;
     }
 }
 

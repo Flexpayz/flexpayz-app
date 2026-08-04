@@ -1,5 +1,5 @@
 import {createContext, useCallback, useContext, useEffect, useMemo, useState} from "react";
-import {LoadingScreen, LoadingScreenContext} from "./loading-sreen";
+import {LoadingScreenContext} from "./loading-sreen";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
 import {doc, getDoc} from "firebase/firestore";
 import {db} from "../App";
@@ -10,37 +10,11 @@ import {
     DB_COLLECTIONS,
     EditContext
 } from "./baby-journal-settings";
-import {JOURNAL_SEGMENTS, JournalNavbar} from "./journal-navbar";
-import {SaveJournalButton} from "./save-journal-button";
-import {HomeAdultJournalSegment} from "./home-adult-journal-segment";
-import {HealthAdultJournalSegment} from "./health-adult-journal-segment";
-import {InvestigationsAdultJournalSegment} from "./investigation-adult-journal-segment";
-import {ProceduresAdultJournalSegment} from "./procedures-adult-journal-segment";
-import {NotSavedScreen} from "./not-saved-screen";
 import {useNavigate} from "react-router";
 import {getProductIdFromURL} from "../utils";
+import {AdultJournalWorkspace} from "./adult-journal-workspace";
 export function AdultJournalSettings() {
-    const [activeSegment, setActiveSegment] = useState<JOURNAL_SEGMENTS>(JOURNAL_SEGMENTS.HOME)
-    const [isLoading, setIsLoading] = useState(false)
-    return <div style={{position: "relative", maxWidth: "1000px", margin: "0 auto"}}>
-        <LoadingScreenContext.Provider value={{isLoading, setIsLoading}}>
-            <AdultJournalStateContextProvider>
-                <AdultJournalEditContextProvider>
-                    <ModificationJournalContextProvider journalType={'adult'}>
-                        <JournalNavbar activeSegment={activeSegment} setActiveSegment={setActiveSegment} investigations
-                                       health home procedures/>
-                        {isLoading && <LoadingScreen/>}
-                        {activeSegment === JOURNAL_SEGMENTS.HOME && <HomeAdultJournalSegment/>}
-                        {activeSegment === JOURNAL_SEGMENTS.HEALTH && <HealthAdultJournalSegment/>}
-                        {activeSegment === JOURNAL_SEGMENTS.INVESTIGATIONS && <InvestigationsAdultJournalSegment/>}
-                        {activeSegment === JOURNAL_SEGMENTS.PROCEDURES && <ProceduresAdultJournalSegment/>}
-                        <SaveJournalButton collection={DB_COLLECTIONS.ADULT_JOURNALS}/>
-                        <NotSavedScreen/>
-                    </ModificationJournalContextProvider>
-                </AdultJournalEditContextProvider>
-            </AdultJournalStateContextProvider>
-        </LoadingScreenContext.Provider>
-    </div>
+    return <AdultJournalWorkspace/>
 }
 
 export interface Investigation {
@@ -124,7 +98,7 @@ interface SleepSchedule {
     nightSleepingProgress: string,
 }
 
-interface VitalSigns {
+export interface VitalSigns {
     bloodPressure: string,
     pulse: string,
     temperature: string,
@@ -135,7 +109,7 @@ export interface MultipleVitalSigns {
     [key: string]: VitalSigns
 }
 
-interface AdultJournalInformation {
+export interface AdultJournalInformation {
     profilePicture: Asset[],
     name: string,
     birthDate: string,
@@ -196,7 +170,7 @@ interface AdultJournalInformation {
     testMultiple: MultipleInvestigations
 }
 
-const defaultInformation: AdultJournalInformation = {
+export const defaultInformation: AdultJournalInformation = {
     profilePicture: [],
     name: "",
     birthDate: "",
@@ -345,7 +319,7 @@ interface useAdultJournalEditInterface {
     vitalSigns: MultipleVitalSignsHandler,
 }
 
-interface useAdultJournalInformation {
+interface UseAdultJournalInformationValue {
     originalJournalState: AdultJournalInformation
     adultJournalState: AdultJournalInformation,
     setAdultJournalState: any,
@@ -374,7 +348,6 @@ function useCreateMultipleInvestigationsHandler(field: keyof AdultJournalInforma
     const useGetInvestigations = () => {
         return (): { [key: string]: InvestigationHandler } => {
             const keys = Object.keys(adultJournalState[field])
-            console.log("FUCK", adultJournalState[field])
             tempInvestigations = {}
             keys.forEach((key: string) => {
                 tempInvestigations[key] = {
@@ -436,7 +409,6 @@ function useCreateMultipleInvestigationsHandler(field: keyof AdultJournalInforma
     }, [])
 
     const getInvestigations = useGetInvestigations()
-    console.log("INVEST", getInvestigations())
     // console.log("Multiple, inves", investigations)
     return useMemo(() => ({
         onDelete,
@@ -828,12 +800,11 @@ function useCreateInvestigationHandler(field: keyof AdultJournalInformation): In
     }
 }
 
-function useAdultJournalInformation(): useAdultJournalInformation {
+function useAdultJournalInformation(): UseAdultJournalInformationValue {
 
     const [adultJournalState, setAdultJournalState] = useState<AdultJournalInformation>(defaultInformation)
     const [originalJournalState, setOriginalJournalState] = useState<AdultJournalInformation>(defaultInformation)
     const navigate = useNavigate()
-    console.log()
     const {setIsLoading} = useContext(LoadingScreenContext)
 
     useEffect(() => {
@@ -852,7 +823,6 @@ function useAdultJournalInformation(): useAdultJournalInformation {
                 if (productId) {
                     const productRef = doc(db, DB_COLLECTIONS.ADULT_JOURNALS, productId)
                     const docSnap = await getDoc(productRef);
-                    console.log(docSnap, docSnap.exists(), docSnap.data())
                     if (docSnap.exists()) {
                         setAdultJournalState((prev: AdultJournalInformation) => ({...prev, ...docSnap.data() as AdultJournalInformation}))
                         setOriginalJournalState((prev: AdultJournalInformation) => ({...prev, ...docSnap.data() as AdultJournalInformation}))
@@ -863,7 +833,6 @@ function useAdultJournalInformation(): useAdultJournalInformation {
             // notify(`Don't forget to save after changes`)
         }, []
     );
-    console.log("ADULT Journal State", adultJournalState)
     return {originalJournalState, adultJournalState, setAdultJournalState, setOriginalJournalState}
 }
 
@@ -1033,7 +1002,7 @@ function useAdultJournalEdit(): useAdultJournalEditInterface {
 }
 
 export const AdultJournalEditContext = createContext<useAdultJournalEditInterface | null>(null)
-export const AdultJournalStateContext = createContext<useAdultJournalInformation>({
+export const AdultJournalStateContext = createContext<UseAdultJournalInformationValue>({
     originalJournalState: defaultInformation,
     adultJournalState: defaultInformation,
     setAdultJournalState: () => {
@@ -1109,10 +1078,6 @@ export function ModificationJournalContextProvider({journalType, children}: {
             // This will prompt the user with a confirmation dialog
             event.preventDefault();
             event.returnValue = ''; // Some browsers require this for the prompt to show
-
-            if (JSON.stringify(originalState) !== JSON.stringify(actualState)) {
-                console.log('Attempt to reload or close the page')
-            }
 
         };
 
