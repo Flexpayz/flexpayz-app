@@ -357,17 +357,23 @@ h2.pinline span:after {
 }
 
 .business-save-pill {
-    min-height: var(--fp-size-interactive-min);
+    min-height: 2rem;
     display: inline-flex;
     align-items: center;
     gap: var(--fp-space-2);
-    padding: 0 var(--fp-space-4);
-    border-radius: var(--fp-radius-pill);
+    padding: 0 var(--fp-space-3);
+    border-radius: 999px;
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
+    font-size: var(--fp-font-size-caption);
     font-weight: 600;
-    letter-spacing: 0.08em;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
     text-transform: uppercase;
+}
+
+.business-save-pill svg {
+    font-size: 1rem;
 }
 
 .business-save-pill.dirty {
@@ -2478,7 +2484,7 @@ h2.pinline span:after {
 .custom-link-round-icon {
     display: grid;
     place-items: center;
-    border-radius: var(--fp-radius-pill);
+    border-radius: 999px;
     font-weight: 600;
 }
 
@@ -2569,14 +2575,16 @@ h2.pinline span:after {
 }
 
 .custom-link-protocol {
-    min-height: var(--fp-size-interactive-min);
+    min-height: 2rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding-inline: var(--fp-space-4);
-    border-radius: var(--fp-radius-pill);
+    padding-inline: var(--fp-space-3);
+    border-radius: 999px;
+    font-size: var(--fp-font-size-caption);
     font-weight: 600;
-    letter-spacing: 0.14em;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
@@ -2598,7 +2606,7 @@ h2.pinline span:after {
     gap: var(--fp-space-2);
     padding-inline: var(--fp-space-5);
     border: 1px solid var(--fp-color-border);
-    border-radius: var(--fp-radius-md);
+    border-radius: 999px;
     color: var(--fp-color-ink);
     background: var(--fp-color-surface-primary);
     font-weight: 600;
@@ -2665,13 +2673,18 @@ h2.pinline span:after {
 .custom-link-destination-card em,
 .custom-link-behaviour em {
     justify-self: end;
-    padding: var(--fp-space-2) var(--fp-space-4);
-    border-radius: var(--fp-radius-pill);
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--fp-space-3);
+    border-radius: 999px;
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
+    font-size: var(--fp-font-size-caption);
     font-style: normal;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
 }
 
 .custom-link-warning,
@@ -2706,13 +2719,14 @@ h2.pinline span:after {
 }
 
 .custom-link-check-item > span {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
     display: grid;
     place-items: center;
-    border-radius: var(--fp-radius-pill);
+    border-radius: 999px;
     background: color-mix(in srgb, var(--fp-color-danger) 12%, var(--fp-color-surface-primary));
     color: var(--fp-color-danger);
+    font-size: var(--fp-font-size-body);
     font-weight: 600;
 }
 
@@ -3582,12 +3596,17 @@ h2.pinline span:after {
 
 .upload-video-status-pill {
     justify-self: start;
-    padding: var(--fp-space-2) var(--fp-space-5);
-    border-radius: var(--fp-radius-pill);
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--fp-space-3);
+    border-radius: 999px;
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
+    font-size: var(--fp-font-size-caption);
     font-weight: 600;
-    letter-spacing: 0.14em;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
 }
 
 .upload-video-status-pill.unavailable {

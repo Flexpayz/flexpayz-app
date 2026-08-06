@@ -372,7 +372,7 @@ function DeviceOverview({
                     <Box>
                         <PublicCardHeader title="Opens directly" meta="1 visible section · Opens immediately after tap"/>
                         <Box className="overview-section-grid overview-section-grid-single">
-                            <SectionSummaryCard section={singleSection} index={1} editable productId={productId}/>
+                            <SectionSummaryCard section={singleSection} editable productId={productId}/>
                         </Box>
                         <Stack direction={{xs: 'column', md: 'row'}} className="workspace-actions">
                             <AppButton variant="contained" className="workspace-primary-button" onClick={() => openEditor(singleSection, productId)}>
@@ -387,10 +387,10 @@ function DeviceOverview({
                 )}
                 {publicMode === 'dashboard' && (
                     <Box>
-                        <PublicCardHeader title="Opens an intermediary dashboard" meta={`${visibleSections.length} visible sections · Fixed order`}/>
+                        <PublicCardHeader title="Opens an intermediary dashboard" meta={`${visibleSections.length} visible sections`}/>
                         <Box className="overview-section-grid">
                             {visibleDefinitions.map((section, index) => (
-                                <SectionSummaryCard key={section.id} section={section} index={index + 1} editable productId={productId}/>
+                                <SectionSummaryCard key={section.id} section={section} editable productId={productId}/>
                             ))}
                         </Box>
                         <Stack direction={{xs: 'column', md: 'row'}} className="workspace-actions">
@@ -607,7 +607,7 @@ function VisibleSectionsDialog({
                 </Box>
             </DialogTitle>
             <DialogContent>
-                <p className="dialog-description">Select everything visitors can open from this device. Sections always use the fixed order shown below.</p>
+                <p className="dialog-description">Select everything visitors can open from this device.</p>
                 <Surface tone="soft" className="dialog-routing-summary">
                     <strong>{draft.length} {draft.length === 1 ? 'section' : 'sections'} selected</strong>
                     <p>{getRoutingSummary(draft)}</p>
@@ -967,9 +967,6 @@ function ContentSummaryPanel({
                     Preview {visibleSections.length === 1 ? 'section' : 'dashboard'}
                 </a>
             )}
-            <hr/>
-            <strong>Fixed ordering</strong>
-            <p>The public menu follows the predefined section order shown in the selector.</p>
             <span className={protectedStatus ? 'workspace-status-success' : 'workspace-status-neutral'}>{protectedStatus ? 'Protected' : 'Not protected'}</span>
         </Surface>
     );
@@ -1012,13 +1009,12 @@ function PublicCardHeader({title, meta}: {title: string; meta: string}) {
     );
 }
 
-function SectionSummaryCard({section, index, editable, productId}: {section: PublicSectionDefinition; index: number; editable?: boolean; productId: string}) {
+function SectionSummaryCard({section, editable, productId}: {section: PublicSectionDefinition; editable?: boolean; productId: string}) {
     return (
         <Surface tone="soft" className="section-summary-card">
             <SectionIcon label={section.iconLabel}/>
             <strong>{section.title}</strong>
             <p>{section.description}</p>
-            <small>{index} · Fixed order</small>
             {editable && (
                 <button type="button" onClick={() => openEditor(section, productId)} className="workspace-text-button">
                     Edit section
