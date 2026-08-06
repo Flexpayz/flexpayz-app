@@ -27,11 +27,10 @@ export function SectionHeader({
       <Stack spacing={1.5} sx={{ maxWidth: 680 }}>
         {eyebrow ? (
           <Typography
-            variant="caption"
+            variant="overline"
+            className="fp-typography-eyebrow"
             sx={{
-              color: "var(--fp-color-champagne-dark)",
-              fontWeight: 700,
-              textTransform: "uppercase",
+              display: "block",
             }}
           >
             {eyebrow}

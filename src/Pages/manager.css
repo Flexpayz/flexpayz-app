@@ -137,7 +137,7 @@ h2.pinline span:after {
 .preview-option span {
     color: white;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .preview-option input:checked {
@@ -214,7 +214,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-ink);
     color: var(--fp-color-white);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .business-editor-side-avatar {
@@ -243,7 +243,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     color: var(--fp-color-text-muted);
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .business-editor-sidebar nav a.is-active {
@@ -308,11 +308,6 @@ h2.pinline span:after {
 .business-editor-section > p,
 .workspace-sidebar-kicker {
     margin: 0 0 var(--fp-space-2);
-    color: var(--fp-color-champagne-dark);
-    font-size: var(--fp-font-size-caption);
-    font-weight: 900;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
 }
 
 .business-editor-header h1,
@@ -362,7 +357,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -535,7 +530,7 @@ h2.pinline span:after {
     border: 0;
     background: transparent;
     color: var(--fp-color-champagne-dark);
-    font-weight: 900;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -569,7 +564,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .business-social-field small {
@@ -623,7 +618,7 @@ h2.pinline span:after {
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-champagne-dark);
     font-style: normal;
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.16em;
 }
 
@@ -640,7 +635,7 @@ h2.pinline span:after {
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
     border-radius: var(--fp-radius-md);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .business-editor-state {
@@ -863,7 +858,7 @@ h2.pinline span:after {
     -webkit-user-select: none;
     cursor: pointer;
     text-shadow: 1px 1px #fff;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 10pt;
     width: 150px;
     height: 35px;
@@ -902,7 +897,7 @@ h2.pinline span:after {
     -webkit-user-select: none;
     cursor: pointer;
     text-shadow: 1px 1px #fff;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 10pt;
     width: 150px;
     height: 35px;
@@ -930,7 +925,7 @@ h2.pinline span:after {
     cursor: pointer;
     min-width: 100px;
     background-color: #F5F6F7;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     padding: 8px;
     width: 40%;
@@ -963,7 +958,7 @@ h2.pinline span:after {
     max-width: 250px;
     width: 100%;
     height: 40px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     color: white;
     background: linear-gradient(to right, #D20A0A, #AA0808);
@@ -1039,7 +1034,7 @@ h2.pinline span:after {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: bold;
+    font-weight: 600;
     letter-spacing: 1px;
     font-size: large;
 }
@@ -1083,7 +1078,7 @@ h2.pinline span:after {
 
 .password-checkbox-container span {
     color: white;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .burger-container {
@@ -1111,7 +1106,7 @@ h2.pinline span:after {
     margin-bottom: 24px;
     width: 180px;
     height: 40px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     color: white;
     background: linear-gradient(to right, #256F3A, #1E592F);
@@ -1135,7 +1130,7 @@ h2.pinline span:after {
     margin-bottom: 24px;
     min-width: 100px;
     height: 40px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     color: white;
     background: linear-gradient(to right, #0057D2, #0040B0);
@@ -1156,7 +1151,7 @@ h2.pinline span:after {
 .blue-edit-name-button {
     min-width: 100px;
     height: 40px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     color: white;
     background: linear-gradient(to right, #0057D2, #0040B0);
@@ -1177,7 +1172,7 @@ h2.pinline span:after {
 .green-publish-button {
     min-width: 100px;
     height: 40px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     color: white;
     background: linear-gradient(to right, #256F3A, #1E592F);
@@ -1198,7 +1193,7 @@ h2.pinline span:after {
 .section-title {
     color: white;
     font-size: 30px;
-    font-weight: 700;
+    font-weight: 600;
     margin-top: 20px;
 }
 
@@ -1309,7 +1304,7 @@ h2.pinline span:after {
 .cancel-button {
     min-width: 100px;
     height: 40px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
     color: white;
     background:  linear-gradient(to right, #148BD6, #0A1656);
@@ -1631,11 +1626,6 @@ h2.pinline span:after {
 .workspace-section-kicker,
 .dialog-title-row span,
 .reset-device-dialog .MuiDialogTitle-root span {
-    color: var(--fp-color-champagne-dark);
-    font-size: 0.72rem;
-    font-weight: 900;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
 }
 
 .device-identity-card strong,
@@ -1660,7 +1650,7 @@ h2.pinline span:after {
 .device-sidebar-tabs .MuiTab-root {
     min-height: var(--fp-size-interactive-min);
     color: var(--fp-color-text-muted);
-    font-weight: 900;
+    font-weight: 600;
     text-transform: none;
 }
 
@@ -1949,7 +1939,7 @@ h2.pinline span:after {
     align-items: center;
     min-height: var(--fp-size-interactive-min);
     color: var(--fp-color-ink);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .settings-danger-zone {
@@ -1981,7 +1971,7 @@ h2.pinline span:after {
     padding-inline: var(--fp-space-2);
     border-radius: 999px;
     font-size: 0.68rem;
-    font-weight: 900;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
@@ -2002,7 +1992,7 @@ h2.pinline span:after {
 
 .workspace-success-text {
     color: var(--fp-color-success);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .workspace-section-icon {
@@ -2016,7 +2006,7 @@ h2.pinline span:after {
     color: var(--fp-color-white);
     background: var(--fp-color-ink);
     font-size: 0.82rem;
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .workspace-section-icon svg {
@@ -2028,7 +2018,7 @@ h2.pinline span:after {
     border: 0;
     color: var(--fp-color-champagne-dark);
     background: transparent;
-    font-weight: 900;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -2330,7 +2320,7 @@ h2.pinline span:after {
 
     .device-sidebar-links a {
         color: var(--fp-color-text-muted);
-        font-weight: 800;
+        font-weight: 600;
         text-decoration: none;
     }
 
@@ -2414,7 +2404,7 @@ h2.pinline span:after {
     min-height: var(--fp-size-interactive-min);
     padding-inline: var(--fp-space-4);
     border-radius: var(--fp-radius-md);
-    font-weight: 900;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -2494,7 +2484,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     color: var(--fp-color-text-muted);
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .custom-link-editor-sidebar nav a.is-active {
@@ -2515,7 +2505,7 @@ h2.pinline span:after {
     display: grid;
     place-items: center;
     border-radius: var(--fp-radius-pill);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .custom-link-editor-icon {
@@ -2611,7 +2601,7 @@ h2.pinline span:after {
     justify-content: center;
     padding-inline: var(--fp-space-4);
     border-radius: var(--fp-radius-pill);
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
 }
@@ -2637,7 +2627,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     color: var(--fp-color-ink);
     background: var(--fp-color-surface-primary);
-    font-weight: 900;
+    font-weight: 600;
     text-decoration: none;
     cursor: pointer;
     transition: transform var(--fp-transition-fast), border-color var(--fp-transition-fast), background-color var(--fp-transition-fast);
@@ -2659,7 +2649,7 @@ h2.pinline span:after {
 .custom-link-live {
     margin: var(--fp-space-3) 0 0;
     color: var(--fp-color-success);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .custom-link-grid {
@@ -2706,7 +2696,7 @@ h2.pinline span:after {
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
     font-style: normal;
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.14em;
 }
 
@@ -2717,7 +2707,7 @@ h2.pinline span:after {
     gap: var(--fp-space-2);
     margin: var(--fp-space-4) 0 0;
     color: var(--fp-color-champagne-dark);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .custom-link-round-icon {
@@ -2749,7 +2739,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: color-mix(in srgb, var(--fp-color-danger) 12%, var(--fp-color-surface-primary));
     color: var(--fp-color-danger);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .custom-link-check-item.complete > span {
@@ -2883,7 +2873,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     color: var(--fp-color-text-muted);
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .upload-files-editor-sidebar nav a.is-active {
@@ -2905,7 +2895,7 @@ h2.pinline span:after {
     display: grid;
     place-items: center;
     border-radius: var(--fp-radius-pill);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .upload-files-editor-icon {
@@ -3016,7 +3006,7 @@ h2.pinline span:after {
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
     font-style: normal;
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.14em;
 }
 
@@ -3096,7 +3086,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
-    font-weight: 900;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -3111,7 +3101,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .file-upload-field-progress div {
@@ -3186,7 +3176,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.14em;
 }
 
@@ -3210,7 +3200,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     background: color-mix(in srgb, var(--fp-color-danger) 10%, var(--fp-color-surface-primary));
     color: var(--fp-color-danger);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 @media (max-width: 1120px) {
@@ -3407,7 +3397,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     color: var(--fp-color-text-muted);
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .upload-video-editor-sidebar nav a.is-active {
@@ -3476,7 +3466,7 @@ h2.pinline span:after {
 }
 
 .upload-video-section > label {
-    font-weight: 900;
+    font-weight: 600;
     color: var(--fp-color-ink);
 }
 
@@ -3521,7 +3511,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .upload-video-confirm-card {
@@ -3622,7 +3612,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.14em;
 }
 
@@ -3680,7 +3670,7 @@ h2.pinline span:after {
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
     text-decoration: none;
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .upload-video-remove-dialog .MuiPaper-root {
@@ -3836,7 +3826,7 @@ h2.pinline span:after {
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
     font-style: normal;
-    font-weight: 900;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
@@ -3857,7 +3847,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-md);
     background: transparent;
     color: var(--fp-color-ink);
-    font-weight: 900;
+    font-weight: 600;
     cursor: pointer;
     transition: transform var(--fp-transition-fast), box-shadow var(--fp-transition-fast), border-color var(--fp-transition-fast), background-color var(--fp-transition-fast);
 }
@@ -3967,7 +3957,7 @@ h2.pinline span:after {
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
-    font-weight: 900;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
@@ -4028,7 +4018,7 @@ h2.pinline span:after {
     display: grid;
     gap: var(--fp-space-1);
     color: var(--fp-color-text-muted);
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .baby-journal-field span {
@@ -4236,13 +4226,13 @@ h2.pinline span:after {
     display: flex;
     align-items: center;
     color: var(--fp-color-ink);
-    font-family: var(--fp-font-mono);
+    font-family: var(--fp-font-ui);
     letter-spacing: 0.08em;
 }
 
 .adult-sensitive-id small {
     color: var(--fp-color-text-muted);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 @media (min-width: 961px) {

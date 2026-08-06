@@ -78,7 +78,7 @@
     padding-inline: var(--fp-space-3);
     border-radius: var(--fp-radius-sm);
     color: var(--fp-color-text-muted);
-    font-weight: 800;
+    font-weight: 600;
     text-decoration: none;
     transition:
         color var(--fp-transition-standard),
@@ -158,12 +158,6 @@
 
 .devices-kicker {
     margin: 0 0 var(--fp-space-3);
-    color: var(--fp-color-champagne-dark);
-    font-family: var(--fp-font-ui);
-    font-size: var(--fp-font-size-caption);
-    font-weight: 800;
-    line-height: var(--fp-line-height-control);
-    letter-spacing: 0;
 }
 
 .devices-heading,
@@ -172,7 +166,7 @@
     color: var(--fp-color-ink);
     font-family: var(--fp-font-display);
     font-size: clamp(3rem, 13vw, 4rem);
-    font-weight: 600;
+    font-weight: 500;
     line-height: var(--fp-line-height-tight);
     letter-spacing: 0;
 }
@@ -205,7 +199,7 @@
     min-height: 3.25rem !important;
     border-radius: var(--fp-radius-md) !important;
     padding-inline: var(--fp-space-4) !important;
-    font-weight: 800 !important;
+    font-weight: 600 !important;
     letter-spacing: 0 !important;
     text-decoration: none !important;
 }
@@ -286,7 +280,7 @@
     border-radius: 999px;
     color: var(--fp-color-text-muted);
     background: var(--fp-color-surface-primary);
-    font-weight: 800;
+    font-weight: 600;
     cursor: pointer;
     transition:
         color var(--fp-transition-standard),
@@ -440,7 +434,7 @@
     color: var(--fp-color-text-muted);
     background: var(--fp-color-surface-primary);
     font-size: var(--fp-font-size-caption);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .devices-status span {
@@ -464,11 +458,6 @@
 
 .devices-card-kicker {
     margin: 0;
-    color: var(--fp-color-champagne-dark);
-    font-size: var(--fp-font-size-caption);
-    font-weight: 800;
-    line-height: var(--fp-line-height-control);
-    letter-spacing: 0;
 }
 
 .devices-card-title {
@@ -486,7 +475,7 @@
     color: var(--fp-color-champagne-dark);
     background: var(--fp-color-champagne-soft);
     font-size: var(--fp-font-size-caption);
-    font-weight: 800;
+    font-weight: 600;
     line-height: var(--fp-line-height-control);
 }
 
@@ -511,7 +500,7 @@
     margin: var(--fp-space-5) 0 var(--fp-space-3);
     font-family: var(--fp-font-display);
     font-size: var(--fp-font-size-heading);
-    font-weight: 600;
+    font-weight: 500;
     line-height: var(--fp-line-height-heading);
 }
 
@@ -523,7 +512,7 @@
     color: var(--fp-color-champagne-dark);
     background: transparent;
     font: inherit;
-    font-weight: 800;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -542,7 +531,7 @@
     align-items: center;
     min-height: var(--fp-size-interactive-min);
     color: var(--fp-color-champagne-dark);
-    font-weight: 800;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -586,7 +575,7 @@
     margin: var(--fp-space-3) 0 0;
     font-family: var(--fp-font-display);
     font-size: var(--fp-font-size-heading);
-    font-weight: 600;
+    font-weight: 500;
     line-height: var(--fp-line-height-heading);
 }
 
@@ -619,7 +608,7 @@
     border: 1px solid var(--fp-color-border);
     border-radius: 999px;
     background: var(--fp-color-surface-primary);
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .activation-desktop-step-active > span,
@@ -684,7 +673,7 @@
     border-radius: 999px;
     color: var(--fp-color-text-muted);
     background: var(--fp-color-surface-primary);
-    font-weight: 800;
+    font-weight: 600;
     transition:
         background-color var(--fp-transition-standard),
         color var(--fp-transition-standard),
@@ -747,7 +736,7 @@
     border-radius: var(--fp-radius-sm);
     color: var(--fp-color-white);
     background: var(--fp-color-ink);
-    font-family: var(--fp-font-mono);
+    font-family: var(--fp-font-ui);
     font-size: var(--fp-font-size-caption);
     letter-spacing: 0;
 }
@@ -758,7 +747,7 @@
 }
 
 .activation-code-field label {
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .activation-code-field input {
@@ -784,7 +773,7 @@
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
     font-size: var(--fp-font-size-title-small);
-    font-weight: 800;
+    font-weight: 600;
     transition:
         border-color var(--fp-transition-standard),
         transform var(--fp-transition-fast),
@@ -815,7 +804,7 @@
     color: var(--fp-color-champagne-dark);
     background: var(--fp-color-champagne-soft);
     font: inherit;
-    font-weight: 800;
+    font-weight: 600;
     cursor: pointer;
 }
 

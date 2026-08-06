@@ -20,9 +20,9 @@ Do not hard-code brand hex values in migrated page CSS. Add or adjust semantic t
 
 ## Typography rules
 
-Manrope is the UI font for body copy, navigation, buttons, form fields and dense interface text. Cormorant Garamond is reserved for premium display headings and should not be used for form-heavy or dense operational UI.
+Inter is the UI font for body copy, navigation, buttons, form fields and dense interface text. Cormorant Garamond is reserved for premium display headings and editorial emphasis, and should not be used for form-heavy or dense operational UI.
 
-The current implementation defines self-hosting-ready font families with fallbacks. Add `@fontsource/manrope` and `@fontsource/cormorant-garamond` imports when the package manager is available in the environment.
+The current implementation loads only the required Google Fonts weights: Inter 400, 500, 600 and 700; Cormorant Garamond 400, 500 and 400 italic.
 
 ## Migrating legacy pages
 

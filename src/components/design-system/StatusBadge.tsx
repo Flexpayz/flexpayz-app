@@ -52,7 +52,7 @@ export function StatusBadge({
         border: "1px solid",
         borderRadius: "999px",
         fontSize: "var(--fp-font-size-caption)",
-        fontWeight: 700,
+        fontWeight: 600,
         lineHeight: "var(--fp-line-height-control)",
         ...toneStyles[tone],
       }}

@@ -158,7 +158,7 @@ export function DesignSystemPreview() {
           <Typography variant="h2">Elegant section heading</Typography>
           <Typography variant="h4">Operational UI heading</Typography>
           <Typography variant="body1">
-            Manrope is reserved for body copy, navigation, fields, buttons and
+            Inter is reserved for body copy, navigation, fields, buttons and
             dense interface text.
           </Typography>
           <Typography variant="body2">

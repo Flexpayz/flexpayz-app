@@ -5,9 +5,9 @@
     </defs>
     <style>
         tspan { white-space:pre }
-        .t0 { font-size: 20px;fill: #ffffff;font-family: ". Apple System UI Font" }
-        .t1 { font-size: 69px;fill: #d8d8d8;font-family: "Copperplate" }
-        .t2 { font-size: 69px;fill: #000000;font-family: "Copperplate" }
+        .t0 { font-size: 20px;fill: #ffffff;font-family: "Inter", sans-serif }
+        .t1 { font-size: 69px;fill: #d8d8d8;font-family: "Inter", sans-serif }
+        .t2 { font-size: 69px;fill: #000000;font-family: "Inter", sans-serif }
     </style>
     <g id="Page-1">
         <g id="Home">

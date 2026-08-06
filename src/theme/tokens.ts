@@ -30,9 +30,8 @@ export const flexPayzTokens = {
   },
   typography: {
     family: {
-      ui: '"Manrope", "Inter", "Segoe UI", Roboto, Arial, sans-serif',
+      ui: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       display: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
-      mono: '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
     },
     weight: {
       regular: 400,
@@ -41,6 +40,7 @@ export const flexPayzTokens = {
       bold: 700,
     },
     size: {
+      eyebrow: "10px",
       caption: "0.75rem",
       bodySmall: "0.875rem",
       body: "1rem",
@@ -49,6 +49,10 @@ export const flexPayzTokens = {
       title: "1.5rem",
       heading: "2rem",
       display: "3rem",
+    },
+    letterSpacing: {
+      reset: 0,
+      eyebrow: "0.2em",
     },
     lineHeight: {
       tight: 1.15,

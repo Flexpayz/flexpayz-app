@@ -14,10 +14,10 @@
   --fp-color-success: #50765B;
   --fp-color-success-soft: #E4EFE6;
   --fp-color-danger: #9B4B32;
-  --fp-font-ui: "Manrope", "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --fp-font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --fp-font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
   --fp-font-family-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-  --fp-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --fp-font-size-eyebrow: 10px;
   --fp-font-size-caption: 0.75rem;
   --fp-font-size-body-small: 0.875rem;
   --fp-font-size-body: 1rem;
@@ -30,6 +30,8 @@
   --fp-line-height-heading: 1.2;
   --fp-line-height-body: 1.6;
   --fp-line-height-control: 1.25;
+  --fp-letter-spacing-reset: 0;
+  --fp-letter-spacing-eyebrow: 0.2em;
   --fp-space-0: 0;
   --fp-space-1: 0.25rem;
   --fp-space-2: 0.5rem;
@@ -72,6 +74,76 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--fp-font-ui);
+}
+
+.fp-typography-display,
+.fp-typography-page-title,
+.fp-typography-heading {
+  font-family: var(--fp-font-display);
+  font-weight: 400;
+  line-height: var(--fp-line-height-tight);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-page-title {
+  font-size: var(--fp-font-size-display);
+}
+
+.fp-typography-heading {
+  font-size: var(--fp-font-size-heading);
+}
+
+.fp-typography-display-emphasis {
+  font-family: var(--fp-font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.fp-typography-body {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-body);
+  font-weight: 400;
+  line-height: var(--fp-line-height-body);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-label {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-body-small);
+  font-weight: 600;
+  line-height: var(--fp-line-height-control);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-caption {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-caption);
+  font-weight: 400;
+  line-height: var(--fp-line-height-control);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-eyebrow,
+.auth-kicker,
+.entry-kicker,
+.business-kicker,
+.workspace-kicker,
+.workspace-section-kicker,
+.workspace-sidebar-kicker,
+.devices-kicker,
+.devices-card-kicker,
+.custom-link-public-kicker,
+.business-editor-section > p,
+.device-identity-card span,
+.device-sidebar-identity span,
+.dialog-title-row span,
+.reset-device-dialog .MuiDialogTitle-root span {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-eyebrow);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: var(--fp-letter-spacing-eyebrow);
+  text-transform: uppercase;
+  color: var(--fp-color-text-muted);
 }

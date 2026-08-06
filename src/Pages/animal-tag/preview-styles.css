@@ -46,7 +46,7 @@ html {
 
 .frame .name-container .name {
     color: #333333;
-    font-weight: bold;
+    font-weight: 600;
     text-align: left;
     font-size: 36px;
 }
@@ -68,7 +68,7 @@ html {
     text-align: left;
     color: #333333;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     margin: 24px 0 12px 0;
 }
 
@@ -116,7 +116,7 @@ html {
     text-align: left;
     color: #333333;
     font-size: 16px;
-    font-weight: normal;
+    font-weight: 400;
     margin: 0;
 }
 
@@ -134,7 +134,7 @@ html {
     justify-content: center;
     align-items: center;
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 
@@ -173,7 +173,7 @@ html {
     text-align: left;
     color: #333333;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     margin: 0;
 }
 
@@ -189,7 +189,7 @@ html {
     justify-content: center;
     align-items: center;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-decoration: none;
