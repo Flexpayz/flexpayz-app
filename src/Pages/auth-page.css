@@ -143,7 +143,7 @@
     align-items: stretch;
     justify-content: center;
     min-width: 0;
-    padding: 0;
+    padding: var(--fp-space-5);
 }
 
 .auth-transition {
@@ -661,6 +661,10 @@
 @media (min-width: 390px) {
     .auth-container {
         padding-inline: var(--fp-space-6);
+    }
+
+    .auth-form-panel {
+        padding: var(--fp-space-6);
     }
 }
 

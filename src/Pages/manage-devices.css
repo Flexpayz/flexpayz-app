@@ -90,8 +90,7 @@
     background: var(--fp-color-champagne-soft);
 }
 
-.devices-profile-button,
-.devices-overflow-button {
+.devices-profile-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -111,22 +110,18 @@
 }
 
 .devices-profile-button:hover,
-.devices-profile-button-open,
-.devices-overflow-button:hover {
+.devices-profile-button-open {
     border-color: var(--fp-color-champagne);
     background: var(--fp-color-surface-primary);
     transform: translateY(-1px);
 }
 
-.devices-profile-button:active,
-.devices-overflow-button:active {
+.devices-profile-button:active {
     transform: translateY(0);
 }
 
 .devices-profile-button:focus-visible,
-.devices-overflow-button:focus-visible,
 .devices-text-button:focus-visible,
-.devices-filter-pill:focus-visible,
 .devices-support-link:focus-visible,
 .activation-code-field input:focus-visible,
 .activation-guide-card a:focus-visible,
@@ -265,35 +260,6 @@
 
 .devices-search .MuiInputLabel-root.Mui-focused {
     color: var(--fp-color-text-muted);
-}
-
-.devices-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--fp-space-2);
-}
-
-.devices-filter-pill {
-    min-width: 4.5rem;
-    min-height: var(--fp-size-interactive-min);
-    border: 1px solid var(--fp-color-border);
-    border-radius: 999px;
-    color: var(--fp-color-text-muted);
-    background: var(--fp-color-surface-primary);
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-        color var(--fp-transition-standard),
-        background-color var(--fp-transition-standard),
-        border-color var(--fp-transition-standard),
-        transform var(--fp-transition-fast);
-}
-
-.devices-filter-pill-active,
-.devices-filter-pill:hover {
-    border-color: var(--fp-color-ink);
-    color: var(--fp-color-white);
-    background: var(--fp-color-ink);
 }
 
 .devices-grid {

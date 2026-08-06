@@ -16,7 +16,6 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth";
@@ -40,7 +39,6 @@ import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
 
 type DashboardMode = 'dashboard' | 'activate';
-type FilterValue = 'all' | 'business' | 'personal';
 type WizardStep = 'code' | 'confirm' | 'success';
 type WizardIssue = 'incomplete' | 'not-found' | 'already-activated' | 'activation-failed' | 'network' | 'permission' | null;
 
@@ -68,7 +66,6 @@ export function ManageDevices() {
     const [fetchError, setFetchError] = useState('');
     const [mode, setMode] = useState<DashboardMode>('dashboard');
     const [search, setSearch] = useState('');
-    const [filter, setFilter] = useState<FilterValue>('all');
     const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
     const [highlightedDeviceId, setHighlightedDeviceId] = useState('');
 
@@ -147,7 +144,7 @@ export function ManageDevices() {
 
     const deviceCount = devices.length;
     const showDiscovery = deviceCount > 1;
-    const filteredDevices = filterDevices(devices, search, filter);
+    const filteredDevices = filterDevices(devices, search);
     const profileMenuOpen = Boolean(profileAnchor);
 
     return (
@@ -233,14 +230,11 @@ export function ManageDevices() {
                                     <DashboardDiscovery
                                         search={search}
                                         onSearch={setSearch}
-                                        filter={filter}
-                                        onFilter={setFilter}
                                     />
                                 )}
                                 {filteredDevices.length === 0 ? (
                                     <NoResults onClear={() => {
                                         setSearch('');
-                                        setFilter('all');
                                     }}/>
                                 ) : (
                                     <Box className="devices-grid">
@@ -291,13 +285,9 @@ function EmptyDashboard({onAddDevice}: {onAddDevice: () => void}) {
 function DashboardDiscovery({
     search,
     onSearch,
-    filter,
-    onFilter,
 }: {
     search: string;
     onSearch: (value: string) => void;
-    filter: FilterValue;
-    onFilter: (value: FilterValue) => void;
 }) {
     return (
         <Box className="devices-discovery">
@@ -322,24 +312,6 @@ function DashboardDiscovery({
                     ) : undefined,
                 }}
             />
-            <Box className="devices-filters" role="radiogroup" aria-label="Device category filter">
-                {[
-                    {value: 'all', label: 'All'},
-                    {value: 'business', label: 'Business'},
-                    {value: 'personal', label: 'Personal'},
-                ].map((option) => (
-                    <button
-                        key={option.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={filter === option.value}
-                        className={`devices-filter-pill ${filter === option.value ? 'devices-filter-pill-active' : ''}`}
-                        onClick={() => onFilter(option.value as FilterValue)}
-                    >
-                        {option.label}
-                    </button>
-                ))}
-            </Box>
         </Box>
     );
 }
@@ -372,9 +344,6 @@ function DeviceCard({
             <Box className="devices-card-body">
                 <Box className="devices-card-meta-row">
                     <Box component="p" className="devices-card-kicker">{category.label}</Box>
-                    <button type="button" className="devices-overflow-button" aria-label={`Open actions for ${getDeviceName(device)}`}>
-                        <MoreHorizRoundedIcon aria-hidden="true"/>
-                    </button>
                 </Box>
                 <Box component="h2" className="devices-card-title">{getDeviceName(device)}</Box>
                 {contentType && <span className="devices-content-pill">{contentType}</span>}
@@ -874,7 +843,7 @@ function NoResults({onClear}: {onClear: () => void}) {
     return (
         <Surface className="devices-no-results">
             <strong>No matching devices</strong>
-            <p>Try another search or filter.</p>
+            <p>Try another search.</p>
             <AppButton type="button" variant="outlined" className="devices-secondary-button" onClick={onClear}>
                 Clear search
             </AppButton>
@@ -933,17 +902,16 @@ const wizardIssues = {
     },
 };
 
-function filterDevices(devices: ManagedDevice[], search: string, filter: FilterValue) {
+function filterDevices(devices: ManagedDevice[], search: string) {
     const normalizedSearch = search.trim().toLowerCase();
     return devices.filter((device) => {
         const category = getDeviceCategory(device);
-        const matchesFilter = filter === 'all' || category.intent === filter;
         const searchableText = [
             getDeviceName(device),
             category.label,
             getContentType(device),
         ].join(' ').toLowerCase();
-        return matchesFilter && (!normalizedSearch || searchableText.includes(normalizedSearch));
+        return !normalizedSearch || searchableText.includes(normalizedSearch);
     });
 }
 
@@ -953,10 +921,10 @@ function getDeviceName(device: ManagedDevice) {
 
 function getDeviceCategory(device: ManagedDevice) {
     const raw = `${device.category || device.type || device.productType || ''}`.toLowerCase();
-    if (raw.includes('card')) return {label: 'Flex Card', kind: 'card', intent: 'business' as FilterValue};
-    if (raw.includes('tag') || device.preview === 'animal_tag') return {label: 'Pet Tag', kind: 'tag', intent: 'personal' as FilterValue};
-    if (device.preview === 'baby-journal' || device.preview === 'adult-journal') return {label: 'Flex Ring', kind: 'ring', intent: 'personal' as FilterValue};
-    return {label: 'Flex Ring', kind: 'ring', intent: 'business' as FilterValue};
+    if (raw.includes('card')) return {label: 'Flex Card', kind: 'card'};
+    if (raw.includes('tag') || device.preview === 'animal_tag') return {label: 'Pet Tag', kind: 'tag'};
+    if (device.preview === 'baby-journal' || device.preview === 'adult-journal') return {label: 'Flex Ring', kind: 'ring'};
+    return {label: 'Flex Ring', kind: 'ring'};
 }
 
 function getContentType(device: ManagedDevice) {

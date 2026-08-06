@@ -104,7 +104,7 @@ beforeEach(() => {
 });
 
 describe("ManageDevices dashboard", () => {
-    it("renders populated devices, count pluralization, search, filters, and profile icon menu", async () => {
+    it("renders populated devices, count pluralization, search, and profile icon menu", async () => {
         renderManageDevices();
 
         expect(screen.getByText("Loading active products")).toBeInTheDocument();
@@ -113,6 +113,10 @@ describe("ManageDevices dashboard", () => {
         expect(await screen.findByText("Midnight Ring")).toBeInTheDocument();
         expect(screen.getByText("Studio Card")).toBeInTheDocument();
         expect(screen.getByText("Milo’s Tag")).toBeInTheDocument();
+        expect(screen.queryByRole("radio", {name: "All"})).not.toBeInTheDocument();
+        expect(screen.queryByRole("radio", {name: "Business"})).not.toBeInTheDocument();
+        expect(screen.queryByRole("radio", {name: "Personal"})).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", {name: /Open actions for/i})).not.toBeInTheDocument();
 
         expect(screen.getByRole("button", {name: "Open profile menu"})).toBeInTheDocument();
         expect(screen.queryByText("RM")).not.toBeInTheDocument();
@@ -125,8 +129,9 @@ describe("ManageDevices dashboard", () => {
         expect(screen.getByText("Studio Card")).toBeInTheDocument();
         expect(screen.queryByText("Midnight Ring")).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("radio", {name: "Personal"}));
+        fireEvent.change(screen.getByLabelText("Search your devices"), {target: {value: "missing"}});
         expect(screen.getByText("No matching devices")).toBeInTheDocument();
+        expect(screen.getByText("Try another search.")).toBeInTheDocument();
         fireEvent.click(screen.getAllByRole("button", {name: "Clear search"})[1]);
         expect(screen.getByText("Milo’s Tag")).toBeInTheDocument();
     });
