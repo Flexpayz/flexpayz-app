@@ -5,6 +5,7 @@ import {db} from "../App";
 import {notify} from "../Pages/login-page";
 import {getProductIdFromURL} from "../utils";
 import {LoadingScreenContext} from "./loading-sreen";
+import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import {
     defaultMultipleInvestigations,
     InvestigationHandler,
@@ -14,9 +15,10 @@ import {
     useCreateMultipleSleepScheduleHandler
 } from "./adult-journal-settings";
 import {useNavigate} from "react-router";
-import {FlexPayzLogo, LoadingPanel} from "./design-system";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import {BackButton, FlexPayzLogo, LoadingPanel} from "./design-system";
 import {ProfileUpload} from "./profile-upload";
-import AssetUpload3 from "./asset-upload-3";
+import {JournalFileUpload} from "./journal-file-upload";
 import {
     babyFeedingFields,
     babyMilestones,
@@ -404,11 +406,6 @@ function BabyJournalWorkspace() {
                         <button key={link.id} type="button" onClick={() => scrollToSection(link.id)}>{link.label}</button>
                     ))}
                 </div>
-                <div className="baby-journal-editor-status-card">
-                    <strong>{completion}%</strong>
-                    <span>Complete</span>
-                    <div><span style={{transform: `scaleX(${completion / 100})`}}/></div>
-                </div>
                 <div className={`baby-journal-editor-status-card ${saveState}`}>
                     <strong>{saveState === "saving" ? "Saving" : saveState === "failed" ? "Needs retry" : saveState === "saved" ? "Saved" : "Autosave off"}</strong>
                     <span>{saveMessage}</span>
@@ -417,15 +414,16 @@ function BabyJournalWorkspace() {
 
             <section className="baby-journal-editor-main">
                 <header className="baby-journal-editor-header">
-                    <div>
+                    <div className="baby-journal-editor-topbar">
+                        <FlexPayzLogo className="baby-journal-editor-header-logo"/>
+                        <BackButton aria-label="Back to device workspace" onClick={goBack}/>
+                    </div>
+                    <div className="baby-journal-editor-title">
                         <p className="business-kicker">BABY JOURNAL SETTINGS</p>
                         <h1 ref={headingRef} tabIndex={-1}>{activeTab === "home" ? "A clear record of every chapter" : "Health records, kept readable"}</h1>
                         <p>{activeTab === "home" ? "Complete one meaningful section at a time. Health information stays in its own workspace." : "Review private health records, medical files and parent profiles without changing the data model."}</p>
                     </div>
-                    <div className="baby-journal-editor-actions">
-                        <span>{completion}% complete</span>
-                        <button type="button" onClick={goBack} className="baby-journal-button secondary">Back</button>
-                    </div>
+                    <BabyJournalCompletion completion={completion}/>
                     <nav className="baby-journal-mobile-tabs" role="tablist" aria-label="Baby Journal sections">
                         <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}>⌂ Home</button>
                         <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}>♡ Health</button>
@@ -455,6 +453,20 @@ function BabyJournalWorkspace() {
                 </footer>
             </section>
         </main>
+    );
+}
+
+function BabyJournalCompletion({completion}: {completion: number}) {
+    return (
+        <section className="baby-journal-completion-card" aria-label="Journal completion">
+            <div>
+                <CheckRoundedIcon/>
+                <strong>Journal progress</strong>
+                <span>Complete the essentials</span>
+            </div>
+            <div className="baby-journal-completion-meter" aria-hidden="true"><i style={{transform: `scaleX(${completion / 100})`}}/></div>
+            <strong>{completion}%</strong>
+        </section>
     );
 }
 
@@ -569,6 +581,9 @@ function BabyJournalHomeEditor({
 }
 
 function BabyJournalHealthEditor({journal, setJournal}: {journal: BabyJournalInformation; setJournal: any}) {
+    const [recordDialogCategory, setRecordDialogCategory] = useState<typeof healthCategories[number] | null>(null);
+    const [recordDialogText, setRecordDialogText] = useState("");
+
     const updateParent = (parentKey: "mother" | "father", field: keyof BabyJournalInformation["mother"], value: any) => {
         setJournal((previous: BabyJournalInformation) => ({
             ...previous,
@@ -589,15 +604,33 @@ function BabyJournalHealthEditor({journal, setJournal}: {journal: BabyJournalInf
         }));
     };
 
-    const addInvestigation = (category: typeof healthCategories[number]["field"]) => {
+    const openRecordDialog = (category: typeof healthCategories[number]) => {
+        setRecordDialogCategory(category);
+        setRecordDialogText("");
+    };
+
+    const closeRecordDialog = () => {
+        setRecordDialogCategory(null);
+        setRecordDialogText("");
+    };
+
+    const saveRecordDialog = () => {
+        if (!recordDialogCategory || !recordDialogText.trim()) {
+            return;
+        }
+
         const dateKey = new Date().toISOString().slice(0, 10);
         setJournal((previous: BabyJournalInformation) => ({
             ...previous,
-            [category]: {
-                ...previous[category],
-                [dateKey]: previous[category][dateKey] || {description: "", assets: []},
+            [recordDialogCategory.field]: {
+                ...previous[recordDialogCategory.field],
+                [dateKey]: {
+                    ...(previous[recordDialogCategory.field][dateKey] || {description: "", assets: []}),
+                    description: recordDialogText.trim(),
+                },
             },
         }));
+        closeRecordDialog();
     };
 
     return (
@@ -618,11 +651,11 @@ function BabyJournalHealthEditor({journal, setJournal}: {journal: BabyJournalInf
                 <div className="baby-journal-two-column">
                     <div>
                         <strong>Medical records</strong>
-                        <AssetUpload3 value={journal.medicalRecords} onChange={(medicalRecords) => setJournal((previous: BabyJournalInformation) => ({...previous, medicalRecords}))} storageFolder={DB_STORAGE.BABY_JOURNAL} multiple maxFiles={3}/>
+                        <JournalFileUpload value={journal.medicalRecords} onChange={(medicalRecords) => setJournal((previous: BabyJournalInformation) => ({...previous, medicalRecords}))} storageFolder={DB_STORAGE.BABY_JOURNAL} storageKey="medical-record" multiple maxFiles={3} label="Medical record"/>
                     </div>
                     <div>
                         <strong>European Health Card</strong>
-                        <AssetUpload3 value={journal.europeanHealthCard} onChange={(europeanHealthCard) => setJournal((previous: BabyJournalInformation) => ({...previous, europeanHealthCard}))} storageFolder={DB_STORAGE.BABY_JOURNAL} multiple={false} maxFiles={1}/>
+                        <JournalFileUpload value={journal.europeanHealthCard} onChange={(europeanHealthCard) => setJournal((previous: BabyJournalInformation) => ({...previous, europeanHealthCard}))} storageFolder={DB_STORAGE.BABY_JOURNAL} storageKey="european-health-card" maxFiles={1} label="European Health Card"/>
                     </div>
                 </div>
             </EditorCard>
@@ -633,9 +666,9 @@ function BabyJournalHealthEditor({journal, setJournal}: {journal: BabyJournalInf
                         const dateKeys = sortJournalDateKeysNewestFirst(Object.keys(journal[category.field]));
                         return (
                             <section key={category.field} className="baby-journal-health-category">
-                                <div>
+                                <div className="baby-journal-health-category-header">
                                     <h3>{category.label}</h3>
-                                    <button type="button" onClick={() => addInvestigation(category.field)}>Add record +</button>
+                                    <button type="button" className="baby-journal-add-record-button" onClick={() => openRecordDialog(category)}>Add record</button>
                                 </div>
                                 {dateKeys.length === 0 && <p>{category.empty}</p>}
                                 {dateKeys.map((dateKey) => (
@@ -649,6 +682,31 @@ function BabyJournalHealthEditor({journal, setJournal}: {journal: BabyJournalInf
                     })}
                 </div>
             </EditorCard>
+
+            <Dialog
+                open={Boolean(recordDialogCategory)}
+                onClose={closeRecordDialog}
+                fullWidth
+                maxWidth="sm"
+                className="baby-journal-record-dialog"
+            >
+                <DialogTitle>Add {recordDialogCategory?.label.toLowerCase()} record</DialogTitle>
+                <DialogContent>
+                    <label className="baby-journal-field baby-journal-textarea">
+                        <span>Record details</span>
+                        <textarea
+                            value={recordDialogText}
+                            rows={6}
+                            placeholder="Write the record details"
+                            onChange={(event) => setRecordDialogText(event.target.value)}
+                        />
+                    </label>
+                </DialogContent>
+                <DialogActions>
+                    <button type="button" className="baby-journal-button secondary" onClick={closeRecordDialog}>Cancel</button>
+                    <button type="button" className="baby-journal-button primary" onClick={saveRecordDialog} disabled={!recordDialogText.trim()}>Save record</button>
+                </DialogActions>
+            </Dialog>
 
             <EditorCard id="baby-parent-profiles" kicker="04 · PARENT PROFILES" title="Parent profiles">
                 <div className="baby-journal-two-column">

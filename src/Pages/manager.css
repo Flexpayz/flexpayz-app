@@ -567,14 +567,17 @@ h2.pinline span:after {
     height: 2.75rem;
     display: grid;
     place-items: center;
-    border-radius: var(--fp-radius-pill);
+    border-radius: 999px;
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
     font-weight: 600;
 }
 
-.business-social-field small {
-    grid-column: 2;
+.business-social-field > span svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    display: block;
+    fill: currentColor;
 }
 
 .business-document-upload {
@@ -1492,7 +1495,7 @@ h2.pinline span:after {
 
 .device-workspace-page {
     position: relative;
-    min-height: 100svh;
+    height: 100vh;
     width: 100%;
     overflow-x: hidden;
     background:
@@ -2155,6 +2158,270 @@ h2.pinline span:after {
 .editor-settings-logo {
     width: min(10rem, 40vw);
     flex: 0 1 min(10rem, 40vw);
+}
+
+.shared-contacts-page {
+    gap: var(--fp-space-5);
+    color: var(--fp-color-ink);
+}
+
+.shared-contacts-layout {
+    width: min(100%, 48rem);
+    display: grid;
+    gap: var(--fp-space-5);
+}
+
+.shared-contacts-hero {
+    display: grid;
+    gap: var(--fp-space-2);
+    text-align: center;
+}
+
+.shared-contacts-hero h1,
+.shared-contacts-panel-heading h2,
+.shared-contact-card h2,
+.shared-contacts-empty h3 {
+    margin: 0;
+    color: var(--fp-color-ink);
+}
+
+.shared-contacts-hero h1 {
+    font-family: var(--fp-font-family-display);
+    font-size: clamp(2.75rem, 8vw, 4.5rem);
+    font-weight: 500;
+    line-height: 0.95;
+}
+
+.shared-contacts-hero p {
+    max-width: 36rem;
+    margin: 0 auto;
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-body);
+    font-weight: 400;
+    line-height: var(--fp-line-height-body);
+}
+
+.shared-contacts-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--fp-space-3);
+}
+
+.shared-contact-summary-card,
+.shared-contacts-panel,
+.shared-contact-card,
+.shared-contacts-empty {
+    border: 1px solid var(--fp-color-border);
+    background: var(--fp-color-surface-primary);
+    box-shadow: var(--fp-shadow-soft);
+}
+
+.shared-contact-summary-card {
+    min-width: 0;
+    padding: var(--fp-space-4);
+    border-radius: var(--fp-radius-lg);
+    display: grid;
+    gap: var(--fp-space-1);
+    text-align: center;
+}
+
+.shared-contact-summary-card span {
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--fp-letter-spacing-eyebrow);
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.shared-contact-summary-card strong {
+    overflow-wrap: anywhere;
+    color: var(--fp-color-ink);
+    font-family: var(--fp-font-family-display);
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    font-weight: 500;
+    line-height: 1;
+}
+
+.shared-contact-summary-card small {
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-caption);
+    line-height: var(--fp-line-height-body);
+}
+
+.shared-contacts-panel {
+    padding: var(--fp-space-5);
+    border-radius: var(--fp-radius-xl);
+    display: grid;
+    gap: var(--fp-space-4);
+}
+
+.shared-contacts-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-3);
+}
+
+.shared-contacts-panel-heading h2,
+.shared-contact-card h2,
+.shared-contacts-empty h3 {
+    font-family: var(--fp-font-family-display);
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 500;
+    line-height: 1;
+}
+
+.shared-contacts-count-pill {
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fp-space-2);
+    padding: 0 var(--fp-space-3);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-success-soft);
+    color: var(--fp-color-success);
+    font-size: var(--fp-font-size-caption);
+    font-weight: 600;
+    line-height: var(--fp-line-height-control);
+    white-space: nowrap;
+}
+
+.shared-contacts-count-pill svg {
+    font-size: 1rem;
+}
+
+.shared-contact-list {
+    display: grid;
+    gap: var(--fp-space-4);
+}
+
+.shared-contact-card {
+    padding: var(--fp-space-4);
+    border-radius: var(--fp-radius-lg);
+    display: grid;
+    gap: var(--fp-space-4);
+}
+
+.shared-contact-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--fp-space-3);
+}
+
+.shared-contact-save-button {
+    min-height: var(--fp-size-interactive-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fp-space-2);
+    padding: 0 var(--fp-space-4);
+    border: 1px solid var(--fp-color-ink);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-ink);
+    color: var(--fp-color-surface-primary);
+    font-family: var(--fp-font-ui);
+    font-size: var(--fp-font-size-body);
+    font-weight: 600;
+    line-height: var(--fp-line-height-control);
+    cursor: pointer;
+}
+
+.shared-contact-details {
+    display: grid;
+    gap: var(--fp-space-3);
+}
+
+.shared-contact-detail {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    column-gap: var(--fp-space-3);
+    row-gap: 0.15rem;
+    align-items: center;
+    color: var(--fp-color-ink);
+    text-decoration: none;
+}
+
+.shared-contact-detail > span {
+    grid-row: span 2;
+    width: 2.75rem;
+    aspect-ratio: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-champagne-dark);
+}
+
+.shared-contact-detail strong {
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--fp-letter-spacing-eyebrow);
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.shared-contact-detail small {
+    overflow-wrap: anywhere;
+    color: var(--fp-color-ink);
+    font-size: var(--fp-font-size-body);
+    font-weight: 500;
+    line-height: var(--fp-line-height-control);
+}
+
+.shared-contact-message {
+    align-items: start;
+}
+
+.shared-contacts-empty {
+    padding: var(--fp-space-6);
+    border-radius: var(--fp-radius-lg);
+    text-align: center;
+}
+
+.shared-contacts-empty p {
+    max-width: 28rem;
+    margin: var(--fp-space-2) auto 0;
+    color: var(--fp-color-text-muted);
+}
+
+@media (max-width: 700px) {
+    .shared-contacts-page {
+        padding-inline: var(--fp-space-4);
+    }
+
+    .shared-contacts-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .shared-contacts-panel {
+        padding: var(--fp-space-4);
+        border-radius: var(--fp-radius-lg);
+    }
+
+    .shared-contacts-panel-heading,
+    .shared-contact-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .shared-contacts-count-pill,
+    .shared-contact-save-button {
+        width: 100%;
+    }
+
+    .shared-contact-detail {
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+    }
+
+    .shared-contact-detail > span {
+        width: 2.5rem;
+    }
 }
 
 .device-sidebar-logo {
@@ -2882,8 +3149,15 @@ h2.pinline span:after {
 .file-upload-field-icon {
     display: grid;
     place-items: center;
-    border-radius: var(--fp-radius-pill);
+    border-radius: 999px;
     font-weight: 600;
+}
+
+.upload-files-editor-icon svg,
+.upload-files-pdf-icon svg,
+.file-upload-field-icon svg {
+    display: block;
+    margin: auto;
 }
 
 .upload-files-editor-icon {
@@ -2989,13 +3263,19 @@ h2.pinline span:after {
 }
 
 .upload-files-slot-header em {
-    padding: var(--fp-space-2) var(--fp-space-4);
-    border-radius: var(--fp-radius-pill);
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--fp-space-3);
+    border-radius: 999px;
     background: var(--fp-color-success-soft);
     color: var(--fp-color-success);
+    font-size: var(--fp-font-size-caption);
     font-style: normal;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
 }
 
 .upload-files-slot-card .MuiOutlinedInput-root {
@@ -3027,6 +3307,11 @@ h2.pinline span:after {
     gap: var(--fp-space-3);
 }
 
+.journal-file-upload-list {
+    display: grid;
+    gap: var(--fp-space-4);
+}
+
 .file-upload-field-input {
     position: absolute;
     width: 1px;
@@ -3038,9 +3323,11 @@ h2.pinline span:after {
 .file-upload-field-dropzone {
     min-height: var(--fp-size-interactive-min);
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr;
     gap: var(--fp-space-4);
     align-items: center;
+    justify-items: center;
+    text-align: center;
     padding: var(--fp-space-4);
     border: 1px dashed var(--fp-color-border);
     border-radius: var(--fp-radius-md);
@@ -3085,11 +3372,18 @@ h2.pinline span:after {
 
 .file-upload-field-progress span {
     justify-self: end;
-    padding: var(--fp-space-2) var(--fp-space-4);
-    border-radius: var(--fp-radius-pill);
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--fp-space-3);
+    border-radius: 999px;
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
+    font-size: var(--fp-font-size-caption);
     font-weight: 600;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
 }
 
 .file-upload-field-progress div {
@@ -3160,12 +3454,17 @@ h2.pinline span:after {
 }
 
 .upload-files-publishing span {
-    padding: var(--fp-space-2) var(--fp-space-5);
-    border-radius: var(--fp-radius-pill);
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--fp-space-3);
+    border-radius: 999px;
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
+    font-size: var(--fp-font-size-caption);
     font-weight: 600;
-    letter-spacing: 0.14em;
+    line-height: var(--fp-line-height-control);
+    letter-spacing: 0.12em;
 }
 
 .upload-files-remove-dialog .MuiPaper-root {
@@ -3920,10 +4219,27 @@ h2.pinline span:after {
 }
 
 .baby-journal-editor-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: var(--fp-space-5);
-    align-items: start;
+}
+
+.baby-journal-editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-4);
+}
+
+.baby-journal-editor-header-logo {
+    width: min(10rem, 40vw);
+    flex: 0 1 min(10rem, 40vw);
+}
+
+.baby-journal-editor-title {
+    max-width: 44rem;
+    margin-inline: auto;
+    text-align: center;
 }
 
 .baby-journal-editor-header h1 {
@@ -3939,20 +4255,45 @@ h2.pinline span:after {
     color: var(--fp-color-text-muted);
 }
 
-.baby-journal-editor-actions {
-    display: flex;
+.baby-journal-completion-card {
+    display: grid;
+    grid-template-columns: auto minmax(8rem, 1fr) auto;
     align-items: center;
-    gap: var(--fp-space-3);
+    gap: var(--fp-space-4);
+    padding: var(--fp-space-4);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-champagne-soft);
 }
 
-.baby-journal-editor-actions span {
-    padding: var(--fp-space-2) var(--fp-space-4);
+.baby-journal-completion-card > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: var(--fp-space-2);
+}
+
+.baby-journal-completion-card svg {
+    color: var(--fp-color-success);
+}
+
+.baby-journal-completion-card span {
+    color: var(--fp-color-text-muted);
+}
+
+.baby-journal-completion-meter {
+    height: 0.35rem;
     border-radius: var(--fp-radius-pill);
-    background: var(--fp-color-champagne-soft);
-    color: var(--fp-color-champagne-dark);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    background: var(--fp-color-border);
+    overflow: hidden;
+}
+
+.baby-journal-completion-meter i {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: left center;
+    background: var(--fp-color-champagne);
+    transition: transform var(--fp-transition-slow);
 }
 
 .baby-journal-mobile-tabs {
@@ -3973,10 +4314,16 @@ h2.pinline span:after {
 }
 
 .baby-journal-editor-card > header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
+    display: grid;
+    justify-items: center;
     gap: var(--fp-space-4);
+    text-align: center;
+}
+
+.baby-journal-editor-card > header > div {
+    display: grid;
+    justify-items: center;
+    gap: var(--fp-space-2);
 }
 
 .baby-journal-editor-card h2,
@@ -4077,11 +4424,67 @@ h2.pinline span:after {
     background: var(--fp-color-surface-primary);
 }
 
-.baby-journal-health-category > div:first-child {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.baby-journal-health-category-header {
+    display: grid;
+    justify-items: center;
     gap: var(--fp-space-3);
+    text-align: center;
+}
+
+.baby-journal-add-record-button {
+    min-height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--fp-space-4);
+    border: 1px solid var(--fp-color-border);
+    border-radius: 999px;
+    background: var(--fp-color-ink);
+    color: var(--fp-color-white);
+    font-family: var(--fp-font-ui);
+    font-size: var(--fp-font-size-body);
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--fp-shadow-soft);
+    transition: transform var(--fp-transition-fast), box-shadow var(--fp-transition-fast), background-color var(--fp-transition-fast);
+}
+
+.baby-journal-add-record-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--fp-shadow-floating);
+}
+
+.baby-journal-record-dialog .MuiPaper-root {
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+}
+
+.baby-journal-record-dialog .MuiDialogTitle-root {
+    padding: var(--fp-space-5) var(--fp-space-5) var(--fp-space-2);
+    font-family: var(--fp-font-family-display);
+    font-size: var(--fp-font-size-heading);
+    font-weight: 500;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.baby-journal-record-dialog .MuiDialogContent-root {
+    display: grid;
+    gap: var(--fp-space-4);
+    padding: var(--fp-space-3) var(--fp-space-5) var(--fp-space-4);
+}
+
+.baby-journal-record-dialog .MuiDialogActions-root {
+    gap: var(--fp-space-3);
+    justify-content: center;
+    padding: 0 var(--fp-space-5) var(--fp-space-5);
+}
+
+.adult-journal-centered-action {
+    display: grid;
+    justify-items: center;
 }
 
 .baby-journal-savebar {
@@ -4150,12 +4553,9 @@ h2.pinline span:after {
         padding: calc(var(--fp-space-5) + env(safe-area-inset-top)) var(--fp-space-4) calc(var(--fp-space-8) + env(safe-area-inset-bottom));
     }
 
-    .baby-journal-editor-header {
+    .baby-journal-completion-card {
         grid-template-columns: 1fr;
-    }
-
-    .baby-journal-editor-actions {
-        justify-content: space-between;
+        align-items: stretch;
     }
 
     .baby-journal-mobile-tabs {

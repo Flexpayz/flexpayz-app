@@ -1,6 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import type {RefObject} from "react";
-import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
@@ -24,7 +23,8 @@ import {
 } from "../adult-journal";
 import {DB_COLLECTIONS} from "./baby-journal-settings";
 import type {AdultJournalInformation, Investigation} from "./adult-journal-settings";
-import {BackButton, FlexPayzLogo, LoadingPanel} from "./design-system";
+import {BackButton, LoadingPanel} from "./design-system";
+import {PublicPageHeader} from "./public-page-header";
 
 type PublicTab = "home" | "health" | "tests" | "care";
 
@@ -98,15 +98,7 @@ export function AdultJournalPreview({
     return (
         <section className="baby-journal-public-page adult-journal-public-page" aria-label="Adult Journal">
             <div className="baby-journal-public-circles" aria-hidden="true"><span/><span/></div>
-            <header className="baby-journal-public-header">
-                <FlexPayzLogo className="baby-journal-public-logo"/>
-                <div>
-                    <span className="baby-journal-public-lock"><LockRoundedIcon fontSize="small"/> Protected</span>
-                    <button type="button" onClick={() => navigator.share?.({title: "FlexPayz protected journal", url: window.location.href})}>
-                        Share page <ArrowOutwardRoundedIcon fontSize="small"/>
-                    </button>
-                </div>
-            </header>
+            <PublicPageHeader productId={productId || ""} fromDashboard={fromDashboard} shareTitle="FlexPayz protected journal"/>
 
             <main className="baby-journal-public-layout">
                 <aside className="baby-journal-public-sidebar" aria-label="Adult Journal sections">

@@ -1,6 +1,5 @@
 import {CSSProperties, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {CircularProgress} from "@mui/material";
-import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import PauseRoundedIcon from "@mui/icons-material/PauseRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
@@ -18,7 +17,8 @@ import {
     getReadyUploadSongTracks,
     getUploadSongStoragePath,
 } from "../upload-songs";
-import {FlexPayzLogo, LoadingPanel} from "./design-system";
+import {LoadingPanel} from "./design-system";
+import {PublicPageHeader} from "./public-page-header";
 
 type MetadataBySlot = Record<UploadSongSlotId, UploadSongMetadataState>;
 type LoadState = "loading" | "ready" | "error";
@@ -29,7 +29,7 @@ const emptyMetadata: MetadataBySlot = {
     song3: {exists: false},
 };
 
-export function UploadSongsPublicPage({product, productId}: {product: Product; productId: string}) {
+export function UploadSongsPublicPage({product, productId, fromDashboard = false}: {product: Product; productId: string; fromDashboard?: boolean}) {
     const [metadataBySlot, setMetadataBySlot] = useState<MetadataBySlot>(emptyMetadata);
     const [trackUrls, setTrackUrls] = useState<Record<UploadSongSlotId, string>>({song1: "", song2: "", song3: ""});
     const [loadState, setLoadState] = useState<LoadState>("loading");
@@ -77,37 +77,10 @@ export function UploadSongsPublicPage({product, productId}: {product: Product; p
             .filter((track) => Boolean(track.src))
     ), [metadataBySlot, product, productId, trackUrls]);
 
-    const sharePage = async () => {
-        const url = window.location.href;
-        setPageShareMessage("");
-
-        if (navigator.share) {
-            try {
-                await navigator.share({title: `${product.name || "FlexPayz"} audio collection`, url});
-                return;
-            } catch (error: any) {
-                if (error?.name === "AbortError") return;
-            }
-        }
-
-        try {
-            await navigator.clipboard.writeText(url);
-            setPageShareMessage("Page link copied.");
-        } catch {
-            setPageShareMessage("Copy the page URL from your browser.");
-        }
-    };
-
     return (
         <section className="upload-songs-public-page" aria-label="Audio collection">
             <div className="upload-files-public-circles" aria-hidden="true"><span/><span/></div>
-            <header className="upload-files-public-header">
-                <FlexPayzLogo className="upload-files-public-logo"/>
-                <div>
-                    <span className="upload-files-public-language">EN</span>
-                    <button className="upload-files-public-share" type="button" onClick={sharePage}>Share page <ArrowOutwardRoundedIcon fontSize="small"/></button>
-                </div>
-            </header>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${product.name || "FlexPayz"} audio collection`} onShareMessage={setPageShareMessage}/>
 
             <main className="upload-songs-public-main">
                 {loadState === "loading" ? (

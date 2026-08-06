@@ -4,7 +4,8 @@ import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import {Product} from "../control-state";
 import {getCustomLinkDisplayLabel, parseCustomLink} from "../custom-link";
-import {BackButton, FlexPayzLogo} from "./design-system";
+import {BackButton} from "./design-system";
+import {PublicPageHeader} from "./public-page-header";
 
 type CustomLinkPublicPageProps = {
     product: Product;
@@ -56,9 +57,7 @@ export function CustomLinkPublicPage({product, productId, fromDashboard = false}
         return (
             <div className="custom-link-public-page custom-link-public-error">
                 <DecorativePublicCircles/>
-                <header className="custom-link-public-header">
-                    <FlexPayzLogo className="custom-link-public-logo"/>
-                </header>
+                <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${product.name || "FlexPayz"} external link`}/>
                 <main className="custom-link-public-error-card" role="alert">
                     <p className="custom-link-public-kicker">DESTINATION UNAVAILABLE</p>
                     <h1>We couldn’t open that link</h1>
@@ -89,10 +88,7 @@ export function CustomLinkPublicPage({product, productId, fromDashboard = false}
     return (
         <div className="custom-link-public-page">
             <DecorativePublicCircles/>
-            <header className="custom-link-public-header">
-                <FlexPayzLogo className="custom-link-public-logo"/>
-                <span>EXTERNAL LINK <ArrowOutwardRoundedIcon fontSize="small"/></span>
-            </header>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${product.name || "FlexPayz"} external link`}/>
             <main className="custom-link-public-layout" aria-live="polite">
                 <section className="custom-link-public-hero">
                     <span className="custom-link-public-icon" aria-hidden="true">↗</span>

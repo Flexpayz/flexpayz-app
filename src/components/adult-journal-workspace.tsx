@@ -1,5 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import type {ReactNode} from "react";
+import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {db} from "../App";
 import {
@@ -21,11 +23,12 @@ import {
 } from "../adult-journal";
 import {getProductIdFromURL} from "../utils";
 import {notify} from "../Pages/login-page";
-import {FlexPayzLogo, LoadingPanel} from "./design-system";
+import {BackButton, FlexPayzLogo, LoadingPanel} from "./design-system";
 import {DB_COLLECTIONS, DB_STORAGE} from "./baby-journal-settings";
 import type {AdultJournalInformation, Consultation, FollowUp, Investigation, VitalSigns} from "./adult-journal-settings";
 import {ProfileUpload} from "./profile-upload";
-import AssetUpload3 from "./asset-upload-3";
+import {JournalFileUpload} from "./journal-file-upload";
+import {useNavigate} from "react-router";
 
 type AdultJournalEditorTab = "home" | "health" | "tests" | "care";
 type SaveState = "clean" | "dirty" | "saving" | "saved" | "failed";
@@ -84,7 +87,14 @@ export function AdultJournalWorkspace() {
     const [saveState, setSaveState] = useState<SaveState>("clean");
     const [saveMessage, setSaveMessage] = useState("No unsaved changes");
     const [identifierRevealed, setIdentifierRevealed] = useState(false);
+    const [investigationDialog, setInvestigationDialog] = useState<{field: InvestigationField; label: string} | null>(null);
+    const [investigationDraft, setInvestigationDraft] = useState("");
+    const [consultationDialogOpen, setConsultationDialogOpen] = useState(false);
+    const [consultationDraft, setConsultationDraft] = useState(defaultConsultation);
+    const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+    const [followUpDraft, setFollowUpDraft] = useState(defaultFollowUp);
     const headingRef = useRef<HTMLHeadingElement | null>(null);
+    const navigate = useNavigate();
 
     const completion = useMemo(() => getAdultJournalCompletion(journal), [journal]);
     const dirty = useMemo(() => hasAdultJournalChanges(journal, originalJournal), [journal, originalJournal]);
@@ -148,19 +158,41 @@ export function AdultJournalWorkspace() {
         setJournal((previous) => ({...previous, [field]: value}));
     };
 
-    const addDatedEntry = (field: InvestigationField) => {
+    const goBack = () => {
+        navigate(`/manage-device?product_id=${productId}`);
+    };
+
+    const openInvestigationDialog = (field: InvestigationField, label: string) => {
+        setInvestigationDialog({field, label});
+        setInvestigationDraft("");
+    };
+
+    const closeInvestigationDialog = () => {
+        setInvestigationDialog(null);
+        setInvestigationDraft("");
+    };
+
+    const saveInvestigationDialog = () => {
+        if (!investigationDialog || !investigationDraft.trim()) {
+            return;
+        }
+
         const dateKey = new Date().toISOString().slice(0, 10);
         setJournal((previous) => {
-            const existing = previous[field][dateKey];
+            const existing = previous[investigationDialog.field][dateKey];
             return {
                 ...previous,
-                [field]: {
-                    ...previous[field],
-                    [dateKey]: existing || defaultInvestigation,
+                [investigationDialog.field]: {
+                    ...previous[investigationDialog.field],
+                    [dateKey]: {
+                        ...(existing || defaultInvestigation),
+                        description: investigationDraft.trim(),
+                    },
                 },
             };
         });
-        setSaveMessage("Dated record ready to edit");
+        setSaveMessage("Dated record added");
+        closeInvestigationDialog();
     };
 
     const updateInvestigation = (field: InvestigationField, dateKey: string, value: Investigation) => {
@@ -212,15 +244,35 @@ export function AdultJournalWorkspace() {
         });
     };
 
-    const addConsultation = () => {
+    const openConsultationDialog = () => {
+        setConsultationDraft(defaultConsultation);
+        setConsultationDialogOpen(true);
+    };
+
+    const closeConsultationDialog = () => {
+        setConsultationDialogOpen(false);
+        setConsultationDraft(defaultConsultation);
+    };
+
+    const saveConsultationDialog = () => {
+        if (!consultationDraft.interdisciplinaryConsultation.trim() && !consultationDraft.recommendation.trim()) {
+            return;
+        }
+
         const dateKey = new Date().toISOString().slice(0, 10);
         setJournal((previous) => ({
             ...previous,
             consultations: {
                 ...previous.consultations,
-                [dateKey]: previous.consultations[dateKey] || defaultConsultation,
+                [dateKey]: {
+                    ...(previous.consultations[dateKey] || defaultConsultation),
+                    interdisciplinaryConsultation: consultationDraft.interdisciplinaryConsultation.trim(),
+                    recommendation: consultationDraft.recommendation.trim(),
+                },
             },
         }));
+        setSaveMessage("Consultation added");
+        closeConsultationDialog();
     };
 
     const updateConsultation = (dateKey: string, field: keyof Consultation, value: string) => {
@@ -236,15 +288,35 @@ export function AdultJournalWorkspace() {
         }));
     };
 
-    const addFollowUp = () => {
+    const openFollowUpDialog = () => {
+        setFollowUpDraft(defaultFollowUp);
+        setFollowUpDialogOpen(true);
+    };
+
+    const closeFollowUpDialog = () => {
+        setFollowUpDialogOpen(false);
+        setFollowUpDraft(defaultFollowUp);
+    };
+
+    const saveFollowUpDialog = () => {
+        if (!followUpDraft.appointments.trim() && !followUpDraft.monitoringProgress.trim()) {
+            return;
+        }
+
         const dateKey = new Date().toISOString().slice(0, 10);
         setJournal((previous) => ({
             ...previous,
             followUp: {
                 ...previous.followUp,
-                [dateKey]: previous.followUp[dateKey] || defaultFollowUp,
+                [dateKey]: {
+                    ...(previous.followUp[dateKey] || defaultFollowUp),
+                    appointments: followUpDraft.appointments.trim(),
+                    monitoringProgress: followUpDraft.monitoringProgress.trim(),
+                },
             },
         }));
+        setSaveMessage("Follow-up added");
+        closeFollowUpDialog();
     };
 
     const updateFollowUp = (dateKey: string, field: keyof FollowUp, value: string) => {
@@ -334,11 +406,6 @@ export function AdultJournalWorkspace() {
                         <button key={link.id} type="button" onClick={() => scrollToSection(link.id)}>{link.label}</button>
                     ))}
                 </div>
-                <div className="baby-journal-editor-status-card">
-                    <strong>{completion}%</strong>
-                    <span>Complete</span>
-                    <div><span style={{transform: `scaleX(${completion / 100})`}}/></div>
-                </div>
                 <div className={`baby-journal-editor-status-card ${saveState}`}>
                     <strong>{saveState === "saving" ? "Saving" : saveState === "failed" ? "Needs retry" : saveState === "saved" ? "Saved" : "Autosave off"}</strong>
                     <span>{saveMessage}</span>
@@ -347,15 +414,16 @@ export function AdultJournalWorkspace() {
 
             <section className="baby-journal-editor-main">
                 <header className="baby-journal-editor-header">
-                    <div>
+                    <div className="baby-journal-editor-topbar">
+                        <FlexPayzLogo className="baby-journal-editor-header-logo"/>
+                        <BackButton aria-label="Back to device workspace" onClick={goBack}/>
+                    </div>
+                    <div className="baby-journal-editor-title">
                         <p className="business-kicker">ADULT JOURNAL SETTINGS</p>
                         <h1 ref={headingRef} tabIndex={-1}>{getEditorTitle(activeTab)}</h1>
                         <p>{getEditorDescription(activeTab)}</p>
                     </div>
-                    <div className="baby-journal-editor-actions">
-                        <span>{completion}% complete</span>
-                        <a className="baby-journal-button secondary" href={`/show-product?product_id=${productId}`} target="_blank" rel="noreferrer">Preview journal ↗</a>
-                    </div>
+                    <AdultJournalCompletion completion={completion}/>
                     <nav className="baby-journal-mobile-tabs adult-journal-mobile-tabs" role="tablist" aria-label="Adult Journal areas">
                         <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}>⌂ Home</button>
                         <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}>♡ Health</button>
@@ -388,7 +456,7 @@ export function AdultJournalWorkspace() {
                     {activeTab === "tests" && (
                         <AdultJournalTestsEditor
                             journal={journal}
-                            addDatedEntry={addDatedEntry}
+                            addDatedEntry={openInvestigationDialog}
                             updateInvestigation={updateInvestigation}
                             deleteInvestigation={deleteInvestigation}
                         />
@@ -396,12 +464,12 @@ export function AdultJournalWorkspace() {
                     {activeTab === "care" && (
                         <AdultJournalCareEditor
                             journal={journal}
-                            addDatedEntry={addDatedEntry}
+                            addDatedEntry={openInvestigationDialog}
                             updateInvestigation={updateInvestigation}
                             deleteInvestigation={deleteInvestigation}
-                            addConsultation={addConsultation}
+                            addConsultation={openConsultationDialog}
                             updateConsultation={updateConsultation}
-                            addFollowUp={addFollowUp}
+                            addFollowUp={openFollowUpDialog}
                             updateFollowUp={updateFollowUp}
                             deleteFollowUp={deleteFollowUp}
                         />
@@ -414,8 +482,127 @@ export function AdultJournalWorkspace() {
                         {saveState === "saving" ? "Saving…" : "Save journal"} →
                     </button>
                 </footer>
+
+                <Dialog
+                    open={Boolean(investigationDialog)}
+                    onClose={closeInvestigationDialog}
+                    fullWidth
+                    maxWidth="sm"
+                    className="baby-journal-record-dialog"
+                >
+                    <DialogTitle>Add {investigationDialog?.label.toLowerCase()} record</DialogTitle>
+                    <DialogContent>
+                        <label className="baby-journal-field baby-journal-textarea">
+                            <span>Record details</span>
+                            <textarea
+                                value={investigationDraft}
+                                rows={6}
+                                placeholder="Write the investigation details"
+                                onChange={(event) => setInvestigationDraft(event.target.value)}
+                            />
+                        </label>
+                    </DialogContent>
+                    <DialogActions>
+                        <button type="button" className="baby-journal-button secondary" onClick={closeInvestigationDialog}>Cancel</button>
+                        <button type="button" className="baby-journal-button primary" onClick={saveInvestigationDialog} disabled={!investigationDraft.trim()}>Save record</button>
+                    </DialogActions>
+                </Dialog>
+
+                <Dialog
+                    open={consultationDialogOpen}
+                    onClose={closeConsultationDialog}
+                    fullWidth
+                    maxWidth="sm"
+                    className="baby-journal-record-dialog"
+                >
+                    <DialogTitle>Add consultation</DialogTitle>
+                    <DialogContent>
+                        <label className="baby-journal-field">
+                            <span>Interdisciplinary consultation</span>
+                            <input
+                                value={consultationDraft.interdisciplinaryConsultation}
+                                placeholder="Specialist or consultation context"
+                                onChange={(event) => setConsultationDraft((previous) => ({...previous, interdisciplinaryConsultation: event.target.value}))}
+                            />
+                        </label>
+                        <label className="baby-journal-field baby-journal-textarea">
+                            <span>Recommendation</span>
+                            <textarea
+                                value={consultationDraft.recommendation}
+                                rows={5}
+                                placeholder="Write the recommendation"
+                                onChange={(event) => setConsultationDraft((previous) => ({...previous, recommendation: event.target.value}))}
+                            />
+                        </label>
+                    </DialogContent>
+                    <DialogActions>
+                        <button type="button" className="baby-journal-button secondary" onClick={closeConsultationDialog}>Cancel</button>
+                        <button
+                            type="button"
+                            className="baby-journal-button primary"
+                            onClick={saveConsultationDialog}
+                            disabled={!consultationDraft.interdisciplinaryConsultation.trim() && !consultationDraft.recommendation.trim()}
+                        >
+                            Save consultation
+                        </button>
+                    </DialogActions>
+                </Dialog>
+
+                <Dialog
+                    open={followUpDialogOpen}
+                    onClose={closeFollowUpDialog}
+                    fullWidth
+                    maxWidth="sm"
+                    className="baby-journal-record-dialog"
+                >
+                    <DialogTitle>Add follow-up</DialogTitle>
+                    <DialogContent>
+                        <label className="baby-journal-field">
+                            <span>Appointments</span>
+                            <input
+                                value={followUpDraft.appointments}
+                                placeholder="Next appointment or planned check-in"
+                                onChange={(event) => setFollowUpDraft((previous) => ({...previous, appointments: event.target.value}))}
+                            />
+                        </label>
+                        <label className="baby-journal-field baby-journal-textarea">
+                            <span>Monitoring progress</span>
+                            <textarea
+                                value={followUpDraft.monitoringProgress}
+                                rows={5}
+                                placeholder="Write monitoring notes"
+                                onChange={(event) => setFollowUpDraft((previous) => ({...previous, monitoringProgress: event.target.value}))}
+                            />
+                        </label>
+                    </DialogContent>
+                    <DialogActions>
+                        <button type="button" className="baby-journal-button secondary" onClick={closeFollowUpDialog}>Cancel</button>
+                        <button
+                            type="button"
+                            className="baby-journal-button primary"
+                            onClick={saveFollowUpDialog}
+                            disabled={!followUpDraft.appointments.trim() && !followUpDraft.monitoringProgress.trim()}
+                        >
+                            Save follow-up
+                        </button>
+                    </DialogActions>
+                </Dialog>
             </section>
         </main>
+    );
+}
+
+function AdultJournalCompletion({completion}: {completion: number}) {
+    return (
+        <section className="baby-journal-completion-card" aria-label="Journal completion">
+            <div>
+                <CheckRoundedIcon/>
+                <strong>Journal progress</strong>
+                <span>Complete the essentials</span>
+            </div>
+            <div className="baby-journal-completion-meter" aria-hidden="true"><i style={{transform: `scaleX(${completion / 100})`}}/></div>
+            <strong>{completion}%</strong>
+        </section>
     );
 }
 
@@ -551,7 +738,7 @@ function AdultJournalHealthEditor({
             </EditorCard>
 
             <EditorCard id="adult-health-card" kicker="PROTECTED DOCUMENT" title="European Health Card">
-                <AssetUpload3 value={journal.europeanHealthCard} onChange={(assets) => updateField("europeanHealthCard", assets)} storageFolder={DB_STORAGE.ADULT_JOURNAL} maxFiles={1}/>
+                <JournalFileUpload value={journal.europeanHealthCard} onChange={(assets) => updateField("europeanHealthCard", assets)} storageFolder={DB_STORAGE.ADULT_JOURNAL} storageKey="european-health-card" maxFiles={1} label="European Health Card"/>
                 <p>Medical files follow the existing global protection before this public section opens.</p>
             </EditorCard>
         </>
@@ -565,7 +752,7 @@ function AdultJournalTestsEditor({
     deleteInvestigation,
 }: {
     journal: AdultJournalInformation;
-    addDatedEntry: (field: InvestigationField) => void;
+    addDatedEntry: (field: InvestigationField, label: string) => void;
     updateInvestigation: (field: InvestigationField, dateKey: string, value: Investigation) => void;
     deleteInvestigation: (field: InvestigationField, dateKey: string) => void;
 }) {
@@ -602,7 +789,7 @@ function AdultJournalCareEditor({
     deleteFollowUp,
 }: {
     journal: AdultJournalInformation;
-    addDatedEntry: (field: InvestigationField) => void;
+    addDatedEntry: (field: InvestigationField, label: string) => void;
     updateInvestigation: (field: InvestigationField, dateKey: string, value: Investigation) => void;
     deleteInvestigation: (field: InvestigationField, dateKey: string) => void;
     addConsultation: () => void;
@@ -615,7 +802,10 @@ function AdultJournalCareEditor({
     const followUpDates = sortAdultDateKeysNewestFirst(Object.keys(journal.followUp));
     return (
         <>
-            <EditorCard id="adult-care-consultations" kicker="CONSULTATIONS" title="Specialist context" action={<button type="button" onClick={addConsultation}>Add consultation</button>}>
+            <EditorCard id="adult-care-consultations" kicker="CONSULTATIONS" title="Specialist context">
+                <div className="adult-journal-centered-action">
+                    <button type="button" className="baby-journal-add-record-button" onClick={addConsultation}>Add consultation</button>
+                </div>
                 {consultationDates.length === 0 ? <EmptyEditorCard message="No consultations recorded yet."/> : consultationDates.map((dateKey) => (
                     <div className="baby-journal-sleep-entry" key={dateKey}>
                         <strong>{formatAdultDate(dateKey)}</strong>
@@ -639,7 +829,10 @@ function AdultJournalCareEditor({
                 ))}
             </EditorCard>
 
-            <EditorCard id="adult-care-follow-up" kicker="FOLLOW-UP" title="Next steps" action={<button type="button" onClick={addFollowUp}>Add follow-up</button>}>
+            <EditorCard id="adult-care-follow-up" kicker="FOLLOW-UP" title="Next steps">
+                <div className="adult-journal-centered-action">
+                    <button type="button" className="baby-journal-add-record-button" onClick={addFollowUp}>Add follow-up</button>
+                </div>
                 {followUpDates.length === 0 ? <EmptyEditorCard message="No follow-up records yet."/> : followUpDates.map((dateKey) => (
                     <div className="baby-journal-sleep-entry" key={dateKey}>
                         <div className="baby-journal-editor-card-header-inline">
@@ -666,19 +859,19 @@ function InvestigationFieldEditor({
     field: InvestigationField;
     label: string;
     records: Record<string, Investigation>;
-    addDatedEntry: (field: InvestigationField) => void;
+    addDatedEntry: (field: InvestigationField, label: string) => void;
     updateInvestigation: (field: InvestigationField, dateKey: string, value: Investigation) => void;
     deleteInvestigation: (field: InvestigationField, dateKey: string) => void;
 }) {
     const dates = sortAdultDateKeysNewestFirst(Object.keys(records));
     return (
         <section className="baby-journal-health-category">
-            <div>
+            <div className="baby-journal-health-category-header">
                 <div>
                     <h3>{label}</h3>
                     <p>{countInvestigationRecords(records)} records · {countInvestigationAssets(records)} files{latestRecordDate(records) ? ` · latest ${formatAdultDate(latestRecordDate(records))}` : ""}</p>
                 </div>
-                <button type="button" onClick={() => addDatedEntry(field)}>Add dated record</button>
+                <button type="button" className="baby-journal-add-record-button" onClick={() => addDatedEntry(field, label)}>Add dated record</button>
             </div>
             {dates.length === 0 ? <EmptyEditorCard message="Nothing recorded yet."/> : dates.map((dateKey) => {
                 const record = records[dateKey];
@@ -689,7 +882,7 @@ function InvestigationFieldEditor({
                             <button type="button" className="baby-journal-button secondary" onClick={() => deleteInvestigation(field, dateKey)}>Remove</button>
                         </div>
                         <TextArea label="Description" value={record.description} onChange={(description) => updateInvestigation(field, dateKey, {...record, description})}/>
-                        <AssetUpload3 value={record.assets} onChange={(assets) => updateInvestigation(field, dateKey, {...record, assets})} storageFolder={DB_STORAGE.ADULT_JOURNAL} multiple maxFiles={3}/>
+                        <JournalFileUpload value={record.assets} onChange={(assets) => updateInvestigation(field, dateKey, {...record, assets})} storageFolder={DB_STORAGE.ADULT_JOURNAL} storageKey={`${field}-${dateKey}`} multiple maxFiles={3} label={`${label} file`}/>
                     </div>
                 );
             })}

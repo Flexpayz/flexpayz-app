@@ -83,8 +83,10 @@ export const flexPayzTokens = {
     md: "16px",
     lg: "24px",
     xl: "32px",
+    pill: "999px",
   },
   shadow: {
+    soft: "0 8px 24px rgba(33, 31, 28, 0.06)",
     raised: "0 12px 32px rgba(33, 31, 28, 0.08)",
     floating: "0 20px 56px rgba(33, 31, 28, 0.12)",
     champagne: "0 16px 40px rgba(122, 87, 48, 0.16)",

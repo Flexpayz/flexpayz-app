@@ -92,7 +92,7 @@ describe("ManageDevice workspace", () => {
         expect(screen.getByText("Custom Link")).toBeInTheDocument();
         expect(screen.getByText("Upload Files")).toBeInTheDocument();
         expect(screen.getByText("Private utility—not part of the public experience.")).toBeInTheDocument();
-        expect(screen.getByRole("link", {name: "Preview dashboard"})).toHaveAttribute("href", "/show-product?product_id=p1");
+        expect(screen.getByRole("link", {name: "Preview dashboard"})).toHaveAttribute("href", "/show-product?product_id=p1&from=manage-device");
     });
 
     it("filters content by permissions and saves visible sections in fixed order", async () => {

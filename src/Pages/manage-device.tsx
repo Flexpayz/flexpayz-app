@@ -342,7 +342,7 @@ function DeviceOverview({
 }) {
     const visibleDefinitions = visibleSections.map(getSectionById).filter(Boolean) as PublicSectionDefinition[];
     const singleSection = visibleDefinitions[0];
-    const previewUrl = `/show-product?product_id=${encodeURIComponent(productId)}`;
+    const previewUrl = `/show-product?product_id=${encodeURIComponent(productId)}&from=manage-device`;
 
     return (
         <Box>
@@ -963,7 +963,7 @@ function ContentSummaryPanel({
                 ))}
             </ol>
             {visibleSections.length > 0 && (
-                <a href={`/show-product?product_id=${productId}`} target="_blank" rel="noopener noreferrer" className="workspace-primary-link">
+                <a href={`/show-product?product_id=${productId}&from=manage-device`} target="_blank" rel="noopener noreferrer" className="workspace-primary-link">
                     Preview {visibleSections.length === 1 ? 'section' : 'dashboard'}
                 </a>
             )}

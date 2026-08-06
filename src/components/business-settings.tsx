@@ -21,6 +21,10 @@ import {Asset, DB_STORAGE} from "./baby-journal-settings";
 import {ImageAssetUpload} from "./image-asset-upload";
 import {getProductIdFromURL} from "../utils";
 import {useSaveBusinessCardData} from "../useProductData";
+import {ReactComponent as FacebookIcon} from "../assets/social/facebook.svg";
+import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
+import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
+import {ReactComponent as YouTubeIcon} from "../assets/social/youtube.svg";
 import "../Pages/manager.css";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "failed";
@@ -370,10 +374,10 @@ export function BusinessSettings() {
                         <EditorSection number="04" eyebrow="SOCIAL" title="Selected networks">
                             <div className="business-social-grid">
                                 <SocialField icon="in" label="LinkedIn" value={productState.linkedIn} onChange={(value) => updateField("linkedIn", value)} error={errors.linkedIn}/>
-                                <SocialField icon="◎" label="Instagram" value={productState.instagram} onChange={(value) => updateField("instagram", value)} error={errors.instagram}/>
-                                <SocialField icon="f" label="Facebook" value={productState.facebook} onChange={(value) => updateField("facebook", value)} error={errors.facebook}/>
-                                <SocialField icon="▶" label="YouTube" value={productState.youtube} onChange={(value) => updateField("youtube", value)} error={errors.youtube}/>
-                                <SocialField icon="♪" label="TikTok" value={productState.tiktok} onChange={(value) => updateField("tiktok", value)} error={errors.tiktok}/>
+                                <SocialField icon={<InstagramIcon/>} label="Instagram" value={productState.instagram} onChange={(value) => updateField("instagram", value)} error={errors.instagram}/>
+                                <SocialField icon={<FacebookIcon/>} label="Facebook" value={productState.facebook} onChange={(value) => updateField("facebook", value)} error={errors.facebook}/>
+                                <SocialField icon={<YouTubeIcon/>} label="YouTube" value={productState.youtube} onChange={(value) => updateField("youtube", value)} error={errors.youtube}/>
+                                <SocialField icon={<TikTokIcon/>} label="TikTok" value={productState.tiktok} onChange={(value) => updateField("tiktok", value)} error={errors.tiktok}/>
                             </div>
                         </EditorSection>
 
@@ -481,12 +485,11 @@ function OptionalField({onRemove, ...fieldProps}: EditorTextFieldProps & {onRemo
     );
 }
 
-function SocialField({icon, label, value, onChange, error}: {icon: string; label: string; value: string; onChange: (value: string) => void; error?: string}) {
+function SocialField({icon, label, value, onChange, error}: {icon: ReactNode; label: string; value: string; onChange: (value: string) => void; error?: string}) {
     return (
         <div className="business-social-field">
             <span aria-hidden="true">{icon}</span>
             <EditorTextField label={label} value={value} onChange={onChange} error={error} inputMode="url"/>
-            <small>{value ? "Connected" : "Add"}</small>
         </div>
     );
 }

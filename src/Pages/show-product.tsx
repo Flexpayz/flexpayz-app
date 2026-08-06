@@ -21,7 +21,7 @@ import {CustomLinkPublicPage} from "../components/custom-link-public";
 import {UploadFilesPublicPage} from "../components/upload-files-public";
 import {UploadSongsPublicPage} from "../components/upload-songs-public";
 import {UploadVideoPublicPage} from "../components/upload-video-public";
-import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
+import {BackButton, FlexPayzLogo, LoadingPanel} from "../components/design-system";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -48,38 +48,32 @@ export function ShowProduct() {
                     console.log("is activated")
                     setProduct((prev: Product) => ({...prev, ...docSnap.data() as Product}))
                     setPasswordProtected((docSnap.data() as Product).publicPagePasswordActivated)
-                    setLoaded(true)
                 } else {
+                    setLoaded(true)
                     // navigate('/app')
+                    return;
                 }
                 const imageRef = ref(storage, `images/${productId}`)
-                getDownloadURL(imageRef)
-                    .then(url => {
-                        setProfileImageURL(url)
-                        return Promise.resolve(true);
-                    })
-                    .catch(error => {
-                        if (error.code === 'storage/object-not-found') {
-                            return Promise.resolve(false);
-                        } else {
-                            return Promise.reject(error);
-                        }
-                    });
                 const logoRef = ref(storage, `images/logo-${productId}`)
-                getDownloadURL(logoRef)
-                    .then(url => {
-                        setLogoImageURL(url)
-                        return Promise.resolve(true);
-                    })
-                    .catch(error => {
+                const [profileUrl, logoUrl] = await Promise.all([
+                    getDownloadURL(imageRef).catch(error => {
                         if (error.code === 'storage/object-not-found') {
-                            return Promise.resolve(false);
-                        } else {
-                            return Promise.reject(error);
+                            return "";
                         }
-                    });
-
-
+                        return "";
+                    }),
+                    getDownloadURL(logoRef).catch(error => {
+                        if (error.code === 'storage/object-not-found') {
+                            return "";
+                        }
+                        return "";
+                    }),
+                ]);
+                setProfileImageURL(profileUrl)
+                setLogoImageURL(logoUrl)
+                setLoaded(true)
+            } else {
+                setLoaded(true)
             }
         })()
     }, [])
@@ -124,10 +118,20 @@ export function ShowProduct() {
     const publicRoutingMode = getPublicRoutingMode(visibleSections);
     const requestedSection = urlParams.get('section') as Preview | null;
     const opensSectionFromDashboard = publicRoutingMode === 'dashboard' && Boolean(requestedSection && visibleSections.includes(requestedSection));
+    const openedFromDashboard = opensSectionFromDashboard && urlParams.get('from') === 'dashboard';
     const activePreview = opensSectionFromDashboard
         ? requestedSection
         : publicRoutingMode === 'single' ? visibleSections[0] : product.preview;
     const showSectionDashboard = publicRoutingMode === 'dashboard' && !opensSectionFromDashboard;
+    const openedFromManageDevice = urlParams.get('from') === 'manage-device';
+
+    if (!loaded) {
+        return (
+            <div style={colorsStyle} className="public-loading-page">
+                <LoadingPanel text="Loading public page"/>
+            </div>
+        );
+    }
 
     return (<div style={colorsStyle}>
         {passwordProtected && <div className={'password-page'}>
@@ -145,6 +149,7 @@ export function ShowProduct() {
                 product={product}
                 sections={visibleSections}
                 productId={productId || ''}
+                fromManageDevice={openedFromManageDevice}
             />
         )}
         {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.BUSINESS_CARD &&
@@ -154,23 +159,24 @@ export function ShowProduct() {
                 profileImageURL={profileImageURL}
                 logoImageURL={logoImageURL}
                 onDownloadCV={downloadCV}
+                fromDashboard={openedFromDashboard}
             />}
         {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.CUSTOM_LINK &&
             <CustomLinkPublicPage
                 product={product}
                 productId={productId || ""}
-                fromDashboard={opensSectionFromDashboard}
+                fromDashboard={openedFromDashboard}
             />}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE &&
-            <UploadFilesPublicPage product={product} productId={productId || ""}/>}
+            <UploadFilesPublicPage product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO &&
-            <UploadVideoPublicPage product={product} productId={productId || ""} fromDashboard={opensSectionFromDashboard}/>}
+            <UploadVideoPublicPage product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS &&
-            <UploadSongsPublicPage product={product} productId={productId || ""}/>}
+            <UploadSongsPublicPage product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL &&
-            <BabyJournalPreview product={product} productId={productId || ""} fromDashboard={opensSectionFromDashboard}/>}
+            <BabyJournalPreview product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ADULT_JOURNAL &&
-            <AdultJournalPreview product={product} productId={productId || ""} fromDashboard={opensSectionFromDashboard}/>}
+            <AdultJournalPreview product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
 
     </div>)
@@ -189,20 +195,21 @@ function PublicNotConfigured() {
     );
 }
 
-function PublicSectionDashboard({product, sections, productId}: { product: Product; sections: Preview[]; productId: string }) {
+function PublicSectionDashboard({product, sections, productId, fromManageDevice}: { product: Product; sections: Preview[]; productId: string; fromManageDevice: boolean }) {
     const visibleDefinitions = PUBLIC_SECTION_ORDER.filter((section) => sections.includes(section.id));
 
     return (
         <div className="public-routing-state">
             <div className="public-routing-card public-routing-dashboard">
                 <FlexPayzLogo className="public-routing-logo"/>
+                {fromManageDevice && <BackButton aria-label="Back to device dashboard" className="public-routing-back" href={`/manage-device?product_id=${encodeURIComponent(productId)}`}/>}
                 <h1>{product.name || 'FlexPayz product'}</h1>
                 <span>Choose what you want to open.</span>
                 <div className="public-routing-section-list">
                     {visibleDefinitions.map((section) => (
                         <a
                             key={section.id}
-                            href={`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}`}
+                            href={`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}&from=dashboard`}
                             className="public-routing-section"
                         >
                             <strong>{section.title}</strong>

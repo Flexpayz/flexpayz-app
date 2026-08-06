@@ -51,6 +51,8 @@
   --fp-radius-md: 16px;
   --fp-radius-lg: 24px;
   --fp-radius-xl: 32px;
+  --fp-radius-pill: 999px;
+  --fp-shadow-soft: 0 8px 24px rgba(33, 31, 28, 0.06);
   --fp-shadow-raised: 0 12px 32px rgba(33, 31, 28, 0.08);
   --fp-shadow-floating: 0 20px 56px rgba(33, 31, 28, 0.12);
   --fp-shadow-champagne: 0 16px 40px rgba(122, 87, 48, 0.16);

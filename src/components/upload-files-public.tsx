@@ -1,5 +1,4 @@
 import {useEffect, useMemo, useState} from "react";
-import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
@@ -8,7 +7,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import {getMetadata, ref} from "firebase/storage";
 import {storage} from "../App";
 import {Product} from "../control-state";
-import {downloadPublicDocument, shareCurrentPublicPage, sharePublicDocument} from "../public-documents";
+import {downloadPublicDocument, sharePublicDocument} from "../public-documents";
 import {
     UPLOAD_FILE_SLOTS,
     UploadFileMetadataState,
@@ -17,7 +16,8 @@ import {
     getReadyUploadFileDocuments,
     getUploadFileStoragePath,
 } from "../upload-files";
-import {FlexPayzLogo, LoadingPanel} from "./design-system";
+import {LoadingPanel} from "./design-system";
+import {PublicPageHeader} from "./public-page-header";
 
 type MetadataBySlot = Record<UploadFileSlotId, UploadFileMetadataState>;
 type DocumentActionStatus = Record<string, string>;
@@ -28,7 +28,7 @@ const emptyMetadata: MetadataBySlot = {
     file3: {exists: false},
 };
 
-export function UploadFilesPublicPage({product, productId}: {product: Product; productId: string}) {
+export function UploadFilesPublicPage({product, productId, fromDashboard = false}: {product: Product; productId: string; fromDashboard?: boolean}) {
     const [metadataBySlot, setMetadataBySlot] = useState<MetadataBySlot>(emptyMetadata);
     const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
     const [actionStatus, setActionStatus] = useState<DocumentActionStatus>({});
@@ -84,25 +84,7 @@ export function UploadFilesPublicPage({product, productId}: {product: Product; p
     return (
         <div className="upload-files-public-page">
             <div className="upload-files-public-circles" aria-hidden="true"><span/><span/></div>
-            <header className="upload-files-public-header">
-                <FlexPayzLogo className="upload-files-public-logo"/>
-                <div>
-                    <button
-                        type="button"
-                        className="upload-files-public-language"
-                        aria-label={`Profile language ${product.previewLanguage}`}
-                    >
-                        {product.previewLanguage}
-                    </button>
-                    <button
-                        type="button"
-                        className="upload-files-public-share"
-                        onClick={async () => setPageShareStatus(await shareCurrentPublicPage())}
-                    >
-                        Share Page <ArrowOutwardRoundedIcon fontSize="small"/>
-                    </button>
-                </div>
-            </header>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} language={product.previewLanguage || "EN"} shareTitle={`${product.name || "FlexPayz"} shared documents`} onShareMessage={setPageShareStatus}/>
 
             <main className="upload-files-public-main">
                 <section className="upload-files-public-hero">

@@ -23,8 +23,13 @@ import {
     sanitizePhoneHref,
 } from "../business-card";
 import {Product} from "../control-state";
-import {AppButton, FlexPayzLogo} from "./design-system";
+import {AppButton} from "./design-system";
+import {PublicPageHeader} from "./public-page-header";
 import {translatedText} from "../languages";
+import {ReactComponent as FacebookIcon} from "../assets/social/facebook.svg";
+import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
+import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
+import {ReactComponent as YouTubeIcon} from "../assets/social/youtube.svg";
 
 type BusinessCardPublicPageProps = {
     product: Product;
@@ -32,6 +37,7 @@ type BusinessCardPublicPageProps = {
     profileImageURL?: string;
     logoImageURL?: string;
     onDownloadCV: () => void;
+    fromDashboard?: boolean;
 };
 
 type ContactOption = {
@@ -45,7 +51,7 @@ type ContactOption = {
 
 type ShareStatus = "idle" | "sending" | "sent" | "failed";
 
-export function BusinessCardPublicPage({product, productId, profileImageURL, logoImageURL, onDownloadCV}: BusinessCardPublicPageProps) {
+export function BusinessCardPublicPage({product, productId, profileImageURL, logoImageURL, onDownloadCV, fromDashboard = false}: BusinessCardPublicPageProps) {
     const normalized = normalizeBusinessCardProduct(product);
     const copy = translatedText[normalized.previewLanguage] || translatedText.english;
     const [contactSheetOpen, setContactSheetOpen] = useState(false);
@@ -62,10 +68,10 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
     const primaryActions = contactOptions.filter((option) => ["Call", "Email", "Open"].includes(option.action)).slice(0, 3);
     const socialLinks = [
         {label: "LinkedIn", value: normalized.linkedIn, icon: "in"},
-        {label: "Instagram", value: normalized.instagram, icon: "◎"},
-        {label: "Facebook", value: normalized.facebook, icon: "f"},
-        {label: "YouTube", value: normalized.youtube, icon: "▶"},
-        {label: "TikTok", value: normalized.tiktok, icon: "♪"},
+        {label: "Instagram", value: normalized.instagram, icon: <InstagramIcon/>},
+        {label: "Facebook", value: normalized.facebook, icon: <FacebookIcon/>},
+        {label: "YouTube", value: normalized.youtube, icon: <YouTubeIcon/>},
+        {label: "TikTok", value: normalized.tiktok, icon: <TikTokIcon/>},
     ].filter((social) => social.value);
     const hasCompany = Boolean(normalized.companyName || normalized.companyAbout || companyAddress || normalized.companyPhoneNumber || logoImageURL);
 
@@ -89,27 +95,6 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
             URL.revokeObjectURL(objectUrl);
         } catch {
             downloadGeneratedVCard(normalized, logoImageURL);
-        }
-    };
-
-    const sharePage = async () => {
-        const url = window.location.href;
-        setPageShareMessage("");
-
-        if (navigator.share) {
-            try {
-                await navigator.share({title: `${publicName} - FlexPayz Business Card`, url});
-                return;
-            } catch (error: any) {
-                if (error?.name === "AbortError") return;
-            }
-        }
-
-        try {
-            await navigator.clipboard.writeText(url);
-            setPageShareMessage("Page link copied.");
-        } catch {
-            setPageShareMessage("Copy the page URL from your browser.");
         }
     };
 
@@ -146,19 +131,15 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
     return (
         <main className="business-public-page">
             <div className="business-public-shell">
-                <header className="business-public-topbar">
-                    <FlexPayzLogo className="business-public-logo"/>
-                    <div>
-                        <span>EN</span>
-                        <button type="button" onClick={sharePage} className="business-public-link">Share page <ArrowOutwardRoundedIcon fontSize="small"/></button>
-                    </div>
-                </header>
+                <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${publicName} - FlexPayz Business Card`} onShareMessage={setPageShareMessage}/>
                 {pageShareMessage && <p className="business-public-live" role="status">{pageShareMessage}</p>}
 
                 <section className="business-public-hero">
                     <div className="business-public-profile">
-                        {profileImageURL ? <img src={profileImageURL} alt={`${publicName} profile`}/> : <div className="business-public-avatar" aria-hidden="true">{getInitials(normalized)}</div>}
-                        {logoImageURL && <img className="business-public-company-logo" src={logoImageURL} alt={`${normalized.companyName || "Company"} logo`}/>}
+                        <div className="business-public-media-row">
+                            {profileImageURL ? <img src={profileImageURL} alt={`${publicName} profile`}/> : <div className="business-public-avatar" aria-hidden="true">{getInitials(normalized)}</div>}
+                            {logoImageURL && <img className="business-public-company-logo" src={logoImageURL} alt={`${normalized.companyName || "Company"} logo`}/>}
+                        </div>
                         <h1>{publicName}</h1>
                         {normalized.title && <p>{normalized.title}</p>}
                         {(normalized.companyName || normalized.city) && <strong>{[normalized.companyName, normalized.city].filter(Boolean).join(" · ")}</strong>}
@@ -221,7 +202,6 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                             <h2>{normalized.companyName || "Company"}</h2>
                             {normalized.companyAbout && <p>{normalized.companyAbout}</p>}
                             {companyAddress && <strong>{companyAddress}</strong>}
-                            {normalized.website && <a href={normalizeExternalUrl(normalized.website)} target="_blank" rel="noopener noreferrer">{normalized.website} ↗</a>}
                         </article>
                     )}
                     <button type="button" className="business-public-contact-sheet-trigger" onClick={() => setContactSheetOpen(true)}>

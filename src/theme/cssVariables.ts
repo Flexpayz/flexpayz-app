@@ -53,6 +53,8 @@ export const flexPayzCssVariables = {
   "--fp-radius-md": flexPayzTokens.radius.md,
   "--fp-radius-lg": flexPayzTokens.radius.lg,
   "--fp-radius-xl": flexPayzTokens.radius.xl,
+  "--fp-radius-pill": flexPayzTokens.radius.pill,
+  "--fp-shadow-soft": flexPayzTokens.shadow.soft,
   "--fp-shadow-raised": flexPayzTokens.shadow.raised,
   "--fp-shadow-floating": flexPayzTokens.shadow.floating,
   "--fp-shadow-champagne": flexPayzTokens.shadow.champagne,

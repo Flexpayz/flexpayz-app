@@ -7,7 +7,8 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import YouTube, {YouTubeEvent} from "react-youtube";
 import {Product} from "../control-state";
-import {BackButton, FlexPayzLogo} from "./design-system";
+import {BackButton} from "./design-system";
+import {PublicPageHeader} from "./public-page-header";
 import {
     ParsedYouTubeUrl,
     YouTubeVideoMetadata,
@@ -29,27 +30,6 @@ export function UploadVideoPublicPage({product, productId, fromDashboard = false
     const metadata = useMemo(() => parsed ? getFallbackYouTubeMetadata(parsed) : null, [parsed]);
     const [pageShareMessage, setPageShareMessage] = useState("");
 
-    const sharePage = async () => {
-        const url = window.location.href;
-        setPageShareMessage("");
-
-        if (navigator.share) {
-            try {
-                await navigator.share({title: `${product.name || "FlexPayz"} featured video`, url});
-                return;
-            } catch (error: any) {
-                if (error?.name === "AbortError") return;
-            }
-        }
-
-        try {
-            await navigator.clipboard.writeText(url);
-            setPageShareMessage("Page link copied.");
-        } catch {
-            setPageShareMessage("Copy the page URL from your browser.");
-        }
-    };
-
     const goBackToContent = () => {
         if (fromDashboard && productId) {
             window.location.href = `/show-product?product_id=${encodeURIComponent(productId)}`;
@@ -61,13 +41,7 @@ export function UploadVideoPublicPage({product, productId, fromDashboard = false
     return (
         <section className="upload-video-public-page" aria-label="Featured video">
             <div className="upload-files-public-circles" aria-hidden="true"><span/><span/></div>
-            <header className="upload-files-public-header">
-                <FlexPayzLogo className="upload-files-public-logo"/>
-                <div>
-                    <span className="upload-files-public-language">EN</span>
-                    <button className="upload-files-public-share" type="button" onClick={sharePage}>Share page <ArrowOutwardRoundedIcon fontSize="small"/></button>
-                </div>
-            </header>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${product.name || "FlexPayz"} featured video`} onShareMessage={setPageShareMessage}/>
 
             <main className="upload-video-public-main">
                 {!parsed || !metadata ? (

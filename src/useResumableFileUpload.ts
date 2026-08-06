@@ -44,6 +44,7 @@ export function useResumableFileUpload({storagePath, validateFile}: UseResumable
     const unsubscribeRef = useRef<(() => void) | undefined>();
     const selectedFileRef = useRef<File | null>(null);
     const selectedMetadataRef = useRef<UploadMetadata | undefined>();
+    const selectedStoragePathRef = useRef<string | undefined>();
     const mountedRef = useRef(true);
 
     useEffect(() => {
@@ -53,11 +54,12 @@ export function useResumableFileUpload({storagePath, validateFile}: UseResumable
         };
     }, []);
 
-    const upload = useCallback(async (file: File, metadata?: UploadMetadata): Promise<FullMetadata | null> => {
+    const upload = useCallback(async (file: File, metadata?: UploadMetadata, storagePathOverride?: string): Promise<FullMetadata | null> => {
         if (taskRef.current && state.status === "uploading") return null;
 
         selectedFileRef.current = file;
         selectedMetadataRef.current = metadata;
+        selectedStoragePathRef.current = storagePathOverride;
         setState({
             ...initialState,
             status: "validating",
@@ -74,7 +76,7 @@ export function useResumableFileUpload({storagePath, validateFile}: UseResumable
             return null;
         }
 
-        const storageRef = ref(storage, storagePath);
+        const storageRef = ref(storage, storagePathOverride || storagePath);
         const task = uploadBytesResumable(storageRef, file, metadata);
         taskRef.current = task;
 
@@ -142,7 +144,7 @@ export function useResumableFileUpload({storagePath, validateFile}: UseResumable
 
     const retry = useCallback(() => {
         if (!selectedFileRef.current) return Promise.resolve(null);
-        return upload(selectedFileRef.current, selectedMetadataRef.current);
+        return upload(selectedFileRef.current, selectedMetadataRef.current, selectedStoragePathRef.current);
     }, [upload]);
 
     const reset = useCallback(() => {
@@ -150,6 +152,7 @@ export function useResumableFileUpload({storagePath, validateFile}: UseResumable
         taskRef.current = null;
         selectedFileRef.current = null;
         selectedMetadataRef.current = undefined;
+        selectedStoragePathRef.current = undefined;
         setState(initialState);
     }, []);
 

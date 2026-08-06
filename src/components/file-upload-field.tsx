@@ -27,7 +27,10 @@ export type FileUploadFieldProps = {
     disabled?: boolean;
     helperText?: ReactNode;
     uploadState?: ResumableUploadState;
+    allowMultiple?: boolean;
+    maxSelectableFiles?: number;
     onSelect(file: File): void;
+    onSelectFiles?(files: File[]): void;
     onCancel?(): void;
     onRetry?(): void;
     onReplace?(file: File): void;
@@ -47,7 +50,10 @@ export function FileUploadField({
     disabled = false,
     helperText,
     uploadState,
+    allowMultiple = false,
+    maxSelectableFiles = 1,
     onSelect,
+    onSelectFiles,
     onCancel,
     onRetry,
     onReplace,
@@ -70,12 +76,22 @@ export function FileUploadField({
 
     const handleFiles = (files: FileList | null) => {
         if (!files || files.length === 0) return;
-        if (files.length > 1) {
+        const selectedFiles = Array.from(files);
+        if (!allowMultiple && selectedFiles.length > 1) {
             setLocalError("Upload one file per slot.");
             return;
         }
+        if (allowMultiple && selectedFiles.length > maxSelectableFiles) {
+            setLocalError(`Upload up to ${maxSelectableFiles} ${maxSelectableFiles === 1 ? "file" : "files"}.`);
+            return;
+        }
         setLocalError("");
-        const fileToUpload = files[0];
+        if (allowMultiple && selectedFiles.length > 1 && onSelectFiles && !hasReadyFile) {
+            onSelectFiles(selectedFiles);
+            if (inputRef.current) inputRef.current.value = "";
+            return;
+        }
+        const fileToUpload = selectedFiles[0];
         if (hasReadyFile && onReplace) onReplace(fileToUpload);
         else onSelect(fileToUpload);
         if (inputRef.current) inputRef.current.value = "";
@@ -106,6 +122,7 @@ export function FileUploadField({
                 className="file-upload-field-input"
                 type="file"
                 accept={accept.join(",")}
+                multiple={allowMultiple && !hasReadyFile}
                 disabled={disabled || isUploading}
                 onChange={onInputChange}
                 aria-describedby={`${inputId}-status ${inputId}-help`}
