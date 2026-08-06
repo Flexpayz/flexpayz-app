@@ -11,7 +11,7 @@ import {useNavigate} from "react-router";
 import {db, storage} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
 import {FileUploadField, UploadedFileState} from "./file-upload-field";
 import {useResumableFileUpload} from "../useResumableFileUpload";
 import {formatFileSize} from "../upload-files";
@@ -464,11 +464,16 @@ function RemoveSongDialog({
 function UploadSongsEditorState({state}: {state: PageStatus}) {
     return (
         <PageShell bleed className="upload-files-editor-shell upload-songs-editor-shell">
-            <div className="business-editor-state" role={state === "loading" ? "status" : "alert"}>
-                <FlexPayzLogo/>
-                {state === "loading" ? <CircularProgress size={28}/> : null}
-                <h1>{state === "loading" ? "Loading Upload Songs" : state === "not-found" ? "Device not found" : "Upload Songs unavailable"}</h1>
-                <p>{state === "loading" ? "Preparing your audio slots." : "Return to My Devices and try again."}</p>
+            <div className="business-editor-state" role={state === "loading" ? undefined : "alert"}>
+                {state === "loading" ? (
+                    <LoadingPanel text="Loading audio editor"/>
+                ) : (
+                    <>
+                        <FlexPayzLogo/>
+                        <h1>{state === "not-found" ? "Device not found" : "Upload Songs unavailable"}</h1>
+                        <p>Return to My Devices and try again.</p>
+                    </>
+                )}
             </div>
         </PageShell>
     );

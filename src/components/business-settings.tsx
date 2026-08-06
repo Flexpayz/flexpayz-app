@@ -16,7 +16,7 @@ import {
 } from "../business-card";
 import {defaultProduct, Product} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {PageShell, FlexPayzLogo, AppButton, BackButton} from "./design-system";
+import {PageShell, FlexPayzLogo, AppButton, BackButton, LoadingPanel} from "./design-system";
 import ImageUpload from "./image-upload";
 import {getProductIdFromURL} from "../utils";
 import {useSaveBusinessCardData} from "../useProductData";
@@ -393,11 +393,16 @@ export function BusinessSettings() {
 function BusinessCardEditorState({state}: {state: "loading" | "not-found" | "error"}) {
     return (
         <PageShell bleed className="business-editor-shell">
-            <div className="business-editor-state" role={state === "loading" ? "status" : "alert"}>
-                <FlexPayzLogo/>
-                {state === "loading" ? <CircularProgress size={28}/> : null}
-                <h1>{state === "loading" ? "Loading Business Card" : state === "not-found" ? "Device not found" : "Business Card unavailable"}</h1>
-                <p>{state === "loading" ? "Preparing your editor." : "Return to My Devices and try again."}</p>
+            <div className="business-editor-state" role={state === "loading" ? undefined : "alert"}>
+                {state === "loading" ? (
+                    <LoadingPanel text="Loading business card editor"/>
+                ) : (
+                    <>
+                        <FlexPayzLogo/>
+                        <h1>{state === "not-found" ? "Device not found" : "Business Card unavailable"}</h1>
+                        <p>Return to My Devices and try again.</p>
+                    </>
+                )}
             </div>
         </PageShell>
     );

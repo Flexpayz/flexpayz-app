@@ -21,7 +21,7 @@ import {
 } from "../adult-journal";
 import {getProductIdFromURL} from "../utils";
 import {notify} from "../Pages/login-page";
-import {FlexPayzLogo} from "./design-system";
+import {FlexPayzLogo, LoadingPanel} from "./design-system";
 import {DB_COLLECTIONS, DB_STORAGE} from "./baby-journal-settings";
 import type {AdultJournalInformation, Consultation, FollowUp, Investigation, VitalSigns} from "./adult-journal-settings";
 import {ProfileUpload} from "./profile-upload";
@@ -299,9 +299,8 @@ export function AdultJournalWorkspace() {
     if (loadState === "loading") {
         return (
             <div className="baby-journal-editor-shell">
-                <div className="baby-journal-editor-state" role="status" aria-live="polite">
-                    <span className="baby-journal-spinner" aria-hidden="true"/>
-                    <p>Loading Adult Journal workspace</p>
+                <div className="baby-journal-editor-state">
+                    <LoadingPanel text="Loading adult journal workspace"/>
                 </div>
             </div>
         );

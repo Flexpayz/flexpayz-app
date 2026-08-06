@@ -4124,19 +4124,7 @@ h2.pinline span:after {
     justify-content: center;
     gap: var(--fp-space-3);
     color: var(--fp-color-text-muted);
-}
-
-.baby-journal-spinner {
-    width: var(--fp-space-6);
-    height: var(--fp-space-6);
-    border-radius: var(--fp-radius-pill);
-    border: 3px solid var(--fp-color-border);
-    border-top-color: var(--fp-color-champagne);
-    animation: fp-spin 800ms linear infinite;
-}
-
-@keyframes fp-spin {
-    to { transform: rotate(360deg); }
+    padding: var(--fp-space-4);
 }
 
 @media (max-width: 960px) {
@@ -4230,8 +4218,7 @@ h2.pinline span:after {
 
 @media (prefers-reduced-motion: reduce) {
     .baby-journal-editor-layout,
-    .baby-journal-editor-card,
-    .baby-journal-spinner {
+    .baby-journal-editor-card {
         animation: none;
     }
 }

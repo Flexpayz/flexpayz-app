@@ -1,6 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import type {RefObject} from "react";
-import {CircularProgress} from "@mui/material";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
@@ -19,7 +18,7 @@ import {
     sortJournalDateKeysNewestFirst,
 } from "../baby-journal";
 import {DB_COLLECTIONS, BabyJournalInformation} from "./baby-journal-settings";
-import {BackButton, FlexPayzLogo} from "./design-system";
+import {BackButton, FlexPayzLogo, LoadingPanel} from "./design-system";
 
 type PublicTab = "home" | "health";
 
@@ -71,7 +70,7 @@ export function BabyJournalPreview({
     if (state === "loading") {
         return (
             <div className="baby-journal-public-page">
-                <PublicState title="Loading protected journal" message="Preparing the family journal." loading/>
+                <LoadingPanel text="Loading protected journal"/>
             </div>
         );
     }
@@ -132,10 +131,10 @@ export function BabyJournalPreview({
     );
 }
 
-function PublicState({title, message, loading = false}: {title: string; message: string; loading?: boolean}) {
+function PublicState({title, message}: {title: string; message: string}) {
     return (
         <div className="baby-journal-public-state" role="status" aria-live="polite">
-            {loading ? <CircularProgress size={28}/> : <LockRoundedIcon/>}
+            <LockRoundedIcon/>
             <h1>{title}</h1>
             <p>{message}</p>
         </div>

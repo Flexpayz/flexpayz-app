@@ -4,6 +4,7 @@ export { AppTextField } from "./AppTextField";
 export type { AppTextFieldProps } from "./AppTextField";
 export { BackButton } from "./BackButton";
 export { FlexPayzLogo } from "./FlexPayzLogo";
+export { LoadingPanel } from "./LoadingPanel";
 export { PageShell } from "./PageShell";
 export { SectionHeader } from "./SectionHeader";
 export { StatusBadge } from "./StatusBadge";

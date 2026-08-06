@@ -14,7 +14,7 @@ import {
     useCreateMultipleSleepScheduleHandler
 } from "./adult-journal-settings";
 import {useNavigate} from "react-router";
-import {FlexPayzLogo} from "./design-system";
+import {FlexPayzLogo, LoadingPanel} from "./design-system";
 import {ProfileUpload} from "./profile-upload";
 import AssetUpload3 from "./asset-upload-3";
 import {
@@ -298,9 +298,8 @@ type BabyJournalSaveState = "clean" | "dirty" | "saving" | "saved" | "failed";
 
 function BabyJournalEditorLoading() {
     return (
-        <div className="baby-journal-editor-state" role="status" aria-live="polite">
-            <span className="baby-journal-spinner" aria-hidden="true"/>
-            <p>Loading Baby Journal workspace</p>
+        <div className="baby-journal-editor-state">
+            <LoadingPanel text="Loading baby journal workspace"/>
         </div>
     );
 }

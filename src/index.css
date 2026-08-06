@@ -126,6 +126,31 @@ code {
   box-shadow: var(--fp-focus-ring);
 }
 
+.fp-loading-panel {
+  width: min(100%, 36rem);
+  min-height: 11rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fp-space-5);
+  padding: var(--fp-space-8) var(--fp-space-6);
+  border: 1px solid var(--fp-color-border);
+  border-radius: var(--fp-radius-xl);
+  color: var(--fp-color-champagne);
+  background: var(--fp-color-surface-primary);
+  box-shadow: var(--fp-shadow-floating);
+  text-align: center;
+}
+
+.fp-loading-panel strong {
+  color: var(--fp-color-ink);
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-title-small);
+  font-weight: 600;
+  line-height: var(--fp-line-height-control);
+}
+
 .fp-typography-display,
 .fp-typography-page-title,
 .fp-typography-heading {

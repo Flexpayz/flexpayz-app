@@ -1,3 +1,12 @@
+.admin-loading-screen {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--fp-space-4);
+    background: var(--fp-color-canvas);
+}
+
 .admin-products {
     height: 70%;
     overflow: scroll;

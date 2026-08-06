@@ -5,6 +5,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs, query, where, writeBatch } from "firebase/firestore";
 import { db } from "../App";
 import { DB_COLLECTIONS } from "../components/baby-journal-settings";
+import {LoadingPanel} from "../components/design-system";
 
 type MigrationStatus = "updated" | "not-found" | "invalid" | "error";
 
@@ -233,7 +234,7 @@ export function SerialProductMigrationPage() {
     };
 
     if (checkingPermissions) {
-        return <div style={{ padding: 24 }}>Loading...</div>;
+        return <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}><LoadingPanel text="Loading migration tools"/></div>;
     }
 
     if (!isAdmin) {
@@ -324,4 +325,3 @@ export function SerialProductMigrationPage() {
         </div>
     );
 }
-

@@ -11,7 +11,7 @@ import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {buildCustomLinkUpdate, getCustomLinkDisplayLabel, parseCustomLink} from "../custom-link";
-import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
 import {getProductIdFromURL} from "../utils";
 import "../Pages/manager.css";
 
@@ -286,11 +286,16 @@ function ChecklistItem({complete, title, text}: {complete: boolean; title: strin
 function CustomLinkEditorState({state}: {state: "loading" | "not-found" | "error"}) {
     return (
         <PageShell bleed className="custom-link-editor-shell">
-            <div className="business-editor-state" role={state === "loading" ? "status" : "alert"}>
-                <FlexPayzLogo/>
-                {state === "loading" ? <CircularProgress size={28}/> : null}
-                <h1>{state === "loading" ? "Loading Custom Link" : state === "not-found" ? "Device not found" : "Custom Link unavailable"}</h1>
-                <p>{state === "loading" ? "Preparing your destination settings." : "Return to My Devices and try again."}</p>
+            <div className="business-editor-state" role={state === "loading" ? undefined : "alert"}>
+                {state === "loading" ? (
+                    <LoadingPanel text="Loading custom link editor"/>
+                ) : (
+                    <>
+                        <FlexPayzLogo/>
+                        <h1>{state === "not-found" ? "Device not found" : "Custom Link unavailable"}</h1>
+                        <p>Return to My Devices and try again.</p>
+                    </>
+                )}
             </div>
         </PageShell>
     );

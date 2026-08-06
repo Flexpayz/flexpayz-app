@@ -7,7 +7,6 @@ import {
     InputAdornment,
     Menu,
     MenuItem,
-    Skeleton,
     Stack,
     TextField,
 } from "@mui/material";
@@ -35,6 +34,7 @@ import {useContext} from "react";
 import {AppButton} from "../components/design-system/AppButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {BackButton} from "../components/design-system/BackButton";
+import {LoadingPanel} from "../components/design-system/LoadingPanel";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
 
@@ -829,16 +829,8 @@ function ActivationGuideCard() {
 
 function DashboardSkeleton() {
     return (
-        <Box className="devices-grid" aria-label="Loading device cards">
-            {[0, 1, 2].map((item) => (
-                <Surface className="devices-card devices-card-skeleton" key={item}>
-                    <Skeleton variant="rounded" className="devices-skeleton-visual"/>
-                    <Skeleton width="40%"/>
-                    <Skeleton width="70%"/>
-                    <Skeleton width="35%"/>
-                    <Skeleton variant="rounded" height={52}/>
-                </Surface>
-            ))}
+        <Box className="devices-loading-wrap">
+            <LoadingPanel text="Loading your devices"/>
         </Box>
     );
 }

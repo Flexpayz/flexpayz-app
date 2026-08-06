@@ -17,7 +17,7 @@ import {
     getReadyUploadFileDocuments,
     getUploadFileStoragePath,
 } from "../upload-files";
-import {FlexPayzLogo} from "./design-system";
+import {FlexPayzLogo, LoadingPanel} from "./design-system";
 
 type MetadataBySlot = Record<UploadFileSlotId, UploadFileMetadataState>;
 type DocumentActionStatus = Record<string, string>;
@@ -183,9 +183,8 @@ function DocumentRow({
 
 function UploadFilesPublicSkeleton() {
     return (
-        <div className="upload-files-public-skeleton" role="status">
-            <CircularProgress size={26}/>
-            <span>Loading shared documents</span>
+        <div className="upload-files-public-skeleton">
+            <LoadingPanel text="Loading shared documents"/>
         </div>
     );
 }

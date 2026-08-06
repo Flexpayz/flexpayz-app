@@ -15,6 +15,7 @@ import ExportSerialsCSVButton from "../components/serial-csv-buton";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Modular import for auth
 import { getIdTokenResult } from 'firebase/auth';  // To get custom claims
 import {Preview} from "../preview";
+import {LoadingPanel} from "../components/design-system";
 
 export {Preview};
 
@@ -107,7 +108,7 @@ export function AdminPage() {
     const [changePermissionsProduct, setChangePermissionsProduct] = useState<string>("")
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="admin-loading-screen"><LoadingPanel text="Loading admin dashboard"/></div>;
   }
 
   if (!isAdmin) {

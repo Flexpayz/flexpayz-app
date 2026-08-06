@@ -1482,6 +1482,10 @@
     text-align: center;
 }
 
+.upload-files-public-skeleton .fp-loading-panel {
+    width: min(100%, 36rem);
+}
+
 .upload-files-public-footer {
     display: flex;
     justify-content: space-between;
@@ -1568,6 +1572,10 @@
     display: grid;
     align-content: center;
     gap: var(--fp-space-8);
+}
+
+.upload-songs-public-main > .fp-loading-panel {
+    justify-self: center;
 }
 
 .upload-songs-public-hero {
@@ -2190,6 +2198,12 @@
     color: var(--fp-color-ink);
     overflow-x: hidden;
     position: relative;
+}
+
+.baby-journal-public-page > .fp-loading-panel {
+    position: relative;
+    z-index: 1;
+    margin: min(24svh, 12rem) auto 0;
 }
 
 .baby-journal-public-circles span {

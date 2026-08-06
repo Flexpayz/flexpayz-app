@@ -12,7 +12,7 @@ import {useNavigate} from "react-router";
 import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
 import {getProductIdFromURL} from "../utils";
 import {
     ParsedYouTubeUrl,
@@ -424,11 +424,16 @@ function RemoveVideoDialog({
 function UploadVideoEditorState({state}: {state: PageStatus}) {
     return (
         <PageShell bleed className="upload-video-editor-shell">
-            <div className="business-editor-state" role={state === "loading" ? "status" : "alert"}>
-                <FlexPayzLogo/>
-                {state === "loading" ? <CircularProgress size={28}/> : null}
-                <h1>{state === "loading" ? "Loading Upload Video" : state === "not-found" ? "Device not found" : "Upload Video unavailable"}</h1>
-                <p>{state === "loading" ? "Preparing the YouTube configuration." : "Return to My Devices and try again."}</p>
+            <div className="business-editor-state" role={state === "loading" ? undefined : "alert"}>
+                {state === "loading" ? (
+                    <LoadingPanel text="Loading video editor"/>
+                ) : (
+                    <>
+                        <FlexPayzLogo/>
+                        <h1>{state === "not-found" ? "Device not found" : "Upload Video unavailable"}</h1>
+                        <p>Return to My Devices and try again.</p>
+                    </>
+                )}
             </div>
         </PageShell>
     );

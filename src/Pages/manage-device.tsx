@@ -31,6 +31,7 @@ import {db} from "../App";
 import {AppButton} from "../components/design-system/AppButton";
 import {BackButton} from "../components/design-system/BackButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
+import {LoadingPanel} from "../components/design-system/LoadingPanel";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
 import {PermissionContext, Permissions, defaultPermissions} from "../components/usePermission";
@@ -1064,10 +1065,7 @@ function WorkspaceLoading() {
         <PageShell bleed className="device-workspace-shell" sx={DEVICE_WORKSPACE_SHELL_SX}>
             <Box className="device-workspace-page device-workspace-page-loading">
                 <Box className="device-workspace-layout device-workspace-layout-loading">
-                    <Surface className="workspace-loading-card">
-                        <CircularProgress aria-label="Loading device workspace"/>
-                        <strong>Loading device workspace</strong>
-                    </Surface>
+                    <LoadingPanel text="Loading device workspace"/>
                 </Box>
             </Box>
         </PageShell>

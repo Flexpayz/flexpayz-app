@@ -18,7 +18,7 @@ import {
     getReadyUploadSongTracks,
     getUploadSongStoragePath,
 } from "../upload-songs";
-import {FlexPayzLogo} from "./design-system";
+import {FlexPayzLogo, LoadingPanel} from "./design-system";
 
 type MetadataBySlot = Record<UploadSongSlotId, UploadSongMetadataState>;
 type LoadState = "loading" | "ready" | "error";
@@ -111,7 +111,7 @@ export function UploadSongsPublicPage({product, productId}: {product: Product; p
 
             <main className="upload-songs-public-main">
                 {loadState === "loading" ? (
-                    <UploadSongsPublicState title="Loading audio collection" message="Preparing the public player." loading/>
+                    <LoadingPanel text="Loading audio collection"/>
                 ) : loadState === "error" ? (
                     <UploadSongsPublicState title="Audio collection unavailable" message="Refresh and try again."/>
                 ) : tracks.length === 0 ? (

@@ -11,7 +11,7 @@ import {db, storage} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {FileUploadField, UploadedFileState} from "./file-upload-field";
-import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
 import {useResumableFileUpload} from "../useResumableFileUpload";
 import {
     PDF_ACCEPT,
@@ -451,11 +451,16 @@ function RemoveFileDialog({
 function UploadFileEditorState({state}: {state: PageStatus}) {
     return (
         <PageShell bleed className="upload-files-editor-shell">
-            <div className="business-editor-state" role={state === "loading" ? "status" : "alert"}>
-                <FlexPayzLogo/>
-                {state === "loading" ? <CircularProgress size={28}/> : null}
-                <h1>{state === "loading" ? "Loading Upload Files" : state === "not-found" ? "Device not found" : "Upload Files unavailable"}</h1>
-                <p>{state === "loading" ? "Preparing your document slots." : "Return to My Devices and try again."}</p>
+            <div className="business-editor-state" role={state === "loading" ? undefined : "alert"}>
+                {state === "loading" ? (
+                    <LoadingPanel text="Loading document editor"/>
+                ) : (
+                    <>
+                        <FlexPayzLogo/>
+                        <h1>{state === "not-found" ? "Device not found" : "Upload Files unavailable"}</h1>
+                        <p>Return to My Devices and try again.</p>
+                    </>
+                )}
             </div>
         </PageShell>
     );

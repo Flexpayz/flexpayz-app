@@ -1,6 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import type {RefObject} from "react";
-import {CircularProgress} from "@mui/material";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
@@ -25,7 +24,7 @@ import {
 } from "../adult-journal";
 import {DB_COLLECTIONS} from "./baby-journal-settings";
 import type {AdultJournalInformation, Investigation} from "./adult-journal-settings";
-import {BackButton, FlexPayzLogo} from "./design-system";
+import {BackButton, FlexPayzLogo, LoadingPanel} from "./design-system";
 
 type PublicTab = "home" | "health" | "tests" | "care";
 
@@ -83,7 +82,7 @@ export function AdultJournalPreview({
     if (state === "loading") {
         return (
             <div className="baby-journal-public-page">
-                <PublicState title="Loading protected record" message="Preparing the health record." loading/>
+                <LoadingPanel text="Loading protected record"/>
             </div>
         );
     }
@@ -142,10 +141,10 @@ export function AdultJournalPreview({
     );
 }
 
-function PublicState({title, message, loading = false}: {title: string; message: string; loading?: boolean}) {
+function PublicState({title, message}: {title: string; message: string}) {
     return (
         <div className="baby-journal-public-state" role="status" aria-live="polite">
-            {loading ? <CircularProgress size={28}/> : <LockRoundedIcon/>}
+            <LockRoundedIcon/>
             <h1>{title}</h1>
             <p>{message}</p>
         </div>
