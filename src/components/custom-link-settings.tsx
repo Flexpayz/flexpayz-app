@@ -166,8 +166,11 @@ export function CustomLinkSettings() {
 
                 <main id="custom-link-editor" className="custom-link-editor-main">
                     <header className="business-editor-header">
-                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
-                        <div>
+                        <div className="business-editor-topbar">
+                            <FlexPayzLogo className="business-editor-header-logo"/>
+                            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
+                        </div>
+                        <div className="business-editor-title">
                             <p className="business-kicker">CUSTOM LINK SETTINGS</p>
                             <h1><span className="desktop-heading">Send visitors to the right place</span><span className="mobile-heading">Choose the destination</span></h1>
                             <p>Configure one external destination with clear validation before it goes live.</p>

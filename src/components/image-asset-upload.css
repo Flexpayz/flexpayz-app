@@ -1,0 +1,180 @@
+.image-asset-upload {
+    width: min(100%, 12rem);
+    display: grid;
+    gap: var(--fp-space-3);
+    justify-items: center;
+    color: var(--fp-color-text-muted);
+    font-family: var(--fp-font-ui);
+    text-align: center;
+}
+
+.image-asset-upload input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.image-asset-upload-stage {
+    position: relative;
+    width: 11rem;
+    max-width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px solid var(--fp-color-border);
+    background: var(--fp-color-surface-primary);
+}
+
+.image-asset-upload-circle .image-asset-upload-stage {
+    border-radius: 999px;
+}
+
+.image-asset-upload-square .image-asset-upload-stage {
+    border-radius: var(--fp-radius-md);
+}
+
+.image-asset-upload-stage img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.image-asset-upload-fit-contain .image-asset-upload-stage img {
+    object-fit: contain;
+}
+
+.image-asset-upload-empty {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: var(--fp-space-2);
+    padding: var(--fp-space-4);
+    border: 0;
+    color: var(--fp-color-text-muted);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+.image-asset-upload-empty svg {
+    color: var(--fp-color-champagne);
+    font-size: 2rem;
+}
+
+.image-asset-upload-empty span {
+    max-width: 8rem;
+    font-size: var(--fp-font-size-body-small);
+    font-weight: 500;
+    line-height: var(--fp-line-height-control);
+}
+
+.image-asset-upload .reactEasyCrop_Container {
+    background: var(--fp-color-ink);
+}
+
+.image-asset-crop-controls {
+    width: min(100%, 16rem);
+    display: grid;
+    gap: var(--fp-space-3);
+}
+
+.image-asset-crop-controls label {
+    display: grid;
+    gap: var(--fp-space-2);
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-caption);
+    font-weight: 600;
+    line-height: var(--fp-line-height-control);
+}
+
+.image-asset-crop-controls input[type="range"] {
+    width: 100%;
+    accent-color: var(--fp-color-champagne);
+}
+
+.image-asset-crop-controls div,
+.image-asset-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fp-space-2);
+}
+
+.image-asset-crop-controls button,
+.image-asset-actions button {
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fp-space-2);
+    padding: 0 var(--fp-space-3);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-sm);
+    color: var(--fp-color-ink);
+    background: var(--fp-color-surface-primary);
+    font-family: var(--fp-font-ui);
+    font-size: var(--fp-font-size-body-small);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.image-asset-crop-controls button:last-child {
+    border-color: var(--fp-color-ink);
+    color: var(--fp-color-white);
+    background: var(--fp-color-ink);
+}
+
+.image-asset-actions button:disabled,
+.image-asset-crop-controls button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.image-asset-actions svg {
+    font-size: 1rem;
+}
+
+.image-asset-progress {
+    width: min(100%, 11rem);
+    height: 0.375rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--fp-color-border);
+}
+
+.image-asset-progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: left center;
+    background: var(--fp-color-champagne);
+    transition: transform var(--fp-transition-standard);
+}
+
+.image-asset-upload small {
+    color: var(--fp-color-text-muted);
+    font-family: var(--fp-font-ui);
+    font-size: var(--fp-font-size-body-small);
+    font-weight: 400;
+    line-height: var(--fp-line-height-control);
+}
+
+.image-asset-upload.is-cropping {
+    width: min(100%, 18rem);
+}
+
+.image-asset-upload.is-cropping .image-asset-upload-stage {
+    width: min(100%, 16rem);
+}
+
+.image-asset-upload button:focus-visible,
+.image-asset-upload input:focus-visible {
+    outline: var(--fp-focus-outline);
+    outline-offset: var(--fp-focus-offset);
+    box-shadow: var(--fp-focus-ring);
+}

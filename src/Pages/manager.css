@@ -296,11 +296,28 @@ h2.pinline span:after {
 }
 
 .business-editor-header {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: var(--fp-space-5);
-    align-items: start;
     margin-bottom: var(--fp-space-6);
+}
+
+.business-editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-4);
+}
+
+.business-editor-header-logo {
+    width: min(10rem, 40vw);
+    flex: 0 1 min(10rem, 40vw);
+}
+
+.business-editor-title {
+    max-width: 44rem;
+    margin-inline: auto;
+    text-align: center;
 }
 
 .business-kicker,
@@ -329,6 +346,10 @@ h2.pinline span:after {
 .business-editor-header p {
     margin: var(--fp-space-2) 0 0;
     color: var(--fp-color-text-muted);
+}
+
+.business-editor-header .business-save-pill {
+    align-self: center;
 }
 
 .mobile-heading {
@@ -365,7 +386,6 @@ h2.pinline span:after {
 }
 
 .business-completion-card,
-.business-theme-info,
 .business-save-bar {
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -388,7 +408,6 @@ h2.pinline span:after {
 }
 
 .business-completion-card span,
-.business-theme-info small,
 .business-document-upload small,
 .business-upload-tile small,
 .business-social-field small,
@@ -449,18 +468,14 @@ h2.pinline span:after {
     text-align: center;
 }
 
-.business-photo-card img,
-.business-upload-tile img,
-.business-avatar-fallback,
-.business-upload-tile span {
-    width: 5.5rem;
-    height: 5.5rem;
-    border-radius: var(--fp-radius-pill);
-    object-fit: cover;
-}
-
 .business-upload-tile {
     cursor: pointer;
+}
+
+.business-profile-uploader,
+.business-logo-uploader {
+    width: min(100%, 11rem);
+    justify-self: center;
 }
 
 .business-upload-tile input,
@@ -541,9 +556,7 @@ h2.pinline span:after {
     align-items: center;
 }
 
-.business-social-field > span,
-.business-theme-dots i,
-.business-theme-dots b {
+.business-social-field > span {
     width: 2.75rem;
     height: 2.75rem;
     display: grid;
@@ -578,35 +591,6 @@ h2.pinline span:after {
 .business-document-upload.failed {
     border-color: var(--fp-color-danger);
     background: color-mix(in srgb, var(--fp-color-danger) 10%, var(--fp-color-surface-primary));
-}
-
-.business-theme-info {
-    background: var(--fp-color-surface-sand);
-}
-
-.business-theme-dots {
-    display: flex;
-    align-items: center;
-}
-
-.business-theme-dots i {
-    background: var(--fp-color-champagne);
-}
-
-.business-theme-dots b {
-    margin-left: calc(var(--fp-space-3) * -1);
-    background: var(--fp-color-ink);
-}
-
-.business-theme-info em {
-    justify-self: end;
-    padding: var(--fp-space-2) var(--fp-space-3);
-    border-radius: var(--fp-radius-pill);
-    background: var(--fp-color-surface-primary);
-    color: var(--fp-color-champagne-dark);
-    font-style: normal;
-    font-weight: 600;
-    letter-spacing: 0.16em;
 }
 
 .business-save-bar {
@@ -665,12 +649,11 @@ h2.pinline span:after {
     }
 
     .business-editor-header {
-        grid-template-columns: auto 1fr;
+        gap: var(--fp-space-4);
     }
 
     .business-save-pill {
-        grid-column: 1 / -1;
-        justify-self: start;
+        align-self: center;
     }
 
     .desktop-heading {
@@ -693,7 +676,6 @@ h2.pinline span:after {
     }
 
     .business-completion-card,
-    .business-theme-info,
     .business-save-bar {
         grid-template-columns: 1fr;
         align-items: stretch;
@@ -1178,10 +1160,13 @@ h2.pinline span:after {
 }
 
 .section-title {
-    color: white;
-    font-size: 30px;
-    font-weight: 600;
-    margin-top: 20px;
+    margin-top: var(--fp-space-6);
+    color: var(--fp-color-ink);
+    font-family: var(--fp-font-display);
+    font-size: var(--fp-font-size-heading);
+    font-weight: 500;
+    line-height: var(--fp-line-height-tight);
+    text-align: center;
 }
 
 .explanation-text {
@@ -1407,11 +1392,11 @@ h2.pinline span:after {
 .settings-page{
     min-height: 100vh;
     width: 100vw;
-    padding-top: 20px;
+    padding: calc(var(--fp-space-5) + env(safe-area-inset-top)) var(--fp-space-4) calc(var(--fp-space-6) + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: linear-gradient(#4CD8EA, #3189C5);
+    background: var(--fp-color-canvas);
 }
 
 .custom-link-background-color {
@@ -2156,12 +2141,14 @@ h2.pinline span:after {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--fp-space-4);
-    background: var(--fp-color-canvas);
+    gap: var(--fp-space-4);
+    width: min(100%, 48rem);
+    padding: 0;
 }
 
 .editor-settings-logo {
-    flex: 0 1 10rem;
+    width: min(10rem, 40vw);
+    flex: 0 1 min(10rem, 40vw);
 }
 
 .device-sidebar-logo {

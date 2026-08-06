@@ -17,7 +17,8 @@ import {
 import {defaultProduct, Product} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {PageShell, FlexPayzLogo, AppButton, BackButton, LoadingPanel} from "./design-system";
-import ImageUpload from "./image-upload";
+import {Asset, DB_STORAGE} from "./baby-journal-settings";
+import {ImageAssetUpload} from "./image-asset-upload";
 import {getProductIdFromURL} from "../utils";
 import {useSaveBusinessCardData} from "../useProductData";
 import "../Pages/manager.css";
@@ -59,6 +60,7 @@ const TEXT_FIELDS: (keyof Product)[] = [
     "companyPhoneNumber",
     "companyAbout",
     "businessFile",
+    "logo",
 ];
 
 export function BusinessSettingsWrapper() {
@@ -154,6 +156,28 @@ export function BusinessSettings() {
 
     const validation = useMemo(() => validateBusinessCard(productState), [productState]);
 
+    const profileImageAssets = useMemo<Asset[]>(
+        () => profileImageURL ? [{name: "Profile image", url: profileImageURL}] : [],
+        [profileImageURL]
+    );
+
+    const logoImageAssets = useMemo<Asset[]>(
+        () => logoImageURL ? [{name: "Company logo", url: logoImageURL}] : [],
+        [logoImageURL]
+    );
+
+    const updateProfileImage = useCallback((assets: Asset[]) => {
+        const nextImage = assets[0]?.url || "";
+        setProfileImageURL(nextImage);
+    }, []);
+
+    const updateCompanyLogo = useCallback((assets: Asset[]) => {
+        const nextLogo = assets[0]?.url || "";
+        setLogoImageURL(nextLogo);
+        setLogoUploadState(nextLogo ? "ready" : "idle");
+        updateField("logo", nextLogo);
+    }, [updateField]);
+
     useEffect(() => {
         if (saveState !== "dirty" || isAutosaving.current || Object.keys(validation).length > 0 || !productId) return;
 
@@ -202,28 +226,6 @@ export function BusinessSettings() {
         } catch {
             setSaveState("failed");
             setSaveMessage("Save failed. Your draft is still here.");
-        }
-    };
-
-    const uploadLogo = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file || !productId) return;
-        if (!file.type.startsWith("image/")) {
-            setLogoUploadState("failed");
-            return;
-        }
-
-        setLogoUploadState("uploading");
-        try {
-            const logoRef = ref(storage, `images/logo-${productId}`);
-            await uploadBytes(logoRef, file);
-            const url = await getDownloadURL(logoRef);
-            await updateDoc(doc(db, "products", productId), {logo: url});
-            setLogoImageURL(url);
-            updateField("logo", url);
-            setLogoUploadState("ready");
-        } catch {
-            setLogoUploadState("failed");
         }
     };
 
@@ -276,8 +278,11 @@ export function BusinessSettings() {
 
                 <main id="business-card-editor" className="business-editor-main">
                     <header className="business-editor-header">
-                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
-                        <div>
+                        <div className="business-editor-topbar">
+                            <FlexPayzLogo className="business-editor-header-logo"/>
+                            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
+                        </div>
+                        <div className="business-editor-title">
                             <p className="business-kicker">BUSINESS CARD EDITOR</p>
                             <h1><span className="desktop-heading">Build your Business Card</span><span className="mobile-heading">Build your profile</span></h1>
                             <p>Complete the essentials first. You can refine details later.</p>
@@ -293,9 +298,16 @@ export function BusinessSettings() {
                         <EditorSection number="01" eyebrow="PROFILE" title="Your introduction">
                             <div className="business-profile-grid">
                                 <div className="business-photo-card">
-                                    {profileImageURL ? <img src={profileImageURL} alt="Current profile"/> : <div className="business-avatar-fallback" aria-hidden="true">{getInitials(productState)}</div>}
-                                    <ImageUpload/>
-                                    <small>JPG or PNG · max 5 MB</small>
+                                    <strong>Profile photo</strong>
+                                    <ImageAssetUpload
+                                        value={profileImageAssets}
+                                        onChange={updateProfileImage}
+                                        storageFolder={DB_STORAGE.BABY_JOURNAL}
+                                        storagePath={productId ? `images/${productId}` : undefined}
+                                        shape="circle"
+                                        label="Profile photo"
+                                        className="business-profile-uploader"
+                                    />
                                 </div>
                                 <div className="business-field-grid">
                                     <EditorTextField label="First name" value={productState.firstName} onChange={(value) => updateField("firstName", value)} autoComplete="given-name"/>
@@ -331,12 +343,18 @@ export function BusinessSettings() {
 
                         <EditorSection number="03" eyebrow="COMPANY" title="Professional context">
                             <div className="business-company-grid">
-                                <label className="business-upload-tile">
-                                    <input type="file" accept="image/*" onChange={uploadLogo}/>
-                                    {logoImageURL ? <img src={logoImageURL} alt="Company logo"/> : <span>{getCompanyInitials(productState)}</span>}
-                                    <strong>{logoUploadState === "uploading" ? "Uploading logo" : logoUploadState === "failed" ? "Logo upload failed" : "Company logo"}</strong>
-                                    <small>Logo uploaded · Replace</small>
-                                </label>
+                                <div className="business-upload-tile business-upload-tile-square">
+                                    <strong>{logoUploadState === "failed" ? "Logo upload failed" : "Company logo"}</strong>
+                                    <ImageAssetUpload
+                                        value={logoImageAssets}
+                                        onChange={updateCompanyLogo}
+                                        storageFolder={DB_STORAGE.BABY_JOURNAL}
+                                        storagePath={productId ? `images/logo-${productId}` : undefined}
+                                        shape="square"
+                                        label="Company logo"
+                                        className="business-logo-uploader"
+                                    />
+                                </div>
                                 <div className="business-field-grid">
                                     <EditorTextField label="Company name" value={productState.companyName} onChange={(value) => updateField("companyName", value)} autoComplete="organization"/>
                                     <EditorTextField label="Registration number" value={productState.companyRegNumber} onChange={(value) => updateField("companyRegNumber", value)}/>
@@ -367,15 +385,6 @@ export function BusinessSettings() {
                                 <small>{cvUploadState === "uploading" ? "Uploading PDF" : cvUploadState === "failed" ? "PDF upload failed. Try again." : productState.cv ? "Ready · Replace" : "PDF only"}</small>
                             </label>
                         </EditorSection>
-
-                        <div className="business-theme-info" aria-label="Fixed appearance">
-                            <span className="business-theme-dots" aria-hidden="true"><i/><b/></span>
-                            <div>
-                                <strong>Champagne</strong>
-                                <small>Fixed default appearance</small>
-                            </div>
-                            <em>DEFAULT</em>
-                        </div>
 
                         <div className="business-save-bar" aria-live="polite">
                             <span>{saveMessage}</span>
@@ -502,13 +511,4 @@ function validateBusinessCard(product: Product) {
     }
 
     return errors;
-}
-
-function getInitials(product: Product) {
-    const source = [product.firstName, product.lastName].filter(Boolean).join(" ") || product.companyName || "FP";
-    return source.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "FP";
-}
-
-function getCompanyInitials(product: Product) {
-    return (product.companyName || "Company").split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "CO";
 }

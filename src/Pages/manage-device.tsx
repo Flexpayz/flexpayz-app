@@ -1102,8 +1102,8 @@ export function SettingsHeader() {
     const navigate = useNavigate();
     return (
         <Box className="editor-settings-header">
-            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
             <FlexPayzLogo className="editor-settings-logo"/>
+            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
         </Box>
     );
 }

@@ -205,8 +205,11 @@ export function UploadVideoSettings() {
 
                 <main id="upload-video-editor" className="upload-video-editor-main">
                     <header className="business-editor-header">
-                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
-                        <div>
+                        <div className="business-editor-topbar">
+                            <FlexPayzLogo className="business-editor-header-logo"/>
+                            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
+                        </div>
+                        <div className="business-editor-title">
                             <p className="business-kicker">UPLOAD VIDEO SETTINGS</p>
                             <h1><span className="desktop-heading">Publish with confidence</span><span className="mobile-heading">Feature one video beautifully</span></h1>
                             <p>Paste one YouTube URL, confirm the right video, then publish.</p>

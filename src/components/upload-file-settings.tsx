@@ -240,8 +240,11 @@ export function UploadFileSettings({
 
                 <main id="upload-files-editor" className="upload-files-editor-main">
                     <header className="business-editor-header">
-                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
-                        <div>
+                        <div className="business-editor-topbar">
+                            <FlexPayzLogo className="business-editor-header-logo"/>
+                            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
+                        </div>
+                        <div className="business-editor-title">
                             <p className="business-kicker">UPLOAD FILES SETTINGS</p>
                             <h1><span className="desktop-heading">Manage shared documents</span><span className="mobile-heading">Share useful documents</span></h1>
                             <p>Upload, rename, replace or remove up to three PDF documents.</p>
