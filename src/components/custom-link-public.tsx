@@ -1,11 +1,10 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import {Product} from "../control-state";
 import {getCustomLinkDisplayLabel, parseCustomLink} from "../custom-link";
-import {FlexPayzLogo} from "./design-system";
+import {BackButton, FlexPayzLogo} from "./design-system";
 
 type CustomLinkPublicPageProps = {
     product: Product;
@@ -80,9 +79,7 @@ export function CustomLinkPublicPage({product, productId, fromDashboard = false}
                         </button>
                     </div>
                     {fromDashboard && (
-                        <button type="button" className="custom-link-public-back" onClick={goBackToContent}>
-                            <ArrowBackRoundedIcon fontSize="small"/> Back to content dashboard
-                        </button>
+                        <BackButton aria-label="Back to content dashboard" className="custom-link-public-back" onClick={goBackToContent}/>
                     )}
                 </main>
             </div>

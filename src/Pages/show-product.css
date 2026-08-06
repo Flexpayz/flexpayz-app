@@ -777,6 +777,11 @@
     letter-spacing: 0.22em;
 }
 
+.public-routing-logo {
+    width: 12rem;
+    margin-bottom: var(--fp-space-4);
+}
+
 .public-routing-card h1 {
     margin: 0 0 var(--fp-space-3);
     font-family: var(--fp-font-family-display);
@@ -1067,6 +1072,15 @@
     padding-inline: var(--fp-space-5);
     background: var(--fp-color-surface-primary);
     color: var(--fp-color-ink);
+}
+
+.fp-back-button.custom-link-public-back {
+    width: var(--fp-size-interactive-min);
+    height: var(--fp-size-interactive-min);
+    min-width: var(--fp-size-interactive-min);
+    min-height: var(--fp-size-interactive-min);
+    padding-inline: 0;
+    border-radius: 999px;
 }
 
 .custom-link-public-primary:hover:not(:disabled),

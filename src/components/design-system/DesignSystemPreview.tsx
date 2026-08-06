@@ -105,8 +105,8 @@ export function DesignSystemPreview() {
           <Grid item xs={12} md={6}>
             <Stack spacing={3}>
               <Typography variant="body2">Light surface</Typography>
-              <FlexPayzLogo presentation="full" />
-              <FlexPayzLogo presentation="mark" title="FlexPayz mark" />
+              <FlexPayzLogo />
+              <FlexPayzLogo />
             </Stack>
           </Grid>
           <Grid item xs={12} md={6}>
@@ -123,12 +123,8 @@ export function DesignSystemPreview() {
                 >
                   Dark surface
                 </Typography>
-                <FlexPayzLogo presentation="full" surface="dark" />
-                <FlexPayzLogo
-                  presentation="mark"
-                  surface="dark"
-                  title="FlexPayz mark"
-                />
+                <FlexPayzLogo />
+                <FlexPayzLogo />
               </Stack>
             </Surface>
           </Grid>

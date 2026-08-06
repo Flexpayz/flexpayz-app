@@ -1,7 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import type {RefObject} from "react";
 import {CircularProgress} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
@@ -20,7 +19,7 @@ import {
     sortJournalDateKeysNewestFirst,
 } from "../baby-journal";
 import {DB_COLLECTIONS, BabyJournalInformation} from "./baby-journal-settings";
-import {FlexPayzLogo} from "./design-system";
+import {BackButton, FlexPayzLogo} from "./design-system";
 
 type PublicTab = "home" | "health";
 
@@ -125,7 +124,7 @@ export function BabyJournalPreview({
                     )}
                     <footer className="baby-journal-public-bar">
                         <span>Private information is shown only after global access verification.</span>
-                        {fromDashboard && <a href={`/show-product?product_id=${productId}`}>Back to content <ArrowBackRoundedIcon fontSize="small"/></a>}
+                        {fromDashboard && <BackButton aria-label="Back to content" href={`/show-product?product_id=${productId}`}/>}
                     </footer>
                 </section>
             </main>

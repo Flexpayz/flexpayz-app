@@ -2,6 +2,7 @@ export { AppButton } from "./AppButton";
 export type { AppButtonProps } from "./AppButton";
 export { AppTextField } from "./AppTextField";
 export type { AppTextFieldProps } from "./AppTextField";
+export { BackButton } from "./BackButton";
 export { FlexPayzLogo } from "./FlexPayzLogo";
 export { PageShell } from "./PageShell";
 export { SectionHeader } from "./SectionHeader";

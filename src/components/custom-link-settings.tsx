@@ -1,6 +1,5 @@
 import {FormEvent, useContext, useEffect, useMemo, useRef, useState} from "react";
 import {Box, CircularProgress, TextField} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
@@ -12,7 +11,7 @@ import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {buildCustomLinkUpdate, getCustomLinkDisplayLabel, parseCustomLink} from "../custom-link";
-import {AppButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
 import {getProductIdFromURL} from "../utils";
 import "../Pages/manager.css";
 
@@ -167,9 +166,7 @@ export function CustomLinkSettings() {
 
                 <main id="custom-link-editor" className="custom-link-editor-main">
                     <header className="business-editor-header">
-                        <button className="business-icon-button" type="button" aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}>
-                            <ArrowBackRoundedIcon/>
-                        </button>
+                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
                         <div>
                             <p className="business-kicker">CUSTOM LINK SETTINGS</p>
                             <h1><span className="desktop-heading">Send visitors to the right place</span><span className="mobile-heading">Choose the destination</span></h1>

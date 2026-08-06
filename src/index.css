@@ -77,6 +77,55 @@ code {
   font-family: var(--fp-font-ui);
 }
 
+.flexpayz-logo-image {
+  width: min(15rem, 40vw);
+  max-width: 40vw;
+  min-width: 0;
+  object-fit: contain;
+}
+
+.flexpayz-logo-default {
+  width: min(15rem, 40vw);
+}
+
+.fp-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--fp-size-interactive-min);
+  width: var(--fp-size-interactive-min);
+  height: var(--fp-size-interactive-min);
+  min-width: var(--fp-size-interactive-min);
+  min-height: var(--fp-size-interactive-min);
+  border: 1px solid var(--fp-color-border);
+  border-radius: 999px;
+  color: var(--fp-color-ink);
+  background: color-mix(in srgb, var(--fp-color-surface-primary) 78%, transparent);
+  box-shadow: var(--fp-shadow-raised);
+  cursor: pointer;
+  transition:
+    background-color var(--fp-transition-standard),
+    border-color var(--fp-transition-standard),
+    box-shadow var(--fp-transition-standard),
+    transform var(--fp-transition-fast);
+}
+
+.fp-back-button:hover {
+  border-color: var(--fp-color-champagne);
+  background: var(--fp-color-surface-primary);
+  transform: translateY(-1px);
+}
+
+.fp-back-button:active {
+  transform: translateY(0);
+}
+
+.fp-back-button:focus-visible {
+  outline: var(--fp-focus-outline);
+  outline-offset: var(--fp-focus-offset);
+  box-shadow: var(--fp-focus-ring);
+}
+
 .fp-typography-display,
 .fp-typography-page-title,
 .fp-typography-heading {

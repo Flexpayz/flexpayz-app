@@ -21,6 +21,7 @@ import {CustomLinkPublicPage} from "../components/custom-link-public";
 import {UploadFilesPublicPage} from "../components/upload-files-public";
 import {UploadSongsPublicPage} from "../components/upload-songs-public";
 import {UploadVideoPublicPage} from "../components/upload-video-public";
+import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -180,7 +181,7 @@ function PublicNotConfigured() {
     return (
         <div className="public-routing-state">
             <div className="public-routing-card">
-                <p>FLEXPAYZ</p>
+                <FlexPayzLogo className="public-routing-logo"/>
                 <h1>This device is not configured.</h1>
                 <span>No public sections are visible yet.</span>
             </div>
@@ -194,7 +195,7 @@ function PublicSectionDashboard({product, sections, productId}: { product: Produ
     return (
         <div className="public-routing-state">
             <div className="public-routing-card public-routing-dashboard">
-                <p>FLEXPAYZ</p>
+                <FlexPayzLogo className="public-routing-logo"/>
                 <h1>{product.name || 'FlexPayz product'}</h1>
                 <span>Choose what you want to open.</span>
                 <div className="public-routing-section-list">

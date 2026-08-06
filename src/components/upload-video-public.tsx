@@ -1,6 +1,5 @@
 import {useMemo, useState} from "react";
 import {CircularProgress} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
@@ -8,7 +7,7 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import YouTube, {YouTubeEvent} from "react-youtube";
 import {Product} from "../control-state";
-import {FlexPayzLogo} from "./design-system";
+import {BackButton, FlexPayzLogo} from "./design-system";
 import {
     ParsedYouTubeUrl,
     YouTubeVideoMetadata,
@@ -187,9 +186,7 @@ function UploadVideoPlayer({
                     <p>Playback begins only after you tap Play. Standard YouTube controls remain available.</p>
                 </div>
                 {fromDashboard && (
-                    <button type="button" className="upload-video-public-back" onClick={onBack}>
-                        <ArrowBackRoundedIcon fontSize="small"/> Back to content
-                    </button>
+                    <BackButton aria-label="Back to content" className="upload-video-public-back" onClick={onBack}/>
                 )}
             </div>
         </section>
@@ -238,7 +235,7 @@ function VideoUnavailableState({
             <WarningAmberRoundedIcon/>
             <h1>{title}</h1>
             <p>{message}</p>
-            {fromDashboard && <button type="button" onClick={onBack}><ArrowBackRoundedIcon fontSize="small"/> Back to content</button>}
+            {fromDashboard && <BackButton aria-label="Back to content" onClick={onBack}/>}
         </div>
     );
 }

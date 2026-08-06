@@ -17,7 +17,6 @@ import {
     TextField,
     useMediaQuery,
 } from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -30,6 +29,7 @@ import {FormEvent, RefObject, SyntheticEvent, useEffect, useMemo, useRef, useSta
 import {useLocation, useNavigate} from "react-router";
 import {db} from "../App";
 import {AppButton} from "../components/design-system/AppButton";
+import {BackButton} from "../components/design-system/BackButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
@@ -292,9 +292,7 @@ function MobileWorkspaceHeader({
         <Box className="device-mobile-header">
             <Box className="device-mobile-topbar">
                 <FlexPayzLogo className="device-mobile-logo"/>
-                <IconButton aria-label="Back to My Devices" onClick={() => navigate('/manage-devices')}>
-                    <ArrowBackRoundedIcon/>
-                </IconButton>
+                <BackButton aria-label="Back to My Devices" onClick={() => navigate('/manage-devices')}/>
             </Box>
             <Surface className="device-identity-card">
                 <ProductVisual/>
@@ -1106,9 +1104,7 @@ export function SettingsHeader() {
     const navigate = useNavigate();
     return (
         <Box className="editor-settings-header">
-            <IconButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}>
-                <ArrowBackRoundedIcon/>
-            </IconButton>
+            <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
             <FlexPayzLogo className="editor-settings-logo"/>
         </Box>
     );

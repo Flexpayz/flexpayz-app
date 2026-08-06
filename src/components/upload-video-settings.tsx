@@ -1,6 +1,5 @@
 import {FormEvent, useContext, useEffect, useMemo, useRef, useState} from "react";
 import {Box, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
@@ -13,7 +12,7 @@ import {useNavigate} from "react-router";
 import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {AppButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
 import {getProductIdFromURL} from "../utils";
 import {
     ParsedYouTubeUrl,
@@ -206,9 +205,7 @@ export function UploadVideoSettings() {
 
                 <main id="upload-video-editor" className="upload-video-editor-main">
                     <header className="business-editor-header">
-                        <button className="business-icon-button" type="button" aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}>
-                            <ArrowBackRoundedIcon/>
-                        </button>
+                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
                         <div>
                             <p className="business-kicker">UPLOAD VIDEO SETTINGS</p>
                             <h1><span className="desktop-heading">Publish with confidence</span><span className="mobile-heading">Feature one video beautifully</span></h1>

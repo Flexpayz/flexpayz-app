@@ -63,7 +63,8 @@
 }
 
 .devices-logo {
-    flex: 0 1 10rem;
+    width: min(10rem, 40vw);
+    flex: 0 1 min(10rem, 40vw);
 }
 
 .devices-header-actions {

@@ -1,6 +1,5 @@
 import {CSSProperties, FormEvent, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import {Box, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
@@ -12,7 +11,7 @@ import {useNavigate} from "react-router";
 import {db, storage} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {AppButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
 import {FileUploadField, UploadedFileState} from "./file-upload-field";
 import {useResumableFileUpload} from "../useResumableFileUpload";
 import {formatFileSize} from "../upload-files";
@@ -244,9 +243,7 @@ export function UploadSongsSettings({
 
                 <main id="upload-songs-editor" className="upload-files-editor-main">
                     <header className="business-editor-header">
-                        <button className="business-icon-button" type="button" aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}>
-                            <ArrowBackRoundedIcon/>
-                        </button>
+                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
                         <div>
                             <p className="business-kicker">UPLOAD SONGS SETTINGS</p>
                             <h1><span className="desktop-heading">Curate the audio experience</span><span className="mobile-heading">Build your audio collection</span></h1>

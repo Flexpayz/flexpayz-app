@@ -1,6 +1,5 @@
 import {ChangeEvent, FormEvent, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import {Box, CircularProgress, TextField} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
@@ -17,7 +16,7 @@ import {
 } from "../business-card";
 import {defaultProduct, Product} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {PageShell, FlexPayzLogo, AppButton} from "./design-system";
+import {PageShell, FlexPayzLogo, AppButton, BackButton} from "./design-system";
 import ImageUpload from "./image-upload";
 import {getProductIdFromURL} from "../utils";
 import {useSaveBusinessCardData} from "../useProductData";
@@ -277,9 +276,7 @@ export function BusinessSettings() {
 
                 <main id="business-card-editor" className="business-editor-main">
                     <header className="business-editor-header">
-                        <button className="business-icon-button" type="button" aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}>
-                            <ArrowBackRoundedIcon/>
-                        </button>
+                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
                         <div>
                             <p className="business-kicker">BUSINESS CARD EDITOR</p>
                             <h1><span className="desktop-heading">Build your Business Card</span><span className="mobile-heading">Build your profile</span></h1>

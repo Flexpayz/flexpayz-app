@@ -12,7 +12,6 @@ import {
     TextField,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -35,6 +34,7 @@ import {MainContext} from "../contexts";
 import {useContext} from "react";
 import {AppButton} from "../components/design-system/AppButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
+import {BackButton} from "../components/design-system/BackButton";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
 
@@ -480,14 +480,18 @@ function ActivationWizard({
                 <Box className="activation-container">
                     <Box component="header" className="activation-mobile-header">
                         <FlexPayzLogo className="devices-logo"/>
-                        <button type="button" className="devices-profile-button" aria-label={step === 'confirm' ? 'Back to activation code' : 'Close activation'} onClick={step === 'confirm' ? () => {
-                            setDirection('back');
-                            setStep('code');
-                            setMatchedDevice(null);
-                            setIssue(null);
-                        } : onCancel}>
-                            {step === 'confirm' ? <ArrowBackRoundedIcon aria-hidden="true"/> : <CloseRoundedIcon aria-hidden="true"/>}
-                        </button>
+                        {step === 'confirm' ? (
+                            <BackButton aria-label="Back to activation code" onClick={() => {
+                                setDirection('back');
+                                setStep('code');
+                                setMatchedDevice(null);
+                                setIssue(null);
+                            }}/>
+                        ) : (
+                            <button type="button" className="devices-profile-button" aria-label="Close activation" onClick={onCancel}>
+                                <CloseRoundedIcon aria-hidden="true"/>
+                            </button>
+                        )}
                     </Box>
                     <Surface className="activation-card">
                         <ActivationBrandPanel step={step}/>

@@ -1,7 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import type {RefObject} from "react";
 import {CircularProgress} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
@@ -26,7 +25,7 @@ import {
 } from "../adult-journal";
 import {DB_COLLECTIONS} from "./baby-journal-settings";
 import type {AdultJournalInformation, Investigation} from "./adult-journal-settings";
-import {FlexPayzLogo} from "./design-system";
+import {BackButton, FlexPayzLogo} from "./design-system";
 
 type PublicTab = "home" | "health" | "tests" | "care";
 
@@ -135,7 +134,7 @@ export function AdultJournalPreview({
                     {activeTab === "care" && <AdultJournalPublicCare journal={journal} headingRef={headingRef}/>}
                     <footer className="baby-journal-public-bar">
                         <span>Identifiers and documents remain protected after global access verification.</span>
-                        {fromDashboard && <a href={`/show-product?product_id=${productId}`}>Back to content <ArrowBackRoundedIcon fontSize="small"/></a>}
+                        {fromDashboard && <BackButton aria-label="Back to content" href={`/show-product?product_id=${productId}`}/>}
                     </footer>
                 </section>
             </main>

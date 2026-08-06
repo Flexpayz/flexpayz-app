@@ -12,7 +12,6 @@ import {
     Stack,
     TextField,
 } from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -32,6 +31,7 @@ import {useNavigate} from "react-router";
 import {toast} from "react-toastify";
 import {MainContext} from "../contexts";
 import {AppButton} from "../components/design-system/AppButton";
+import {BackButton} from "../components/design-system/BackButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
@@ -141,14 +141,18 @@ function AuthShell({
                 <Box className="auth-container">
                     <Box component="header" className="auth-mobile-header">
                         <FlexPayzLogo className="auth-logo"/>
-                        <button
-                            type="button"
-                            className="auth-round-control"
-                            aria-label={isLogin ? 'Close authentication' : 'Return to sign in'}
-                            onClick={isLogin ? () => navigate('/') : onBack}
-                        >
-                            {isLogin ? <CloseRoundedIcon fontSize="small" aria-hidden="true"/> : <ArrowBackRoundedIcon fontSize="small" aria-hidden="true"/>}
-                        </button>
+                        {isLogin ? (
+                            <button
+                                type="button"
+                                className="auth-round-control"
+                                aria-label="Close authentication"
+                                onClick={() => navigate('/')}
+                            >
+                                <CloseRoundedIcon fontSize="small" aria-hidden="true"/>
+                            </button>
+                        ) : (
+                            <BackButton aria-label="Return to sign in" onClick={onBack}/>
+                        )}
                     </Box>
 
                     <Surface className="auth-card">

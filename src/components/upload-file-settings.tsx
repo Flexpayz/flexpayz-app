@@ -1,6 +1,5 @@
 import {FormEvent, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import {Box, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField} from "@mui/material";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
@@ -12,7 +11,7 @@ import {db, storage} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {FileUploadField, UploadedFileState} from "./file-upload-field";
-import {AppButton, FlexPayzLogo, PageShell} from "./design-system";
+import {AppButton, BackButton, FlexPayzLogo, PageShell} from "./design-system";
 import {useResumableFileUpload} from "../useResumableFileUpload";
 import {
     PDF_ACCEPT,
@@ -241,9 +240,7 @@ export function UploadFileSettings({
 
                 <main id="upload-files-editor" className="upload-files-editor-main">
                     <header className="business-editor-header">
-                        <button className="business-icon-button" type="button" aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}>
-                            <ArrowBackRoundedIcon/>
-                        </button>
+                        <BackButton aria-label="Back to device workspace" onClick={() => navigate(`/manage-device?product_id=${productId}`)}/>
                         <div>
                             <p className="business-kicker">UPLOAD FILES SETTINGS</p>
                             <h1><span className="desktop-heading">Manage shared documents</span><span className="mobile-heading">Share useful documents</span></h1>

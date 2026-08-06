@@ -252,7 +252,6 @@ h2.pinline span:after {
 }
 
 .business-editor-sidebar nav a:focus-visible,
-.business-icon-button:focus-visible,
 .business-inline-actions button:focus-visible,
 .business-optional-field button:focus-visible,
 .business-upload-tile:focus-within,
@@ -334,18 +333,6 @@ h2.pinline span:after {
 
 .mobile-heading {
     display: none;
-}
-
-.business-icon-button {
-    width: var(--fp-size-interactive-min);
-    height: var(--fp-size-interactive-min);
-    display: inline-grid;
-    place-items: center;
-    border: 1px solid var(--fp-color-border);
-    border-radius: var(--fp-radius-pill);
-    background: var(--fp-color-surface-primary);
-    color: var(--fp-color-ink);
-    cursor: pointer;
 }
 
 .business-save-pill {
