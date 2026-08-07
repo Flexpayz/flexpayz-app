@@ -17,7 +17,6 @@ import {
     TextField,
     useMediaQuery,
 } from "@mui/material";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
@@ -189,8 +188,6 @@ export function ManageDevice() {
                                             productId={productId || ''}
                                             visibleSections={visibleSections}
                                             publicMode={publicMode}
-                                            onManageSections={openVisibleSections}
-                                            onSettings={() => setActiveTabAndUrl('settings', productId, navigate, setActiveTab)}
                                         />
                                     )}
                                     {activeTab === 'content' && (
@@ -329,16 +326,12 @@ function DeviceOverview({
     productId,
     visibleSections,
     publicMode,
-    onManageSections,
-    onSettings,
 }: {
     headingRef: RefObject<HTMLHeadingElement>;
     product: Product;
     productId: string;
     visibleSections: any[];
     publicMode: string;
-    onManageSections: () => void;
-    onSettings: () => void;
 }) {
     const visibleDefinitions = visibleSections.map(getSectionById).filter(Boolean) as PublicSectionDefinition[];
     const singleSection = visibleDefinitions[0];
@@ -360,9 +353,6 @@ function DeviceOverview({
                         <ProductVisual/>
                         <h2>Choose what people see.</h2>
                         <p>No public sections are visible yet. Select at least one section to continue.</p>
-                        <AppButton variant="contained" className="workspace-primary-button" onClick={onManageSections} endIcon={<ArrowForwardRoundedIcon/>}>
-                            Choose visible sections
-                        </AppButton>
                         <Surface tone="soft" className="overview-inline-note">
                             Visitors see a branded “This device is not configured” message until a section is selected.
                         </Surface>
@@ -378,10 +368,6 @@ function DeviceOverview({
                             <AppButton variant="contained" className="workspace-primary-button" onClick={() => openEditor(singleSection, productId)}>
                                 Edit {singleSection.shortTitle}
                             </AppButton>
-                            <AppButton variant="outlined" className="workspace-secondary-button" onClick={onManageSections}>Change sections</AppButton>
-                            <a href={`${previewUrl}&section=${singleSection.id}`} target="_blank" rel="noopener noreferrer" className="workspace-secondary-link">
-                                Preview {singleSection.shortTitle}
-                            </a>
                         </Stack>
                     </Box>
                 )}
@@ -393,23 +379,9 @@ function DeviceOverview({
                                 <SectionSummaryCard key={section.id} section={section} editable productId={productId}/>
                             ))}
                         </Box>
-                        <Stack direction={{xs: 'column', md: 'row'}} className="workspace-actions">
-                            <AppButton variant="contained" className="workspace-primary-button" onClick={onManageSections}>Manage sections</AppButton>
-                            <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="workspace-secondary-link">Preview dashboard</a>
-                        </Stack>
                     </Box>
                 )}
             </Surface>
-            <Box className="workspace-section-kicker">QUICK SETTINGS</Box>
-            <Box className="quick-settings-grid">
-                <QuickSetting title="Profile language" value={product.previewLanguage || Languages.ENGLISH} icon="EN" onClick={onSettings}/>
-                <QuickSetting title="Global password" value={product.publicPagePasswordActivated ? 'Protected' : 'Not protected'} icon={<LockRoundedIcon/>} onClick={onSettings}/>
-                <QuickSetting title="Shared Contacts" value="Private utility—not part of the public experience." icon="SC" href={`/manage-device/shared-contacts?product_id=${productId}`}/>
-                <Surface className="quick-routing-rule">
-                    <strong>Public routing rule</strong>
-                    <p>One section opens directly. Two or more sections open the intermediary dashboard.</p>
-                </Surface>
-            </Box>
         </Box>
     );
 }
@@ -1022,25 +994,6 @@ function SectionSummaryCard({section, editable, productId}: {section: PublicSect
             )}
         </Surface>
     );
-}
-
-function QuickSetting({title, value, icon, onClick, href}: {title: string; value: string; icon: any; onClick?: () => void; href?: string}) {
-    const content = (
-        <>
-            <SectionIcon label={icon}/>
-            <Box>
-                <strong>{title}</strong>
-                <p>{value}</p>
-            </Box>
-            <ArrowForwardRoundedIcon aria-hidden="true"/>
-        </>
-    );
-
-    if (href) {
-        return <a href={href} className="quick-setting-card">{content}</a>;
-    }
-
-    return <button type="button" className="quick-setting-card" onClick={onClick}>{content}</button>;
 }
 
 function SectionIcon({label}: {label: any}) {

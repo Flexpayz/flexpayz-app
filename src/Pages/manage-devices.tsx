@@ -249,7 +249,6 @@ export function ManageDevices() {
                                         ))}
                                     </Box>
                                 )}
-                                <SupportPanel/>
                             </>
                         )}
                     </Box>
@@ -347,7 +346,6 @@ function DeviceCard({
                 </Box>
                 <Box component="h2" className="devices-card-title">{getDeviceName(device)}</Box>
                 {contentType && <span className="devices-content-pill">{contentType}</span>}
-                <Box component="p" className="devices-updated">{formatUpdated(device.updatedAt)}</Box>
                 <AppButton type="button" variant="contained" className="devices-card-action" onClick={onManage} endIcon={<ArrowForwardRoundedIcon aria-hidden="true"/>}>
                     Manage device
                 </AppButton>
@@ -847,18 +845,6 @@ function NoResults({onClear}: {onClear: () => void}) {
     );
 }
 
-function SupportPanel() {
-    return (
-        <Surface tone="soft" className="devices-support-panel">
-            <Box>
-                <strong>Need help with a product?</strong>
-                <p>Find activation guides, setup instructions and FlexPayz support.</p>
-            </Box>
-            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">Open support →</a>
-        </Surface>
-    );
-}
-
 const activationSteps = [
     {step: 'code' as WizardStep, label: 'Enter activation code', description: 'Find it inside your packaging'},
     {step: 'confirm' as WizardStep, label: 'Confirm product', description: 'Review before activation'},
@@ -942,16 +928,6 @@ function getContentType(device: ManagedDevice) {
         default:
             return 'Business card';
     }
-}
-
-function formatUpdated(updatedAt: any) {
-    if (!updatedAt) return 'Updated today';
-    const date = typeof updatedAt?.toDate === 'function' ? updatedAt.toDate() : new Date(updatedAt);
-    if (Number.isNaN(date.getTime())) return 'Updated today';
-    const days = Math.floor((Date.now() - date.getTime()) / 86400000);
-    if (days <= 0) return 'Updated today';
-    if (days === 1) return 'Updated yesterday';
-    return `Updated ${days} days ago`;
 }
 
 function pluralizeDevices(count: number) {
