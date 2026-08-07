@@ -255,8 +255,8 @@
 .business-public-contact-list a {
     min-height: var(--fp-size-interactive-min);
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: var(--fp-space-4);
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    gap: var(--fp-space-3);
     align-items: center;
     padding: var(--fp-space-3) 0;
     border-bottom: 1px solid var(--fp-color-border);
@@ -264,7 +264,6 @@
     text-decoration: none;
 }
 
-.business-public-contact-list svg,
 .business-public-socials span,
 .business-public-document span {
     width: 2.75rem;
@@ -275,6 +274,22 @@
     background: var(--fp-color-champagne-soft);
     color: var(--fp-color-champagne-dark);
     font-weight: 600;
+}
+
+.business-public-contact-list a > svg:first-child {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.825rem;
+    border-radius: 999px;
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-champagne-dark);
+}
+
+.business-public-contact-list a > svg:last-child,
+.business-public-socials a > svg:last-child {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--fp-color-ink);
 }
 
 .business-public-socials span svg {
@@ -317,11 +332,16 @@
 
 .business-public-document {
     width: 100%;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    align-items: center;
+    justify-content: stretch;
+    gap: var(--fp-space-3);
+    margin-top: var(--fp-space-5);
     padding: var(--fp-space-3) var(--fp-space-4);
 }
 
-.business-public-document svg {
+.business-public-document > svg {
     margin-left: auto;
 }
 
@@ -329,7 +349,7 @@
     position: relative;
     display: grid;
     justify-items: start;
-    padding: var(--fp-space-5);
+    padding: var(--fp-space-4) var(--fp-space-5);
     background: var(--fp-color-ink);
     color: var(--fp-color-white);
     text-align: left;
@@ -388,6 +408,7 @@
     padding: var(--fp-space-6);
     display: grid;
     gap: var(--fp-space-5);
+    animation: business-public-modal-in var(--fp-transition-slow) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .business-public-modal-close {
@@ -396,11 +417,20 @@
     right: var(--fp-space-4);
     width: var(--fp-size-interactive-min);
     height: var(--fp-size-interactive-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     border-radius: var(--fp-radius-pill);
     background: var(--fp-color-surface-sand);
     color: var(--fp-color-ink);
     cursor: pointer;
+}
+
+.business-public-modal-close svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: block;
 }
 
 .business-public-modal-grid,
@@ -436,6 +466,26 @@
 
 .business-share-modal {
     width: min(calc(100vw - var(--fp-space-8)), 64rem);
+    min-height: min(37rem, calc(100svh - var(--fp-space-8)));
+}
+
+.business-share-thank-you {
+    min-height: 28rem;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--fp-space-4);
+    text-align: center;
+}
+
+.business-share-thank-you h2,
+.business-share-thank-you p {
+    margin: 0;
+}
+
+.business-share-thank-you p {
+    max-width: 28rem;
+    color: var(--fp-color-text-muted);
 }
 
 .business-share-form .wide,
@@ -628,7 +678,6 @@
         word-break: break-word;
     }
 
-    .business-public-contact-list svg,
     .business-public-socials span,
     .business-public-document span {
         width: 2.75rem;
@@ -662,6 +711,35 @@
         transform: none;
         border-radius: var(--fp-radius-xl) var(--fp-radius-xl) 0 0;
         padding-bottom: calc(var(--fp-space-6) + env(safe-area-inset-bottom));
+        animation-name: business-public-sheet-in;
+    }
+}
+
+@keyframes business-public-modal-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, calc(-50% + var(--fp-space-8)));
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes business-public-sheet-in {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .business-public-modal {
+        animation: none;
     }
 }
 

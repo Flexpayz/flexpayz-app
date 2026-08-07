@@ -86,13 +86,13 @@ describe("ManageDevice workspace", () => {
     it("renders the multiple-section overview and excludes Shared Contacts from public sections", async () => {
         renderWorkspace();
 
-        expect(await screen.findByRole("heading", {name: "Midnight Ring"})).toBeInTheDocument();
+        expect(await screen.findByRole("heading", {name: "Overview"})).toBeInTheDocument();
         expect(screen.getByText("Opens an intermediary dashboard")).toBeInTheDocument();
         expect(screen.getByText("Business Card")).toBeInTheDocument();
         expect(screen.getByText("Custom Link")).toBeInTheDocument();
         expect(screen.getByText("Upload Files")).toBeInTheDocument();
-        expect(screen.getByText("Private utility—not part of the public experience.")).toBeInTheDocument();
-        expect(screen.getByRole("link", {name: "Preview dashboard"})).toHaveAttribute("href", "/show-product?product_id=p1&from=manage-device");
+        expect(screen.queryByText("Private utility—not part of the public experience.")).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", {name: "Preview dashboard"})).not.toBeInTheDocument();
     });
 
     it("filters content by permissions and saves visible sections in fixed order", async () => {
@@ -108,7 +108,7 @@ describe("ManageDevice workspace", () => {
         expect(screen.getByText("Business Card")).toBeInTheDocument();
         expect(screen.queryByText("Upload Files")).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", {name: "Manage visible sections"}));
+        fireEvent.click(screen.getByRole("button", {name: "Manage"}));
         const dialog = await screen.findByRole("dialog");
         fireEvent.click(within(dialog).getByRole("checkbox", {name: /Custom Link/i}));
         fireEvent.click(within(dialog).getByRole("checkbox", {name: /Upload Video/i}));
@@ -144,9 +144,50 @@ describe("ManageDevice workspace", () => {
         await waitFor(() => expect(mockedUpdateDoc).toHaveBeenCalledWith({path: "products/p1"}, {name: "Evening Ring"}));
 
         fireEvent.click(screen.getByLabelText("Global password protection"));
-        fireEvent.click(screen.getByRole("button", {name: "Disable protection"}));
 
         await waitFor(() => expect(mockedUpdateDoc).toHaveBeenCalledWith({path: "products/p1"}, {publicPagePasswordActivated: false}));
+    });
+
+    it("saves product inactive state from the settings switch", async () => {
+        renderWorkspace("/manage-device?product_id=p1&tab=settings");
+
+        expect(await screen.findByRole("heading", {name: "Settings"})).toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText("Product active"));
+
+        await waitFor(() => expect(mockedUpdateDoc).toHaveBeenCalledWith({path: "products/p1"}, {inactive: true}));
+        expect(await screen.findByText("Product inactivated")).toBeInTheDocument();
+    });
+
+    it("saves product active state from the settings switch", async () => {
+        mockedGetDoc.mockImplementation(async (ref: any) => {
+            if (ref.path === "products/p1") return snap({...product, inactive: true}) as any;
+            if (ref.path === "permissions/p1") return snap(permissions) as any;
+            return snap(null, false) as any;
+        });
+
+        renderWorkspace("/manage-device?product_id=p1&tab=settings");
+
+        expect(await screen.findByRole("heading", {name: "Settings"})).toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText("Product active"));
+
+        await waitFor(() => expect(mockedUpdateDoc).toHaveBeenCalledWith({path: "products/p1"}, {inactive: false}));
+        expect(await screen.findByText("Product activated")).toBeInTheDocument();
+    });
+
+    it("restores product active switch when status save fails", async () => {
+        mockedUpdateDoc.mockRejectedValueOnce({code: "permission-denied"});
+
+        renderWorkspace("/manage-device?product_id=p1&tab=settings");
+
+        expect(await screen.findByRole("heading", {name: "Settings"})).toBeInTheDocument();
+        const productActiveSwitch = screen.getByLabelText("Product active");
+        expect(productActiveSwitch).toBeChecked();
+
+        fireEvent.click(productActiveSwitch);
+
+        await waitFor(() => expect(mockedUpdateDoc).toHaveBeenCalledWith({path: "products/p1"}, {inactive: true}));
+        expect(await screen.findByText("You do not have permission to manage this device.")).toBeInTheDocument();
+        expect(productActiveSwitch).toBeChecked();
     });
 
     it("requires exact reset confirmation before running reset", async () => {

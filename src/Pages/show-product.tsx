@@ -42,12 +42,18 @@ export function ShowProduct() {
                 const docSnap = await getDoc(productRef);
                 if (docSnap.exists()) {
                     console.log("it exists")
-                    if (!docSnap.data().activated) {
+                    const productData = docSnap.data() as Product;
+                    if (!productData.activated) {
                         navigate('/app?product_id=' + productId)
                     }
                     console.log("is activated")
-                    setProduct((prev: Product) => ({...prev, ...docSnap.data() as Product}))
-                    setPasswordProtected((docSnap.data() as Product).publicPagePasswordActivated)
+                    setProduct((prev: Product) => ({...prev, ...productData}))
+                    if (productData.inactive) {
+                        setPasswordProtected(false);
+                        setLoaded(true);
+                        return;
+                    }
+                    setPasswordProtected(productData.publicPagePasswordActivated)
                 } else {
                     setLoaded(true)
                     // navigate('/app')
@@ -129,6 +135,18 @@ export function ShowProduct() {
         return (
             <div style={colorsStyle} className="public-loading-page">
                 <LoadingPanel text="Loading public page"/>
+            </div>
+        );
+    }
+
+    if (product.inactive) {
+        return (
+            <div style={colorsStyle} className="public-routing-state public-inactive-state">
+                <div className="public-routing-card public-inactive-card">
+                    <FlexPayzLogo className="public-routing-logo"/>
+                    <h1>This device is inactive.</h1>
+                    <span>The owner has temporarily disabled this public page.</span>
+                </div>
             </div>
         );
     }

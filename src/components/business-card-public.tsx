@@ -2,6 +2,7 @@ import {FormEvent, useMemo, useState} from "react";
 import {Box, Checkbox, CircularProgress, Modal, TextField} from "@mui/material";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
@@ -180,16 +181,14 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                         )}
                         {normalized.cv && (
                             <button type="button" className="business-public-document" onClick={onDownloadCV}>
-                                <span>PDF</span>
+                                <span aria-hidden="true"><DescriptionRoundedIcon fontSize="small"/></span>
                                 <strong>{normalized.businessFile || `${publicName} document`}</strong>
-                                <small>{copy["Download document"]}</small>
-                                <DownloadRoundedIcon/>
+                                <DownloadRoundedIcon aria-hidden="true"/>
                             </button>
                         )}
                         <button type="button" className="business-public-exchange" onClick={() => setShareDetailsOpen(true)}>
                             <small>EXCHANGE DETAILS</small>
                             <strong>Share your details</strong>
-                            <span>Send your contact information back.</span>
                             <ArrowOutwardRoundedIcon/>
                         </button>
                     </div>
@@ -282,23 +281,32 @@ function ShareDetailsDialog({
             <Box className="business-public-modal business-share-modal">
                 <button type="button" className="business-public-modal-close" aria-label="Close share details" onClick={onClose}><CloseRoundedIcon/></button>
                 <p className="business-kicker">SHARE YOUR DETAILS</p>
-                <h2 id="business-share-details-title">Send your contact back to {firstName}</h2>
-                <form onSubmit={onSubmit} className="business-share-form">
-                    <TextField label="Full name" value={form.name} onChange={(event) => setForm({...form, name: event.target.value})} error={Boolean(errors.name)} helperText={errors.name} size="small"/>
-                    <TextField label="Email" value={form.email} onChange={(event) => setForm({...form, email: event.target.value})} error={Boolean(errors.email || errors.contact)} helperText={errors.email || errors.contact} size="small" type="email" inputMode="email"/>
-                    <TextField label="Phone" value={form.phone} onChange={(event) => setForm({...form, phone: event.target.value})} error={Boolean(errors.phone || errors.contact)} helperText={errors.phone} size="small" type="tel" inputMode="tel"/>
-                    <TextField className="wide" label="Message · optional" value={form.message} onChange={(event) => setForm({...form, message: event.target.value})} size="small" multiline minRows={3}/>
-                    <label className={`business-share-consent ${errors.consent ? "has-error" : ""}`}>
-                        <Checkbox checked={form.consent} onChange={(event) => setForm({...form, consent: event.target.checked})}/>
-                        <span>I agree to share these details with this profile owner.</span>
-                    </label>
-                    {errors.consent && <p className="business-share-error">{errors.consent}</p>}
-                    {status === "sent" && <p className="business-share-success" role="status">Details sent.</p>}
-                    {status === "failed" && <p className="business-share-error" role="alert">Could not send details. Try again.</p>}
-                    <AppButton type="submit" variant="contained" disabled={status === "sending"} endIcon={status === "sending" ? <CircularProgress size={16} color="inherit"/> : <ArrowOutwardRoundedIcon/>}>
-                        Send details
-                    </AppButton>
-                </form>
+                {status === "sent" ? (
+                    <div className="business-share-thank-you" role="status">
+                        <h2 id="business-share-details-title">Thank you</h2>
+                        <p>Your contact details were sent successfully.</p>
+                        <AppButton variant="contained" onClick={onClose}>Close</AppButton>
+                    </div>
+                ) : (
+                    <>
+                        <h2 id="business-share-details-title">Send your contact back to {firstName}</h2>
+                        <form onSubmit={onSubmit} className="business-share-form">
+                            <TextField label="Full name" value={form.name} onChange={(event) => setForm({...form, name: event.target.value})} error={Boolean(errors.name)} helperText={errors.name} size="small"/>
+                            <TextField label="Email" value={form.email} onChange={(event) => setForm({...form, email: event.target.value})} error={Boolean(errors.email || errors.contact)} helperText={errors.email || errors.contact} size="small" type="email" inputMode="email"/>
+                            <TextField label="Phone" value={form.phone} onChange={(event) => setForm({...form, phone: event.target.value})} error={Boolean(errors.phone || errors.contact)} helperText={errors.phone} size="small" type="tel" inputMode="tel"/>
+                            <TextField className="wide" label="Message · optional" value={form.message} onChange={(event) => setForm({...form, message: event.target.value})} size="small" multiline minRows={3}/>
+                            <label className={`business-share-consent ${errors.consent ? "has-error" : ""}`}>
+                                <Checkbox checked={form.consent} onChange={(event) => setForm({...form, consent: event.target.checked})}/>
+                                <span>I agree to share these details with this profile owner.</span>
+                            </label>
+                            {errors.consent && <p className="business-share-error">{errors.consent}</p>}
+                            {status === "failed" && <p className="business-share-error" role="alert">Could not send details. Try again.</p>}
+                            <AppButton type="submit" variant="contained" disabled={status === "sending"} endIcon={status === "sending" ? <CircularProgress size={16} color="inherit"/> : <ArrowOutwardRoundedIcon/>}>
+                                Send details
+                            </AppButton>
+                        </form>
+                    </>
+                )}
             </Box>
         </Modal>
     );

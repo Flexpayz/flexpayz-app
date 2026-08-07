@@ -41,7 +41,7 @@ const mockedWhere = where as jest.MockedFunction<typeof where>;
 
 const products = {
     p1: {name: "Midnight Ring", activated: true, unlockCode: "AAAAAA", preview: "business_card", category: "ring"},
-    p2: {name: "Studio Card", activated: true, unlockCode: "BBBBBB", preview: "custom_link", category: "card"},
+    p2: {name: "Studio Card", activated: true, inactive: true, unlockCode: "BBBBBB", preview: "custom_link", category: "card"},
     p3: {name: "Milo’s Tag", activated: true, unlockCode: "CCCCCC", preview: "animal_tag", category: "tag"},
     p4: {name: "New Product", activated: false, unlockCode: "A7C9F2", preview: "business_card", category: "ring"},
 };
@@ -113,6 +113,7 @@ describe("ManageDevices dashboard", () => {
         expect(await screen.findByText("Midnight Ring")).toBeInTheDocument();
         expect(screen.getByText("Studio Card")).toBeInTheDocument();
         expect(screen.getByText("Milo’s Tag")).toBeInTheDocument();
+        expect(screen.getByText("Inactive")).toBeInTheDocument();
         expect(screen.queryByRole("radio", {name: "All"})).not.toBeInTheDocument();
         expect(screen.queryByRole("radio", {name: "Business"})).not.toBeInTheDocument();
         expect(screen.queryByRole("radio", {name: "Personal"})).not.toBeInTheDocument();

@@ -129,8 +129,9 @@ code {
 }
 
 .fp-loading-panel {
-  width: min(100%, 36rem);
+  width: min(calc(100% - var(--fp-space-8)), 36rem);
   min-height: 11rem;
+  margin: var(--fp-space-4);
   display: flex;
   flex-direction: column;
   align-items: center;

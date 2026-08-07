@@ -11,6 +11,7 @@ import {useNavigate} from "react-router";
 export const defaultProduct: Product = {
     name: '',
     activated: true,
+    inactive: false,
     preview: Preview.BUSINESS_CARD,
     unlockCode: '',
     firstName: '',
@@ -65,6 +66,7 @@ export const defaultProduct: Product = {
 export interface Product {
     name: string
     activated: boolean,
+    inactive: boolean,
     preview: Preview
     visibleSections?: Preview[]
     unlockCode: string,

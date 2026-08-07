@@ -46,6 +46,7 @@ type ManagedDevice = {
     id: string;
     name?: string;
     activated?: boolean;
+    inactive?: boolean;
     unlockCode?: string;
     preview?: string;
     category?: string;
@@ -328,6 +329,7 @@ function DeviceCard({
 }) {
     const category = getDeviceCategory(device);
     const contentType = getContentType(device);
+    const status = getDeviceStatus(device);
 
     return (
         <Surface
@@ -338,7 +340,7 @@ function DeviceCard({
         >
             <Box className={`devices-card-visual devices-card-visual-${category.kind}`}>
                 <ProductVisual variant={category.kind}/>
-                <span className="devices-status"><span aria-hidden="true"/>Active</span>
+                <span className={`devices-status devices-status-${status.kind}`}><span aria-hidden="true"/>{status.label}</span>
             </Box>
             <Box className="devices-card-body">
                 <Box className="devices-card-meta-row">
@@ -352,6 +354,16 @@ function DeviceCard({
             </Box>
         </Surface>
     );
+}
+
+function getDeviceStatus(device: ManagedDevice) {
+    if (device.inactive) {
+        return {kind: 'inactive', label: 'Inactive'};
+    }
+    if (device.activated === false) {
+        return {kind: 'setup', label: 'Setup needed'};
+    }
+    return {kind: 'active', label: 'Active'};
 }
 
 function ActivationWizard({

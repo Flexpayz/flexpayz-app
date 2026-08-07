@@ -19,12 +19,13 @@ import {
 } from "@mui/material";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import {doc, getDoc, updateDoc} from "firebase/firestore";
-import {FormEvent, RefObject, SyntheticEvent, useEffect, useMemo, useRef, useState} from "react";
+import {FormEvent, KeyboardEvent, RefObject, SyntheticEvent, useEffect, useMemo, useRef, useState} from "react";
 import {useLocation, useNavigate} from "react-router";
 import {db} from "../App";
 import {AppButton} from "../components/design-system/AppButton";
@@ -51,6 +52,7 @@ import {useResetDevice} from "../useProductData";
 
 type WorkspaceTab = 'overview' | 'content' | 'settings';
 type SaveState = 'idle' | 'saving' | 'success' | 'error';
+type PublicExperienceStatus = {state: SaveState; message: string};
 
 const SUPPORT_URL = 'https://www.flexpayz.se/pages/get-started';
 const NAME_MAX_LENGTH = 64;
@@ -130,11 +132,6 @@ export function ManageDevice() {
 
     const updateProduct = (changes: Partial<Product>) => {
         setProductState((current) => ({...current, ...changes}));
-    };
-
-    const openVisibleSections = () => {
-        setOpenVisibilitySelector(true);
-        setActiveTabAndUrl('content', productId, navigate, setActiveTab);
     };
 
     if (loading) {
@@ -246,8 +243,8 @@ function DeviceSidebar({
             <Box className="device-sidebar-identity">
                 <span>{getProductType(product)}</span>
                 <strong>{product.name || 'FlexPayz product'}</strong>
-                <small className={visibleCount > 0 ? 'workspace-status-success' : 'workspace-status-warning'}>
-                    {visibleCount > 0 ? 'Active' : 'Setup required'}
+                <small className={!product.inactive && visibleCount > 0 ? 'workspace-status-success' : 'workspace-status-warning'}>
+                    {product.inactive ? 'Inactive' : visibleCount > 0 ? 'Active' : 'Setup required'}
                 </small>
             </Box>
             <Tabs
@@ -267,7 +264,7 @@ function DeviceSidebar({
             </Box>
             <Surface tone="soft" className="device-sidebar-status">
                 <strong>Public status</strong>
-                <span>{publicMode === 'empty' ? 'Not configured' : publicMode === 'single' ? 'Direct section' : 'Dashboard'}</span>
+                <span>{product.inactive ? 'Inactive' : publicMode === 'empty' ? 'Not configured' : publicMode === 'single' ? 'Direct section' : 'Dashboard'}</span>
                 <small>{visibleCount} visible {visibleCount === 1 ? 'section' : 'sections'}</small>
             </Surface>
         </Box>
@@ -297,8 +294,8 @@ function MobileWorkspaceHeader({
                 <Box>
                     <span>{getProductType(product)}</span>
                     <strong>{product.name || 'FlexPayz product'}</strong>
-                    <small className={visibleCount > 0 ? 'workspace-status-success' : 'workspace-status-warning'}>
-                        {visibleCount > 0 ? 'Active' : 'Setup needed'}
+                    <small className={!product.inactive && visibleCount > 0 ? 'workspace-status-success' : 'workspace-status-warning'}>
+                        {product.inactive ? 'Inactive' : visibleCount > 0 ? 'Active' : 'Setup needed'}
                     </small>
                 </Box>
                 <IconButton aria-label="Open device actions">
@@ -340,8 +337,8 @@ function DeviceOverview({
     return (
         <Box>
             <WorkspaceHeading
-                kicker="DEVICE OVERVIEW"
-                heading={product.name || 'FlexPayz product'}
+                kicker={product.name || 'FlexPayz product'}
+                heading="Overview"
                 description="Manage what this product opens and how the public experience behaves."
                 headingRef={headingRef}
                 action={<a href={previewUrl} target="_blank" rel="noopener noreferrer" className="workspace-primary-link">Preview experience</a>}
@@ -425,7 +422,6 @@ function DeviceContent({
                 heading="Content"
                 description="Edit sections and control what appears publicly."
                 headingRef={headingRef}
-                action={<AppButton variant="contained" className="workspace-primary-button" onClick={() => setSelectorOpen(true)}>Manage visible sections</AppButton>}
             />
             <Surface tone="soft" className="content-visibility-summary">
                 <Box>
@@ -596,7 +592,7 @@ function VisibleSectionsDialog({
                     </Alert>
                 )}
                 <Box className="visible-selector-list">
-                    {permittedSections.map((section, index) => {
+                    {permittedSections.map((section) => {
                         const selected = draft.includes(section.id);
                         return (
                             <button
@@ -610,7 +606,7 @@ function VisibleSectionsDialog({
                                 <span className="visible-selector-check" aria-hidden="true">{selected ? <CheckRoundedIcon/> : ''}</span>
                                 <span>
                                     <strong>{section.title}</strong>
-                                    <small>{index + 1} · {section.description}</small>
+                                    <small>{section.description}</small>
                                 </span>
                             </button>
                         );
@@ -650,12 +646,13 @@ function DeviceSettings({
     const [nameDraft, setNameDraft] = useState(product.name || '');
     const [nameState, setNameState] = useState<SaveState>('idle');
     const [nameError, setNameError] = useState('');
-    const [languageState, setLanguageState] = useState<SaveState>('idle');
+    const [activationState, setActivationState] = useState<SaveState>('idle');
     const [passwordEnabled, setPasswordEnabled] = useState(Boolean(product.publicPagePasswordActivated));
     const [passwordDraft, setPasswordDraft] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [passwordState, setPasswordState] = useState<SaveState>('idle');
     const [passwordError, setPasswordError] = useState('');
+    const [publicExperienceStatus, setPublicExperienceStatus] = useState<PublicExperienceStatus>({state: 'idle', message: ''});
     const [resetOpen, setResetOpen] = useState(false);
     const resetButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -663,6 +660,12 @@ function DeviceSettings({
         setNameDraft(product.name || '');
         setPasswordEnabled(Boolean(product.publicPagePasswordActivated));
     }, [product.name, product.publicPagePasswordActivated]);
+
+    useEffect(() => {
+        if (publicExperienceStatus.state !== 'success') return;
+        const timeoutId = window.setTimeout(() => setPublicExperienceStatus({state: 'idle', message: ''}), 1800);
+        return () => window.clearTimeout(timeoutId);
+    }, [publicExperienceStatus.state, publicExperienceStatus.message]);
 
     const saveName = async (event: FormEvent) => {
         event.preventDefault();
@@ -690,40 +693,87 @@ function DeviceSettings({
     };
 
     const saveLanguage = async (language: Languages) => {
-        setLanguageState('saving');
+        setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
         try {
             await updateDoc(doc(db, 'products', productId), {previewLanguage: language});
             updateProduct({previewLanguage: language});
-            setLanguageState('success');
+            setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
             onStatus('Profile language updated');
         } catch {
-            setLanguageState('error');
+            setPublicExperienceStatus({state: 'error', message: 'Profile language could not be saved'});
         }
     };
 
-    const savePassword = async (event: FormEvent) => {
-        event.preventDefault();
-        if (passwordEnabled && !passwordDraft.trim() && !product.publicPagePasswordActivated) {
+    const saveProductActive = async (nextActive: boolean) => {
+        const previousInactive = Boolean(product.inactive);
+        const nextInactive = !nextActive;
+        updateProduct({inactive: nextInactive});
+        setActivationState('saving');
+        setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
+        try {
+            await updateDoc(doc(db, 'products', productId), {inactive: nextInactive});
+            setActivationState('success');
+            setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
+            onStatus(nextActive ? 'Product activated' : 'Product inactivated');
+        } catch (error: any) {
+            updateProduct({inactive: previousInactive});
+            setActivationState('error');
+            setPublicExperienceStatus({state: 'error', message: getWorkspaceError(error?.code)});
+        }
+    };
+
+    const savePasswordActivation = async (nextEnabled: boolean) => {
+        setPasswordEnabled(nextEnabled);
+        if (nextEnabled && !product.publicPagePassword) {
             setPasswordError('Enter a public password before enabling protection.');
             return;
         }
 
         setPasswordState('saving');
         setPasswordError('');
+        setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
         try {
-            const payload = passwordEnabled
-                ? passwordDraft.trim()
-                    ? {publicPagePasswordActivated: true, publicPagePassword: passwordDraft}
-                    : {publicPagePasswordActivated: true}
-                : {publicPagePasswordActivated: false};
+            const payload = {publicPagePasswordActivated: nextEnabled};
             await updateDoc(doc(db, 'products', productId), payload);
             updateProduct(payload);
-            setPasswordDraft('');
             setPasswordState('success');
-            onStatus(passwordEnabled ? 'Global password protection updated' : 'Global password protection disabled');
+            setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
+            onStatus(nextEnabled ? 'Global password protection enabled' : 'Global password protection disabled');
         } catch (error: any) {
             setPasswordError(getWorkspaceError(error?.code));
             setPasswordState('error');
+            setPasswordEnabled(Boolean(product.publicPagePasswordActivated));
+            setPublicExperienceStatus({state: 'error', message: 'Password protection could not be saved'});
+        }
+    };
+
+    const savePasswordValue = async () => {
+        const nextPassword = passwordDraft.trim();
+        if (!nextPassword) return;
+
+        setPasswordState('saving');
+        setPasswordError('');
+        setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
+        try {
+            const payload = {publicPagePasswordActivated: true, publicPagePassword: nextPassword};
+            await updateDoc(doc(db, 'products', productId), payload);
+            updateProduct(payload);
+            setPasswordDraft('');
+            setPasswordEnabled(true);
+            setPasswordState('success');
+            setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
+            onStatus('Global password protection enabled');
+        } catch (error: any) {
+            setPasswordError(getWorkspaceError(error?.code));
+            setPasswordState('error');
+            setPublicExperienceStatus({state: 'error', message: 'Public password could not be saved'});
+        }
+    };
+
+    const savePasswordValueOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            savePasswordValue();
         }
     };
 
@@ -772,8 +822,21 @@ function DeviceSettings({
                             ))}
                         </Select>
                     </Box>
-                    {languageState === 'error' && <Alert severity="error">Profile language could not be saved.</Alert>}
-                    <form onSubmit={savePassword} className="settings-form password-settings-form">
+                    <Box className="settings-row settings-switch-row">
+                        <SectionIcon label={<CheckRoundedIcon/>}/>
+                        <Box>
+                            <strong>Product active</strong>
+                            <p>{product.inactive ? 'Public pages are temporarily disabled.' : 'Public pages load normally.'}</p>
+                        </Box>
+                        <Switch
+                            className="global-password-switch"
+                            checked={!product.inactive}
+                            onChange={(event) => saveProductActive(event.target.checked)}
+                            disabled={activationState === 'saving'}
+                            inputProps={{'aria-label': 'Product active'}}
+                        />
+                    </Box>
+                    <Box className="settings-form password-settings-form">
                         <Box className="settings-row">
                             <SectionIcon label={<LockRoundedIcon/>}/>
                             <Box>
@@ -783,7 +846,8 @@ function DeviceSettings({
                             <Switch
                                 className="global-password-switch"
                                 checked={passwordEnabled}
-                                onChange={(event) => setPasswordEnabled(event.target.checked)}
+                                onChange={(event) => savePasswordActivation(event.target.checked)}
+                                disabled={passwordState === 'saving'}
                                 inputProps={{'aria-label': 'Global password protection'}}
                             />
                         </Box>
@@ -793,8 +857,10 @@ function DeviceSettings({
                                 type={showPassword ? 'text' : 'password'}
                                 value={passwordDraft}
                                 onChange={(event) => setPasswordDraft(event.target.value)}
+                                onBlur={savePasswordValue}
+                                onKeyDown={savePasswordValueOnEnter}
                                 error={Boolean(passwordError)}
-                                helperText={passwordError || (product.publicPagePasswordActivated ? 'Leave blank to keep the current password.' : 'Enter a password to enable protection.')}
+                                helperText={passwordError || (product.publicPagePassword ? 'Leave blank to keep the current password.' : 'Enter a password to enable protection. It saves when you leave the field.')}
                                 InputProps={{
                                     endAdornment: (
                                         <IconButton
@@ -808,13 +874,15 @@ function DeviceSettings({
                                 }}
                             />
                         )}
-                        <AppButton type="submit" variant="contained" className="workspace-primary-button" disabled={passwordState === 'saving'}>
-                            {passwordState === 'saving' ? <CircularProgress size={18} color="inherit"/> : passwordEnabled ? 'Save password' : 'Disable protection'}
-                        </AppButton>
-                        <span className={product.publicPagePasswordActivated ? 'workspace-status-success' : 'workspace-status-neutral'}>
-                            {product.publicPagePasswordActivated ? 'Protected' : 'Not protected'}
-                        </span>
-                    </form>
+                    </Box>
+                    <span
+                        className={`public-experience-save-pill ${publicExperienceStatus.state !== 'idle' ? 'is-visible' : ''} ${publicExperienceStatus.state}`}
+                        aria-live="polite"
+                    >
+                        {publicExperienceStatus.state === 'saving' && <CircularProgress size={14} color="inherit"/>}
+                        {publicExperienceStatus.state === 'success' && <CheckRoundedIcon fontSize="small"/>}
+                        {publicExperienceStatus.message || 'Saving data'}
+                    </span>
                 </Surface>
                 <Surface tone="soft" className="settings-card">
                     <Box className="workspace-section-kicker">SUPPORT</Box>
@@ -982,17 +1050,21 @@ function PublicCardHeader({title, meta}: {title: string; meta: string}) {
 }
 
 function SectionSummaryCard({section, editable, productId}: {section: PublicSectionDefinition; editable?: boolean; productId: string}) {
+    const editSection = () => openEditor(section, productId);
+
     return (
-        <Surface tone="soft" className="section-summary-card">
+        <button
+            type="button"
+            className="section-summary-card"
+            onClick={editable ? editSection : undefined}
+            aria-label={`Edit ${section.title}`}
+        >
             <SectionIcon label={section.iconLabel}/>
             <strong>{section.title}</strong>
-            <p>{section.description}</p>
-            {editable && (
-                <button type="button" onClick={() => openEditor(section, productId)} className="workspace-text-button">
-                    Edit section
-                </button>
-            )}
-        </Surface>
+            <span className="section-summary-edit-icon" aria-hidden="true">
+                <EditRoundedIcon fontSize="small"/>
+            </span>
+        </button>
     );
 }
 
@@ -1061,11 +1133,6 @@ function getInitialTab(): WorkspaceTab {
     const tab = new URLSearchParams(window.location.search).get('tab');
     if (tab === 'content' || tab === 'settings') return tab;
     return 'overview';
-}
-
-function setActiveTabAndUrl(tab: WorkspaceTab, productId: string | null, navigate: ReturnType<typeof useNavigate>, setActiveTab: (tab: WorkspaceTab) => void) {
-    setActiveTab(tab);
-    navigate(`/manage-device?product_id=${productId}&tab=${tab}`);
 }
 
 function openEditor(section: PublicSectionDefinition, productId: string) {

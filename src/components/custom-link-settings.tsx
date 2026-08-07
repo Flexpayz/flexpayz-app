@@ -4,13 +4,12 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {useNavigate} from "react-router";
 import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
-import {buildCustomLinkUpdate, getCustomLinkDisplayLabel, parseCustomLink} from "../custom-link";
+import {buildCustomLinkUpdate, parseCustomLink} from "../custom-link";
 import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
 import {getProductIdFromURL} from "../utils";
 import "../Pages/manager.css";
@@ -219,21 +218,6 @@ export function CustomLinkSettings() {
                         </section>
 
                         <div className="custom-link-grid">
-                            <section className="custom-link-destination-card">
-                                <p className="business-kicker">DETECTED DESTINATION</p>
-                                <div>
-                                    <span className="custom-link-round-icon" aria-hidden="true">↗</span>
-                                    <div>
-                                        <h2>{result.isValid ? getCustomLinkDisplayLabel(result) : "No valid destination"}</h2>
-                                        {result.displayHostname && <strong>{result.displayHostname}</strong>}
-                                        {result.path && <span>{result.path}</span>}
-                                    </div>
-                                    {result.isValid && <em>{result.isSecure ? "HTTPS SECURE" : "HTTP · NOT SECURE"}</em>}
-                                </div>
-                                {!result.isSecure && result.isValid && <p className="custom-link-warning"><WarningAmberRoundedIcon fontSize="small"/> This legacy HTTP destination remains usable, but HTTPS is recommended.</p>}
-                                {result.protocolAdded && result.isValid && <p className="custom-link-normalized">Helpful, not technical · Saved as {result.normalizedUrl}</p>}
-                            </section>
-
                             <section className="custom-link-checklist">
                                 <p className="business-kicker">PUBLISH CHECKLIST</p>
                                 <ChecklistItem complete={result.isSecure} title="Secure protocol" text={result.isSecure ? "HTTPS detected" : result.isValid ? "Legacy HTTP destination" : "HTTPS is added automatically when possible"}/>
@@ -243,19 +227,8 @@ export function CustomLinkSettings() {
                             </section>
                         </div>
 
-                        <section className="custom-link-section custom-link-behaviour">
-                            <p className="business-kicker">02 · BEHAVIOUR</p>
-                            <h2>Simple and immediate</h2>
-                            <div>
-                                <span className="custom-link-round-icon" aria-hidden="true">↗</span>
-                                <strong>Open immediately</strong>
-                                <em>FIXED</em>
-                            </div>
-                            <p>Visitors are sent to the selected external destination after a brief FlexPayz handoff.</p>
-                        </section>
-
                         <section className="custom-link-section custom-link-readiness">
-                            <p className="business-kicker">03 · READINESS</p>
+                            <p className="business-kicker">02 · READINESS</p>
                             <h2>{result.isValid ? "URL ready" : "Fix it before saving"}</h2>
                             <p>{result.isValid ? "Destination is valid and ready to publish" : "Enter a domain such as ateliernorth.co."}</p>
                             {liveResult.isValid && !result.isValid && <small>Current live URL remains unchanged: {liveResult.displayHostname}</small>}

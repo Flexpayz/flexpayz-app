@@ -72,8 +72,6 @@ export function SharedContacts() {
     const {productState} = useProductInformation()
     const contacts = normalizeSharedContacts(productState?.sharedContacts)
     const contactsExist = contacts.length > 0
-    const contactsWithEmail = contacts.filter((contact) => contact.email).length
-    const contactsWithPhone = contacts.filter((contact) => contact.phone).length
     const latestContactDate = getLatestSharedContactDate(contacts)
 
 
@@ -93,11 +91,6 @@ export function SharedContacts() {
                     <span>Total</span>
                     <strong>{contacts.length}</strong>
                     <small>{contacts.length === 1 ? "contact" : "contacts"}</small>
-                </div>
-                <div className="shared-contact-summary-card">
-                    <span>Reachable</span>
-                    <strong>{contactsWithEmail + contactsWithPhone}</strong>
-                    <small>email or phone entries</small>
                 </div>
                 <div className="shared-contact-summary-card">
                     <span>Latest</span>

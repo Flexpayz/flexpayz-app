@@ -1757,24 +1757,66 @@ h2.pinline span:after {
 
 .overview-section-grid {
     display: grid;
-    gap: var(--fp-space-4);
+    gap: var(--fp-space-3);
 }
 
 .section-summary-card {
+    width: 100%;
+    min-height: 4rem;
     display: grid;
-    justify-items: center;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
     gap: var(--fp-space-3);
-    min-height: 13rem;
-    padding: var(--fp-space-5) !important;
+    padding: var(--fp-space-2) var(--fp-space-3);
+    border: 1px solid var(--fp-color-border);
+    border-radius: 999px;
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    box-shadow: var(--fp-shadow-raised);
     text-align: center;
+    cursor: pointer;
     animation: workspace-card-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition:
+        border-color var(--fp-transition-standard),
+        background-color var(--fp-transition-standard),
+        box-shadow var(--fp-transition-standard),
+        transform var(--fp-transition-fast);
 }
 
 .section-summary-card strong {
-    font-size: 1.1rem;
+    min-width: 0;
+    font-size: var(--fp-font-size-body);
+    font-weight: 600;
+    line-height: var(--fp-line-height-control);
 }
 
-.section-summary-card small,
+.section-summary-card .workspace-section-icon,
+.section-summary-edit-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: 0 0 2.75rem;
+}
+
+.section-summary-edit-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-champagne-dark);
+}
+
+.section-summary-card:hover {
+    border-color: var(--fp-color-champagne);
+    background: color-mix(in srgb, var(--fp-color-surface-primary) 86%, var(--fp-color-champagne-soft));
+    box-shadow: var(--fp-shadow-floating);
+    transform: translateY(-1px);
+}
+
+.section-summary-card:active {
+    transform: translateY(0);
+}
+
 .content-summary-panel li {
     color: var(--fp-color-text-muted);
 }
@@ -1885,6 +1927,11 @@ h2.pinline span:after {
     gap: var(--fp-space-4);
 }
 
+.settings-switch-row {
+    align-items: center;
+    padding-block: var(--fp-space-4);
+}
+
 .settings-row > .MuiBox-root {
     flex: 1;
 }
@@ -1913,6 +1960,42 @@ h2.pinline span:after {
 
 .global-password-switch .MuiSwitch-track {
     border-radius: 999px;
+}
+
+.public-experience-save-pill {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: var(--fp-space-2);
+    min-height: 1.75rem;
+    margin-top: var(--fp-space-3);
+    padding-inline: var(--fp-space-3);
+    border-radius: 999px;
+    color: var(--fp-color-text-muted);
+    background: var(--fp-color-surface-sand);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(-0.35rem);
+    pointer-events: none;
+    transition: opacity var(--fp-transition-fast), transform var(--fp-transition-fast);
+}
+
+.public-experience-save-pill.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.public-experience-save-pill.success {
+    color: var(--fp-color-success);
+    background: var(--fp-color-success-soft);
+}
+
+.public-experience-save-pill.error {
+    color: var(--fp-color-danger);
+    background: color-mix(in srgb, var(--fp-color-danger) 10%, var(--fp-color-surface-primary));
 }
 
 .settings-support-link {
@@ -2056,6 +2139,20 @@ h2.pinline span:after {
 .dialog-routing-summary {
     padding: var(--fp-space-4) !important;
     margin-bottom: var(--fp-space-4);
+}
+
+.visible-sections-dialog .MuiDialog-paperFullScreen {
+    width: calc(100% - var(--fp-space-4));
+    height: calc(100% - var(--fp-space-4));
+    max-height: calc(100% - var(--fp-space-4));
+    margin: var(--fp-space-2);
+    border-radius: var(--fp-radius-xl);
+}
+
+.visible-sections-dialog .MuiDialogActions-root {
+    justify-content: center;
+    gap: var(--fp-space-3);
+    padding-inline: var(--fp-space-4);
 }
 
 .visible-selector-list {
@@ -2203,7 +2300,7 @@ h2.pinline span:after {
 
 .shared-contacts-summary {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--fp-space-3);
 }
 
@@ -2576,14 +2673,6 @@ h2.pinline span:after {
         padding: var(--fp-space-4) !important;
     }
 
-    .overview-section-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .overview-section-grid-single {
-        grid-template-columns: minmax(0, 22rem);
-    }
-
     .quick-settings-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2620,6 +2709,10 @@ h2.pinline span:after {
     .content-section-row,
     .settings-row {
         align-items: flex-start;
+    }
+
+    .settings-switch-row {
+        align-items: center;
     }
 
     .content-section-row {
@@ -2669,6 +2762,7 @@ h2.pinline span:after {
 
 .workspace-primary-link:focus-visible,
 .workspace-secondary-link:focus-visible,
+.section-summary-card:focus-visible,
 .quick-setting-card:focus-visible,
 .workspace-text-button:focus-visible,
 .visible-selector-row:focus-visible,
