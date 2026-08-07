@@ -1004,12 +1004,39 @@
 
 
 .password-page{
-    background-color: #4D6161;
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: var(--fp-space-5);
+    background:
+        radial-gradient(circle at 80% 12%, color-mix(in srgb, var(--fp-color-champagne) 18%, transparent), transparent 20rem),
+        radial-gradient(circle at 18% 88%, color-mix(in srgb, var(--fp-color-champagne-soft) 78%, transparent), transparent 18rem),
+        var(--fp-color-canvas);
+    color: var(--fp-color-ink);
+}
+
+.password-card {
+    display: grid;
+    gap: var(--fp-space-4);
+    text-align: center;
+}
+
+.password-card .public-routing-logo {
+    justify-self: center;
+}
+
+.password-card h1 {
+    margin-bottom: 0;
+}
+
+.password-card-input {
+    margin-top: var(--fp-space-3) !important;
+}
+
+.password-card-input .MuiOutlinedInput-root {
+    min-height: var(--fp-size-interactive-min);
+    border-radius: var(--fp-radius-md);
+    background: var(--fp-color-surface-primary);
 }
 
 .modal-inputs {
@@ -1080,7 +1107,9 @@
 
 .public-routing-section {
     display: grid;
-    gap: var(--fp-space-1);
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--fp-space-4);
     min-height: var(--fp-size-interactive-min);
     padding: var(--fp-space-4);
     border: 1px solid var(--fp-color-border);
@@ -1104,6 +1133,27 @@
     outline: var(--fp-focus-outline);
     outline-offset: var(--fp-focus-offset);
     box-shadow: var(--fp-focus-ring);
+}
+
+.public-routing-section > span:last-child {
+    display: grid;
+    gap: var(--fp-space-1);
+    min-width: 0;
+}
+
+.public-routing-section-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--fp-color-white) !important;
+    background: var(--fp-color-ink);
+}
+
+.public-routing-section-icon svg {
+    font-size: 1.15rem;
 }
 
 .custom-link-public-page {

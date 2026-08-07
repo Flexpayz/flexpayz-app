@@ -18,10 +18,19 @@ import {
     useMediaQuery,
 } from "@mui/material";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import ChildCareRoundedIcon from "@mui/icons-material/ChildCareRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import ContactPageRoundedIcon from "@mui/icons-material/ContactPageRounded";
+import ContactsRoundedIcon from "@mui/icons-material/ContactsRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
+import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import PetsRoundedIcon from "@mui/icons-material/PetsRounded";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import {doc, getDoc, updateDoc} from "firebase/firestore";
@@ -38,6 +47,7 @@ import {PermissionContext, Permissions, defaultPermissions} from "../components/
 import {ManageProductContext} from "../contexts";
 import {defaultProduct, Product, useEditState} from "../control-state";
 import {Languages} from "../languages";
+import {Preview} from "../preview";
 import {
     PublicSectionDefinition,
     buildVisibleSectionsWrite,
@@ -436,7 +446,7 @@ function DeviceContent({
                     <SectionGroup title="Personal" sections={personalSections} visibleSections={visibleSections} productId={productId}/>
                     <Box className="workspace-section-kicker">CONTACTS</Box>
                     <Surface className="content-section-row content-section-private">
-                        <SectionIcon label="SC"/>
+                        <SectionIcon label={<ContactsRoundedIcon fontSize="small"/>}/>
                         <Box>
                             <strong>Shared Contacts</strong>
                             <p>Private utility · never shown publicly</p>
@@ -481,7 +491,7 @@ function SectionGroup({
             <Box className="content-section-list">
                 {sections.map((section) => (
                     <Surface key={section.id} className="content-section-row">
-                        <SectionIcon label={section.iconLabel}/>
+                        <SectionIcon label={getSectionIcon(section)}/>
                         <Box>
                             <strong>{section.title}</strong>
                             <p>{section.description}</p>
@@ -1059,7 +1069,7 @@ function SectionSummaryCard({section, editable, productId}: {section: PublicSect
             onClick={editable ? editSection : undefined}
             aria-label={`Edit ${section.title}`}
         >
-            <SectionIcon label={section.iconLabel}/>
+            <SectionIcon label={getSectionIcon(section)}/>
             <strong>{section.title}</strong>
             <span className="section-summary-edit-icon" aria-hidden="true">
                 <EditRoundedIcon fontSize="small"/>
@@ -1070,6 +1080,29 @@ function SectionSummaryCard({section, editable, productId}: {section: PublicSect
 
 function SectionIcon({label}: {label: any}) {
     return <span className="workspace-section-icon">{label}</span>;
+}
+
+function getSectionIcon(section: PublicSectionDefinition) {
+    switch (section.id) {
+        case Preview.BUSINESS_CARD:
+            return <ContactPageRoundedIcon fontSize="small"/>;
+        case Preview.CUSTOM_LINK:
+            return <OpenInNewRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_FILE:
+            return <DescriptionRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_VIDEO:
+            return <PlayArrowRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_SONGS:
+            return <MusicNoteRoundedIcon fontSize="small"/>;
+        case Preview.BABY_JOURNAL:
+            return <ChildCareRoundedIcon fontSize="small"/>;
+        case Preview.ADULT_JOURNAL:
+            return <HealthAndSafetyRoundedIcon fontSize="small"/>;
+        case Preview.ANIMAL_TAG:
+            return <PetsRoundedIcon fontSize="small"/>;
+        default:
+            return section.iconLabel;
+    }
 }
 
 function ProductVisual() {

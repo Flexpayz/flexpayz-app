@@ -1,6 +1,14 @@
 import {useNavigate} from "react-router";
 import {CSSProperties, useContext, useEffect, useState} from "react";
 import {doc, getDoc} from "firebase/firestore";
+import ChildCareRoundedIcon from "@mui/icons-material/ChildCareRounded";
+import ContactPageRoundedIcon from "@mui/icons-material/ContactPageRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
+import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import PetsRoundedIcon from "@mui/icons-material/PetsRounded";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import {MainContext} from "../contexts";
 import {getDownloadURL, ref} from "firebase/storage";
 import {storage} from "../App";
@@ -151,16 +159,37 @@ export function ShowProduct() {
         );
     }
 
+    if (passwordProtected) {
+        return (
+            <div style={colorsStyle} className="password-page">
+                <div className="public-routing-card password-card">
+                    <FlexPayzLogo className="public-routing-logo"/>
+                    <p>PROTECTED PAGE</p>
+                    <h1>Enter password</h1>
+                    <span>This FlexPayz page is protected by the owner.</span>
+                    <TextField
+                        label="Password"
+                        type="password"
+                        className="password-card-input"
+                        value={password}
+                        onChange={(e) => {
+                            setPassword(e.target.value)
+                            if (e.target.value === product.publicPagePassword) {
+                                setPasswordProtected(false)
+                            }
+                        }}
+                        variant="outlined"
+                        size="small"
+                        autoComplete="current-password"
+                        autoFocus
+                        fullWidth
+                    />
+                </div>
+            </div>
+        );
+    }
+
     return (<div style={colorsStyle}>
-        {passwordProtected && <div className={'password-page'}>
-            <TextField label={'Unlock page'} type={'password'} className={'form-manager-input'} value={password}
-                       onChange={(e) => {
-                           setPassword(e.target.value)
-                           if (e.target.value === product.publicPagePassword) {
-                               setPasswordProtected(false)
-                           }
-                       }} variant={"outlined"} size={"small"}/>
-        </div>}
         {loaded && !passwordProtected && publicRoutingMode === 'empty' && <PublicNotConfigured/>}
         {loaded && !passwordProtected && showSectionDashboard && (
             <PublicSectionDashboard
@@ -230,12 +259,36 @@ function PublicSectionDashboard({product, sections, productId, fromManageDevice}
                             href={`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}&from=dashboard`}
                             className="public-routing-section"
                         >
-                            <strong>{section.title}</strong>
-                            <small>{section.description}</small>
+                            <span className="public-routing-section-icon" aria-hidden="true">{getPublicSectionIcon(section.id)}</span>
+                            <span>
+                                <strong>{section.title}</strong>
+                                <small>{section.description}</small>
+                            </span>
                         </a>
                     ))}
                 </div>
             </div>
         </div>
     );
+}
+
+function getPublicSectionIcon(sectionId: Preview) {
+    switch (sectionId) {
+        case Preview.BUSINESS_CARD:
+            return <ContactPageRoundedIcon fontSize="small"/>;
+        case Preview.CUSTOM_LINK:
+            return <OpenInNewRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_FILE:
+            return <DescriptionRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_VIDEO:
+            return <PlayArrowRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_SONGS:
+            return <MusicNoteRoundedIcon fontSize="small"/>;
+        case Preview.BABY_JOURNAL:
+            return <ChildCareRoundedIcon fontSize="small"/>;
+        case Preview.ADULT_JOURNAL:
+            return <HealthAndSafetyRoundedIcon fontSize="small"/>;
+        case Preview.ANIMAL_TAG:
+            return <PetsRoundedIcon fontSize="small"/>;
+    }
 }
