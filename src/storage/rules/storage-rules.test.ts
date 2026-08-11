@@ -74,6 +74,7 @@ describeRules("Cloud Storage security rules", () => {
 
         await assertSucceeds(storage.ref("images/public-product").getMetadata());
         await assertSucceeds(storage.ref("images/logo-public-product").getMetadata());
+        await assertSucceeds(storage.ref("images/legacy-public-product").getMetadata());
         await assertFails(storage.ref("images/inactive-product").getMetadata());
     });
 
@@ -122,6 +123,7 @@ async function seedBaseData() {
             setDoc(doc(db, "products", "owned-product"), product({activated: true, inactive: false})),
             setDoc(doc(db, "products", "inactive-owned-product"), product({activated: true, inactive: true})),
             setDoc(doc(db, "products", "public-product"), product({activated: true, inactive: false})),
+            setDoc(doc(db, "products", "legacy-public-product"), productWithoutInactive()),
             setDoc(doc(db, "products", "inactive-product"), product({activated: true, inactive: true})),
             setDoc(doc(db, "products", "admin-product"), product({activated: false, inactive: false})),
         ]);
@@ -134,6 +136,7 @@ async function seedStorageObjects() {
         await Promise.all([
             putObject(storage, "images/public-product", "image/png"),
             putObject(storage, "images/logo-public-product", "image/png"),
+            putObject(storage, "images/legacy-public-product", "image/png"),
             putObject(storage, "images/inactive-product", "image/png"),
             putObject(storage, "animal_tag/owned-product/pet.png", "image/png"),
             putObject(storage, "uploads/public-product/legacy.pdf", "application/pdf"),
@@ -179,5 +182,16 @@ function product(overrides: Record<string, unknown> = {}) {
         sharedContacts: [],
         previewLanguage: "english",
         ...overrides,
+    };
+}
+
+function productWithoutInactive() {
+    return {
+        name: "Legacy FlexPayz product",
+        activated: true,
+        preview: "business_card",
+        unlockCode: "LEGACY",
+        sharedContacts: [],
+        previewLanguage: "english",
     };
 }

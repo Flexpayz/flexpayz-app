@@ -32,7 +32,7 @@ service firebase.storage {
     function isPublicActiveProduct(productId) {
       return productExists(productId)
         && productData(productId).activated == true
-        && productData(productId).inactive != true;
+        && (!('inactive' in productData(productId)) || productData(productId).inactive != true);
     }
 
     function canReadProductAsset(productId) {
