@@ -28,6 +28,9 @@
 - Legacy reads should remain loose and normalize sparse, optional or nullable Firestore data into current UI models. Canonical writes must keep existing collection names and field names.
 - Keep Cloud Firestore Security Rules in `firestore.rules` aligned with repository behavior and collection schemas.
 - When rules change, add or update emulator tests in `src/firestore/rules/*` and run `npm run test:firestore:rules` when Java/Firebase Emulator are available.
+- Keep Firebase Cloud Storage Security Rules in `storage.rules` aligned with current upload paths, ownership checks and public-active product reads.
+- When Storage upload paths, content types or size limits change, update `storage.rules`, `src/storage/rules/*` tests and the deploy script if needed.
+- Public-password-gated media is not truly private while the browser reads Storage objects directly; do not represent Storage rules as solving that without a backend-gated read design.
 - When modifying Firestore-backed behavior, check `docs/firestore-schema-audit.md` and update it if collections, fields, ID semantics, readers, writers, legacy formats, risks or migration order change.
 - Product, permission, user activation, serial upload/migration/export, journal save, animal-tag save and mail enqueue flows must use typed repositories.
 - After Firestore-related work, run relevant schema/repository tests plus the build, and search for new raw Firestore access outside `src/firestore/repositories`.

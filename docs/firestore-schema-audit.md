@@ -19,6 +19,8 @@ No subcollections, collection-group queries, or transactions were found. `writeB
 
 Cloud Firestore Security Rules are now managed in `firestore.rules`, linked from `firebase.json`, and verified by `src/firestore/rules/firestore-rules.test.ts` through `npm run test:firestore:rules`. Rules deploy separately with `npm run deploy:firestore:rules`.
 
+Cloud Storage Security Rules are now managed in `storage.rules`, linked from `firebase.json`, and verified by `src/storage/rules/storage-rules.test.ts` through `npm run test:storage:rules`. Rules deploy separately with `npm run deploy:storage:rules`.
+
 ## Confirmed Mismatches
 
 - Collection names are centralized in an enum inside `baby-journal-settings.tsx`, but many call sites still use raw strings such as `"products"`, `"permissions"`, and `"users"`.
@@ -83,4 +85,6 @@ The main regression risk is accidentally making sparse legacy documents invalid.
 - Owner access is derived from `users/{uid}.products` containing the product ID.
 - Public reads are intentionally allowed for activated products where `inactive != true` so `/show-product` continues to work without authentication.
 - Public mail enqueue requires `productId` and validates that the target animal tag is active, lost, and has a matching contact email.
-- Stronger privacy requires a backend boundary for public password-gated reads, activation, serial redirects, and mail enqueue. Storage rules are still a separate follow-up because Firestore rules do not protect Storage files.
+- Cloud Storage reads are aligned to the same public-active product state and owner/admin checks for `images`, `documents`, `audio`, `baby_journal`, `adult_journal`, `animal_tag`, and legacy `uploads` reads.
+- Cloud Storage writes are limited to known current paths and bounded content types/sizes. Legacy `uploads` writes are denied while legacy reads remain compatible.
+- Stronger privacy requires a backend boundary for public password-gated reads, public media reads, activation, serial redirects, and mail enqueue. Firestore and Storage rules cannot make browser-fetched password-gated content truly private.

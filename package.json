@@ -60,7 +60,9 @@
     "eject": "react-scripts eject",
     "deploy": "npm run build && firebase deploy",
     "deploy:firestore:rules": "firebase deploy --only firestore:rules",
-    "test:firestore:rules": "firebase emulators:exec --only firestore \"npm test -- --watchAll=false src/firestore/rules/firestore-rules.test.ts\""
+    "deploy:storage:rules": "firebase deploy --only storage",
+    "test:firestore:rules": "firebase emulators:exec --only firestore \"npm test -- --watchAll=false src/firestore/rules/firestore-rules.test.ts\"",
+    "test:storage:rules": "firebase emulators:exec --only firestore,storage \"npm test -- --watchAll=false src/storage/rules/storage-rules.test.ts\""
   },
   "eslintConfig": {
     "extends": [
