@@ -98,7 +98,6 @@ export function UploadSongsPublicPage({product, productId, fromDashboard = false
 
             <footer className="upload-files-public-footer">
                 <span>{pageShareMessage || t("public.footer.secure")}</span>
-                <strong>{t("public.footer.powered")}</strong>
             </footer>
         </section>
     );
@@ -190,7 +189,6 @@ function UploadSongsPlayer({product, tracks, t}: {product: Product; tracks: Uplo
                             </li>
                         ))}
                     </ol>
-                    <p className="upload-songs-public-note">{t("public.footer.secure")}</p>
                 </section>
 
                 <section className="upload-songs-now-playing" aria-labelledby="upload-songs-now-playing-title">

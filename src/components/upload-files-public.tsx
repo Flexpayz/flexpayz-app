@@ -120,8 +120,7 @@ export function UploadFilesPublicPage({product, productId, fromDashboard = false
             </main>
 
             <footer className="upload-files-public-footer" aria-live="polite">
-                <span>{t("public.footer.secure")}</span>
-                <strong>{pageShareStatus || t("public.footer.powered")}</strong>
+                <span>{pageShareStatus || t("public.footer.secure")}</span>
             </footer>
         </div>
     );

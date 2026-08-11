@@ -129,7 +129,6 @@ export function CustomLinkPublicPage({product, productId, fromDashboard = false}
             </main>
             <footer className="custom-link-public-footer">
                 <span>{t("public.footer.secure")}</span>
-                <strong>{t("public.footer.powered")}</strong>
             </footer>
         </div>
     );

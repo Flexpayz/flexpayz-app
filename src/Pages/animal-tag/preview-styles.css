@@ -8,8 +8,8 @@ html {
 .frame {
     padding-top: 60px;
     height: 43vh;
-    border-radius: 0 0 20% 20%;
-    background: linear-gradient(rgba(99, 16, 42, 0.6), rgba(99, 16, 42, 1));
+    border-radius: 0;
+    background: transparent;
     position: relative;
 
 }
@@ -20,6 +20,10 @@ html {
     overflow: scroll;
     height: 100vh;
     position: relative;
+    background:
+        radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--fp-color-champagne-soft) 78%, transparent), transparent 24rem),
+        radial-gradient(circle at 12% 92%, color-mix(in srgb, var(--fp-color-champagne) 16%, transparent), transparent 20rem),
+        linear-gradient(180deg, var(--fp-color-canvas) 0%, var(--fp-color-canvas) 54%, color-mix(in srgb, var(--fp-color-champagne-soft) 72%, var(--fp-color-canvas)) 100%);
 }
 
 .frame .profile-preview-image {

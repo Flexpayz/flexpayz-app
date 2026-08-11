@@ -67,8 +67,7 @@ export function UploadVideoPublicPage({product, productId, fromDashboard = false
             </main>
 
             <footer className="upload-files-public-footer">
-                <span>{pageShareMessage || t("video.footer")}</span>
-                <strong>{t("public.footer.powered")}</strong>
+                <span>{pageShareMessage || t("public.footer.secure")}</span>
             </footer>
         </section>
     );
