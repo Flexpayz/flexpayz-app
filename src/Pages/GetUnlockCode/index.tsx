@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
 import { jsPDF } from "jspdf";
-import { DB_COLLECTIONS } from "../../components/baby-journal-settings";
-import { db } from "../../App";
+import {getProduct} from "../../firestore/repositories/products";
+import {getSerialNumber} from "../../firestore/repositories/serialNumbers";
 
 const UnlockCodeLookup: React.FC = () => {
     const [url, setUrl] = useState("");
@@ -30,14 +29,11 @@ const UnlockCodeLookup: React.FC = () => {
             const id = match[1];
             setProductId(id);
 
-            const ref = doc(db, DB_COLLECTIONS.PRODUCTS, id);
-            const snap = await getDoc(ref);
-
-            if (!snap.exists()) {
+            const product = await getProduct(id);
+            if (!product) {
                 setError("❌ Product not found.");
             } else {
-                const data = snap.data();
-                setUnlockCode(data.unlockCode || "⚠️ No unlockCode field");
+                setUnlockCode(product.unlockCode || "⚠️ No unlockCode field");
             }
         } catch (err: any) {
             console.error(err);
@@ -65,17 +61,14 @@ const UnlockCodeLookup: React.FC = () => {
             setSerialNumber(serial);
 
             // 1️⃣ Find serial document
-            const serialRef = doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial);
-            const serialSnap = await getDoc(serialRef);
-
-            if (!serialSnap.exists()) {
+            const serialDoc = await getSerialNumber(serial);
+            if (!serialDoc) {
                 setError("❌ Serial number not found in SERIAL_NUMBERS collection.");
                 setLoading(false);
                 return;
             }
 
-            const serialData = serialSnap.data();
-            const productID = serialData.productID;
+            const productID = serialDoc.data.productID;
 
             if (!productID) {
                 setError("⚠️ Serial found, but missing productID field.");
@@ -86,14 +79,11 @@ const UnlockCodeLookup: React.FC = () => {
             setProductId(productID);
 
             // 2️⃣ Fetch unlock code from product
-            const productRef = doc(db, DB_COLLECTIONS.PRODUCTS, productID);
-            const productSnap = await getDoc(productRef);
-
-            if (!productSnap.exists()) {
+            const product = await getProduct(productID);
+            if (!product) {
                 setError("❌ Product not found for this serial number.");
             } else {
-                const data = productSnap.data();
-                setUnlockCode(data.unlockCode || "⚠️ No unlockCode field");
+                setUnlockCode(product.unlockCode || "⚠️ No unlockCode field");
             }
         } catch (err: any) {
             console.error(err);

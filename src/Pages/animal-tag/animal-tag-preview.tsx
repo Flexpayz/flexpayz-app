@@ -2,12 +2,10 @@ import "./preview-styles.css"
 import {useContext} from "react";
 import {AnimalTagInformationContext, AnimalTagInformationContextProvider} from "./useAnimalTagInformation";
 import {ProfilePicturePreview} from "../../components/home-baby-journal-preview";
-import {addDoc, collection} from "firebase/firestore";
-import {db} from "../../App";
-import {DB_COLLECTIONS} from "../../components/baby-journal-settings";
 import {notify} from "../login-page";
 import {PublicPageHeader} from "../../components/public-page-header";
 import {usePublicLanguage} from "../../public-i18n";
+import {enqueueMail} from "../../firestore/repositories/mail";
 
 export function AnimalTagPreview() {
     const {state} = useContext(AnimalTagInformationContext)
@@ -19,7 +17,8 @@ export function AnimalTagPreview() {
         const success = async (position: any) => {
             locationLink = "https://maps.google.com/?q=" + position.coords.latitude + "," + position.coords.longitude
 
-            await addDoc(collection(db, DB_COLLECTIONS.MAIL), {
+            await enqueueMail({
+                productId,
                 to: contact.email,
                 message: {
                     subject: t("animal.emailSubject", {name}),

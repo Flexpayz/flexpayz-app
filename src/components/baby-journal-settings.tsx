@@ -1,7 +1,5 @@
 import {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import type {ReactNode} from "react";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
-import {db} from "../App";
 import {notify} from "../Pages/login-page";
 import {getProductIdFromURL} from "../utils";
 import {LoadingScreenContext} from "./loading-sreen";
@@ -31,21 +29,14 @@ import {
     getLatestSleepEntry,
     hasBabyJournalChanges,
     healthCategories,
-    normalizeBabyJournal,
     sortJournalDateKeysNewestFirst,
 } from "../baby-journal";
+import {DB_COLLECTIONS} from "../firestore/collections";
+import {getBabyJournal, updateBabyJournal} from "../firestore/repositories/journals";
 
 // import {InvestigationsJournalSegment} from "./investigations-journal-segment";
 
-export enum DB_COLLECTIONS {
-    PRODUCTS = 'products',
-    SERIAL_NUMBERS = 'serial_numbers',
-    BABY_JOURNALS = 'baby_journals',
-    ADULT_JOURNALS = 'adult_journals',
-    PERMISSIONS = 'permissions',
-    ANIMAL_TAG = 'animal_tag',
-    MAIL = 'mail'
-}
+export {DB_COLLECTIONS};
 
 export enum DB_STORAGE {
     BABY_JOURNAL = 'baby_journal',
@@ -279,13 +270,9 @@ export function useBabyJournalInformation(): UseBabyJournalInformationValue {
                 const urlParams = new URLSearchParams(window.location.search)
                 const productId = urlParams.get('product_id')
                 if (productId) {
-                    const productRef = doc(db, DB_COLLECTIONS.BABY_JOURNALS, productId)
-                    const docSnap = await getDoc(productRef);
-                    if (docSnap.exists()) {
-                        const normalized = normalizeBabyJournal(docSnap.data())
-                        setBabyJournalState(normalized)
-                        setOriginalBabyJournalState(normalized)
-                    }
+                    const normalized = await getBabyJournal(productId)
+                    setBabyJournalState(normalized)
+                    setOriginalBabyJournalState(normalized)
                 }
                 setIsLoading(false)
             })()
@@ -370,7 +357,7 @@ function BabyJournalWorkspace() {
         setSaveState("saving");
         setSaveMessage("Saving journal…");
         try {
-            await updateDoc(doc(db, DB_COLLECTIONS.BABY_JOURNALS, productId), updates as Record<string, any>);
+            await updateBabyJournal(productId, updates);
             setOriginalBabyJournalState(babyJournalState);
             setSaveState("saved");
             setSaveMessage("Changes saved");

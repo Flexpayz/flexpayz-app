@@ -6,9 +6,8 @@ import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import {deleteObject, getMetadata, ref} from "firebase/storage";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {useNavigate} from "react-router";
-import {db, storage} from "../App";
+import {storage} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
@@ -33,6 +32,7 @@ import {
 } from "../upload-songs";
 import {getProductIdFromURL} from "../utils";
 import "../Pages/manager.css";
+import {getProduct, updateProduct} from "../firestore/repositories/products";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "failed";
 type PageStatus = "loading" | "ready" | "not-found" | "error";
@@ -63,14 +63,13 @@ export function UploadSongsSettingsWrapper() {
             }
 
             try {
-                const productSnapshot = await getDoc(doc(db, "products", productId));
+                const product = await getProduct(productId);
                 if (!active) return;
-                if (!productSnapshot.exists()) {
+                if (!product) {
                     setStatus("not-found");
                     return;
                 }
 
-                const product = {...defaultProduct, ...productSnapshot.data() as Product};
                 const metadata = await loadSlotMetadata(productId);
                 if (!active) return;
                 setProductState(product);
@@ -146,7 +145,7 @@ export function UploadSongsSettings({
         setSaveState("saving");
         setSaveMessage("Saving track titles");
         try {
-            await updateDoc(doc(db, "products", productId), payload);
+            await updateProduct(productId, payload);
             setProductState((prev: Product) => ({...prev, ...payload}));
             setSaveState("saved");
             setSaveMessage("Track titles saved");
@@ -179,7 +178,7 @@ export function UploadSongsSettings({
             return;
         }
 
-        await updateDoc(doc(db, "products", productId), {[slot.field]: trimmed});
+        await updateProduct(productId, {[slot.field]: trimmed});
         setProductState((prev: Product) => ({...prev, [slot.field]: trimmed}));
         setDraftTitles((prev) => ({...prev, [slot.field]: trimmed}));
         setSaveState("saved");
@@ -202,7 +201,7 @@ export function UploadSongsSettings({
             await deleteObject(storageRef).catch((error) => {
                 if (error?.code !== "storage/object-not-found") throw error;
             });
-            await updateDoc(doc(db, "products", productId), {[removeSlot.field]: ""});
+            await updateProduct(productId, {[removeSlot.field]: ""});
             setProductState((prev: Product) => ({...prev, [removeSlot.field]: ""}));
             setDraftTitles((prev) => ({...prev, [removeSlot.field]: ""}));
             setMetadataBySlot((prev) => ({...prev, [removeSlot.id]: {exists: false}}));

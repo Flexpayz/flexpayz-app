@@ -1,17 +1,10 @@
 import VCard from "vcard-creator";
 import {Languages} from "./languages";
 import type {Product} from "./control-state";
+import {normalizeSharedContacts as normalizeSharedContactsFromSchema} from "./firestore/schema/products";
+import type {SharedContact} from "./firestore/schema/products";
 
-export type SharedContact = {
-    name: string;
-    company?: string;
-    email: string;
-    phone: string;
-    date: number;
-    message?: string;
-    consentAccepted?: true;
-    consentVersion?: string;
-};
+export type {SharedContact};
 
 export type BusinessCardField = keyof Pick<Product,
     "firstName" |
@@ -108,21 +101,7 @@ export function normalizeBusinessCardProduct(rawProduct?: Partial<Product> | nul
 }
 
 export function normalizeSharedContacts(rawContacts: unknown): SharedContact[] {
-    if (!Array.isArray(rawContacts)) return [];
-
-    return rawContacts
-        .filter((contact) => contact && typeof contact === "object")
-        .map((contact: any) => ({
-            name: safeString(contact.name),
-            ...(safeString(contact.company) ? {company: safeString(contact.company)} : {}),
-            email: safeString(contact.email),
-            phone: safeString(contact.phone),
-            date: typeof contact.date === "number" ? contact.date : 0,
-            ...(safeString(contact.message) ? {message: safeString(contact.message)} : {}),
-            ...(contact.consentAccepted === true ? {consentAccepted: true as const} : {}),
-            ...(safeString(contact.consentVersion) ? {consentVersion: safeString(contact.consentVersion)} : {}),
-        }))
-        .filter((contact) => contact.name || contact.email || contact.phone);
+    return normalizeSharedContactsFromSchema(rawContacts);
 }
 
 export function serializeBusinessCardUpdate(product: Product) {
@@ -272,8 +251,4 @@ export function getInitials(product: Product, fallback = "FP") {
         .map((part) => part[0]?.toUpperCase())
         .join("");
     return initials || fallback;
-}
-
-function safeString(value: unknown) {
-    return typeof value === "string" ? value : "";
 }

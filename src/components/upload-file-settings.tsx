@@ -5,9 +5,8 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import {deleteObject, getMetadata, ref} from "firebase/storage";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {useNavigate} from "react-router";
-import {db, storage} from "../App";
+import {storage} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {FileUploadField, UploadedFileState} from "./file-upload-field";
@@ -30,6 +29,7 @@ import {
 } from "../upload-files";
 import {getProductIdFromURL} from "../utils";
 import "../Pages/manager.css";
+import {getProduct, updateProduct} from "../firestore/repositories/products";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "failed";
 type PageStatus = "loading" | "ready" | "not-found" | "error";
@@ -60,14 +60,13 @@ export function UploadFileSettingsWrapper() {
             }
 
             try {
-                const productSnapshot = await getDoc(doc(db, "products", productId));
+                const product = await getProduct(productId);
                 if (!active) return;
-                if (!productSnapshot.exists()) {
+                if (!product) {
                     setStatus("not-found");
                     return;
                 }
 
-                const product = {...defaultProduct, ...productSnapshot.data() as Product};
                 const metadata = await loadSlotMetadata(productId);
                 if (!active) return;
                 setProductState(product);
@@ -143,7 +142,7 @@ export function UploadFileSettings({
         setSaveState("saving");
         setSaveMessage("Saving document names");
         try {
-            await updateDoc(doc(db, "products", productId), payload);
+            await updateProduct(productId, payload);
             setProductState((prev: Product) => ({...prev, ...payload}));
             setSaveState("saved");
             setSaveMessage("Document names saved");
@@ -176,7 +175,7 @@ export function UploadFileSettings({
             return;
         }
 
-        await updateDoc(doc(db, "products", productId), {[slot.field]: trimmed});
+        await updateProduct(productId, {[slot.field]: trimmed});
         setProductState((prev: Product) => ({...prev, [slot.field]: trimmed}));
         setDraftNames((prev) => ({...prev, [slot.field]: trimmed}));
         setSaveState("saved");
@@ -199,7 +198,7 @@ export function UploadFileSettings({
             await deleteObject(storageRef).catch((error) => {
                 if (error?.code !== "storage/object-not-found") throw error;
             });
-            await updateDoc(doc(db, "products", productId), {[removeSlot.field]: ""});
+            await updateProduct(productId, {[removeSlot.field]: ""});
             setProductState((prev: Product) => ({...prev, [removeSlot.field]: ""}));
             setDraftNames((prev) => ({...prev, [removeSlot.field]: ""}));
             setMetadataBySlot((prev) => ({...prev, [removeSlot.id]: {exists: false}}));

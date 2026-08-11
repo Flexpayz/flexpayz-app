@@ -17,26 +17,17 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth";
-import {
-    arrayUnion,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    query,
-    updateDoc,
-    where,
-} from "firebase/firestore";
 import {FormEvent, KeyboardEvent, RefObject, useCallback, useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
-import {MainContext} from "../contexts";
-import {useContext} from "react";
 import {AppButton} from "../components/design-system/AppButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {BackButton} from "../components/design-system/BackButton";
 import {LoadingPanel} from "../components/design-system/LoadingPanel";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
+import {findProductsByUnlockCode, getProductDocument, updateProduct} from "../firestore/repositories/products";
+import {addProductToUser, getUserProfile} from "../firestore/repositories/users";
+import type {Product} from "../control-state";
 
 type DashboardMode = 'dashboard' | 'activate';
 type WizardStep = 'code' | 'confirm' | 'success';
@@ -44,21 +35,14 @@ type WizardIssue = 'incomplete' | 'not-found' | 'already-activated' | 'activatio
 
 type ManagedDevice = {
     id: string;
-    name?: string;
-    activated?: boolean;
-    inactive?: boolean;
-    unlockCode?: string;
-    preview?: string;
-    category?: string;
-    updatedAt?: any;
-    [key: string]: any;
-};
+    type?: string;
+    productType?: string;
+} & Product;
 
 const SUPPORT_URL = 'https://www.flexpayz.se/pages/get-started';
 const CODE_LENGTH = 6;
 
 export function ManageDevices() {
-    const {db} = useContext(MainContext);
     const navigate = useNavigate();
     const [userId, setUserId] = useState('');
     const [devices, setDevices] = useState<ManagedDevice[]>([]);
@@ -92,14 +76,12 @@ export function ManageDevices() {
         setFetchError('');
 
         try {
-            const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            const productIds = userSnap.exists() ? userSnap.data()?.products || [] : [];
+            const user = await getUserProfile(userId);
+            const productIds = user?.products || [];
             const productDocs = await Promise.all(
                 productIds.map(async (id: string) => {
-                    const productRef = doc(db, "products", id);
-                    const productSnap = await getDoc(productRef);
-                    return productSnap.exists() ? {id, ...productSnap.data()} as ManagedDevice : null;
+                    const product = await getProductDocument(id);
+                    return product ? {id: product.id, ...product.data} : null;
                 })
             );
             setDevices(productDocs.filter(Boolean) as ManagedDevice[]);
@@ -109,7 +91,7 @@ export function ManageDevices() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [db, userId]);
+    }, [userId]);
 
     useEffect(() => {
         loadDevices();
@@ -375,7 +357,6 @@ function ActivationWizard({
     onCancel: () => void;
     onComplete: (device: ManagedDevice) => void;
 }) {
-    const {db} = useContext(MainContext);
     const navigate = useNavigate();
     const [step, setStep] = useState<WizardStep>('code');
     const [direction, setDirection] = useState<'forward' | 'back' | 'initial'>('initial');
@@ -403,12 +384,7 @@ function ActivationWizard({
         setIssue(null);
         setLiveMessage('Verifying activation code.');
         try {
-            const q = query(collection(db, "products"), where("unlockCode", "==", code));
-            const querySnapshot = await getDocs(q);
-            const found: ManagedDevice[] = [];
-            querySnapshot.forEach((productDoc: any) => {
-                found.push({id: productDoc.id, ...productDoc.data()});
-            });
+            const found = (await findProductsByUnlockCode(code)).map((productDoc) => ({id: productDoc.id, ...productDoc.data}));
             const product = found[0];
             if (!product) {
                 setIssue('not-found');
@@ -439,22 +415,18 @@ function ActivationWizard({
         setLiveMessage('Activating device.');
 
         try {
-            const productRef = doc(db, "products", matchedDevice.id);
-            const latestProduct = await getDoc(productRef);
-            if (!latestProduct.exists()) {
+            const latestProduct = await getProductDocument(matchedDevice.id);
+            if (!latestProduct) {
                 setIssue('not-found');
                 return;
             }
-            if (latestProduct.data()?.activated) {
+            if (latestProduct.data.activated) {
                 setIssue('already-activated');
                 return;
             }
-            await updateDoc(productRef, {activated: true});
-            const userRef = doc(db, "users", userId);
-            await updateDoc(userRef, {
-                products: arrayUnion(matchedDevice.id)
-            });
-            const activatedDevice = {...matchedDevice, ...latestProduct.data(), activated: true};
+            await updateProduct(matchedDevice.id, {activated: true});
+            await addProductToUser(userId, matchedDevice.id);
+            const activatedDevice = {...matchedDevice, ...latestProduct.data, activated: true};
             setMatchedDevice(activatedDevice);
             setDirection('forward');
             setStep('success');

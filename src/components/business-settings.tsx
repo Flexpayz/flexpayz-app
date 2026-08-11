@@ -3,10 +3,9 @@ import {Box, CircularProgress, TextField} from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
 import {useNavigate} from "react-router";
-import {db, storage} from "../App";
+import {storage} from "../App";
 import {
     calculateBusinessCardCompletion,
     isValidEmail,
@@ -26,6 +25,7 @@ import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
 import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
 import {ReactComponent as YouTubeIcon} from "../assets/social/youtube.svg";
 import "../Pages/manager.css";
+import {getProduct, updateProduct} from "../firestore/repositories/products";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "failed";
 type UploadState = "idle" | "uploading" | "ready" | "failed";
@@ -82,14 +82,13 @@ export function BusinessSettingsWrapper() {
             }
 
             try {
-                const productRef = doc(db, "products", productId);
-                const snapshot = await getDoc(productRef);
+                const product = await getProduct(productId);
                 if (!active) return;
-                if (!snapshot.exists()) {
+                if (!product) {
                     setStatus("not-found");
                     return;
                 }
-                setProductState(normalizeBusinessCardProduct(snapshot.data() as Partial<Product>));
+                setProductState(normalizeBusinessCardProduct(product));
                 setStatus("ready");
             } catch {
                 if (active) setStatus("error");
@@ -194,7 +193,7 @@ export function BusinessSettings() {
             setSaveState("saving");
             setSaveMessage("Autosaving");
             try {
-                await updateDoc(doc(db, "products", productId), serializeBusinessCardUpdate(productState));
+                await updateProduct(productId, serializeBusinessCardUpdate(productState));
                 lastSavedPayload.current = payload;
                 setSaveState("saved");
                 setSaveMessage("Autosaved just now");
@@ -245,7 +244,7 @@ export function BusinessSettings() {
         try {
             const cvRef = ref(storage, `documents/${productId}/CV`);
             await uploadBytes(cvRef, file);
-            await updateDoc(doc(db, "products", productId), {cv: true, businessFile: file.name});
+            await updateProduct(productId, {cv: true, businessFile: file.name});
             updateField("cv", true);
             updateField("businessFile", file.name);
             setCvUploadState("ready");

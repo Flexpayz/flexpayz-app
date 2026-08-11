@@ -1,6 +1,5 @@
 import {useNavigate} from "react-router";
-import {CSSProperties, useContext, useEffect, useState} from "react";
-import {doc, getDoc} from "firebase/firestore";
+import {CSSProperties, useEffect, useState} from "react";
 import ChildCareRoundedIcon from "@mui/icons-material/ChildCareRounded";
 import ContactPageRoundedIcon from "@mui/icons-material/ContactPageRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
@@ -9,7 +8,6 @@ import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import PetsRoundedIcon from "@mui/icons-material/PetsRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import {MainContext} from "../contexts";
 import {getDownloadURL, ref} from "firebase/storage";
 import {storage} from "../App";
 import {Preview} from "../preview";
@@ -32,13 +30,13 @@ import {UploadVideoPublicPage} from "../components/upload-video-public";
 import {BackButton, FlexPayzLogo, LoadingPanel} from "../components/design-system";
 import {PublicLanguageProvider, TranslatePublicCopy, usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
 import {PublicLanguagePicker} from "../components/public-page-header";
+import {getProduct} from "../firestore/repositories/products";
 
 export function ShowProduct() {
     const navigate = useNavigate()
     const [product, setProduct] = useState<Product>(defaultProduct)
     const urlParams = new URLSearchParams(window.location.search)
     const productId = urlParams.get('product_id')
-    const {db} = useContext(MainContext)
     const [profileImageURL, setProfileImageURL] = useState('')
     const [logoImageURL, setLogoImageURL] = useState('')
 
@@ -48,10 +46,8 @@ export function ShowProduct() {
     useEffect(() => {
         (async () => {
             if (productId) {
-                const productRef = doc(db, 'products', productId)
-                const docSnap = await getDoc(productRef);
-                if (docSnap.exists()) {
-                    const productData = docSnap.data() as Product;
+                const productData = await getProduct(productId);
+                if (productData) {
                     if (!productData.activated) {
                         navigate('/app?product_id=' + productId)
                     }

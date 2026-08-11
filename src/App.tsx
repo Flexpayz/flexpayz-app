@@ -5,20 +5,17 @@ import {Route, Routes} from "react-router";
 import {LoginPageWrapper} from "./Pages/login-page";
 import {FirstPageWrapper} from "./Pages/landing-page";
 import {MainContext} from "./contexts";
-import {initializeApp} from 'firebase/app';
-import {getFirestore} from "firebase/firestore";
 import {AdminPage} from "./Pages/admin";
 import {ManageDevices} from "./Pages/manage-devices";
 import {ManageDevice} from "./Pages/manage-device";
-import {getStorage, ref} from "firebase/storage";
 import {ShowProduct} from "./Pages/show-product";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'
-import {BusinessSettings, BusinessSettingsWrapper} from "./components/business-settings";
-import {CustomLinkSettings, CustomLinkSettingsWrapper} from "./components/custom-link-settings";
-import {UploadFileSettings, UploadFileSettingsWrapper} from "./components/upload-file-settings";
-import {UploadVideoSettings, UploadVideoSettingsWrapper} from "./components/upload-video-settings";
-import {UploadSongsSettings, UploadSongsSettingsWrapper} from "./components/upload-songs-settings";
+import {BusinessSettingsWrapper} from "./components/business-settings";
+import {CustomLinkSettingsWrapper} from "./components/custom-link-settings";
+import {UploadFileSettingsWrapper} from "./components/upload-file-settings";
+import {UploadVideoSettingsWrapper} from "./components/upload-video-settings";
+import {UploadSongsSettingsWrapper} from "./components/upload-songs-settings";
 import {SharedContacts} from "./components/shared-contacts";
 import {BabyJournalSettings} from "./components/baby-journal-settings";
 import {AdultJournalSettings} from "./components/adult-journal-settings";
@@ -27,22 +24,9 @@ import { SerialNumberRedirect } from './Pages/serial-number-redirect';
 import GetUnlockCode from "./Pages/GetUnlockCode";
 import { SerialProductMigrationPage } from "./Pages/serial-product-migration";
 import { DesignSystemPreview } from "./components/design-system/DesignSystemPreview";
+import {db} from "./firebase";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyD95KPFA7TG3QepgOl8iJdUM3c9RnEM11Q",
-    authDomain: "bussiness-card-bda7f.firebaseapp.com",
-    projectId: "bussiness-card-bda7f",
-    storageBucket: "bussiness-card-bda7f.appspot.com",
-    messagingSenderId: "788931798027",
-    appId: "1:788931798027:web:54941df048478186d7930e"
-};
-
-
-const app = initializeApp(firebaseConfig);
-
-export const db = getFirestore(app);
-export const storage = getStorage(app)
-
+export {db, storage} from "./firebase";
 
 const defaultState: any = {
     login: {email: "", password: ""},

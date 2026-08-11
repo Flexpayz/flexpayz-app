@@ -1,17 +1,11 @@
 import React, { useState } from "react";
-import {
-    collection,
-    addDoc,
-    doc,
-    setDoc,
-    getDoc,
-    serverTimestamp,
-    writeBatch,
-} from "firebase/firestore";
-import { db } from "../App";
-import { DB_COLLECTIONS } from "./baby-journal-settings";
 import { Preview, random_hex_code } from "../Pages/admin";
 import { defaultPermissions } from "./usePermission";
+import {createFirestoreBatch} from "../firestore/repositories/batches";
+import {getProduct, createProductDocumentReference, setProductInBatch} from "../firestore/repositories/products";
+import {setPermissionsInBatch} from "../firestore/repositories/permissions";
+import {getSerialNumber, setSerialNumberInBatch} from "../firestore/repositories/serialNumbers";
+import {normalizeProduct} from "../firestore/schema/products";
 
 type UploadType = "default" | "sanitas";
 
@@ -75,31 +69,27 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                     const chunk = serials.slice(i, i + batchSize);
 
                     // verificăm ce seriale există deja
-                    const existingSnaps = await Promise.all(
-                        chunk.map((serial) => getDoc(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial)))
-                    );
+                    const existingSerials = await Promise.all(chunk.map((serial) => getSerialNumber(serial)));
 
-                    const batch = writeBatch(db);
+                    const batch = createFirestoreBatch();
 
                     for (let j = 0; j < chunk.length; j++) {
                         const serial = chunk[j];
-                        const snap = existingSnaps[j];
+                        const serialDoc = existingSerials[j];
 
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            const productID = data.productID || "";
+                        if (serialDoc) {
+                            const productID = serialDoc.data.productID || "";
                             let unlockCode = "";
                             let status: "skipped" | "misscreated" = "skipped";
 
                             if (productID) {
-                                const prodSnap = await getDoc(doc(db, DB_COLLECTIONS.PRODUCTS, productID));
-                                if (!prodSnap.exists()) {
+                                const product = await getProduct(productID);
+                                if (!product) {
                                     status = "misscreated";
                                     misscreated++;
                                 } else {
                                     skipped++;
-                                    const prodData = prodSnap.data();
-                                    unlockCode = prodData?.unlockCode || "";
+                                    unlockCode = product.unlockCode || "";
                                 }
                             } else {
                                 status = "misscreated";
@@ -115,22 +105,22 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                         } else {
                             // create new product
                             const hexCode = random_hex_code();
-                            const productRef = doc(collection(db, DB_COLLECTIONS.PRODUCTS));
-
-                            batch.set(productRef, {
+                            const productRef = createProductDocumentReference();
+                            const productInput = {
                                 activated: false,
                                 unlockCode: hexCode,
                                 name: "New Product",
                                 preview: Preview.BUSINESS_CARD,
                                 processed: false,
-                            });
+                            };
 
-                            batch.set(doc(db, DB_COLLECTIONS.PERMISSIONS, productRef.id), defaultPermissions);
+                            setProductInBatch(batch, productRef, productInput);
 
-                            batch.set(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial), {
+                            setPermissionsInBatch(batch, productRef.id, defaultPermissions);
+
+                            setSerialNumberInBatch(batch, serial, {
                                 productID: productRef.id,
                                 type: "default",
-                                createdAt: serverTimestamp(),
                             });
 
                             results.push({
@@ -144,11 +134,7 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                                 ...prev,
                                 {
                                     id: productRef.id,
-                                    activated: false,
-                                    unlockCode: hexCode,
-                                    name: "New Product",
-                                    preview: Preview.BUSINESS_CARD,
-                                    processed: false,
+                                    data: normalizeProduct(productInput),
                                 },
                             ]);
 
@@ -195,15 +181,13 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                 const batchSize = 400;
                 for (let i = 0; i < serials.length; i += batchSize) {
                     const chunk = serials.slice(i, i + batchSize);
-                    const batch = writeBatch(db);
+                    const batch = createFirestoreBatch();
 
                     chunk.forEach((row) => {
                         if (!row.serialNumber || !row.productID) return;
-                        const ref = doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, row.serialNumber.trim());
-                        batch.set(ref, {
+                        setSerialNumberInBatch(batch, row.serialNumber.trim(), {
                             productID: row.productID.trim(),
                             type: "sanitas-payment-ring",
-                            createdAt: serverTimestamp(),
                         });
                     });
 

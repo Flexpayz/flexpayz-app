@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, query, where, writeBatch } from "firebase/firestore";
-import { db } from "../App";
-import { DB_COLLECTIONS } from "../components/baby-journal-settings";
 import {LoadingPanel} from "../components/design-system";
+import {createFirestoreBatch} from "../firestore/repositories/batches";
+import {getSerialNumberDocsByProductID, updateSerialNumberInBatch} from "../firestore/repositories/serialNumbers";
 
 type MigrationStatus = "updated" | "not-found" | "invalid" | "error";
 
@@ -158,13 +157,9 @@ export function SerialProductMigrationPage() {
                 }
 
                 try {
-                    const serialNumbersQuery = query(
-                        collection(db, DB_COLLECTIONS.SERIAL_NUMBERS),
-                        where("productID", "==", row.oldProductID)
-                    );
-                    const snapshot = await getDocs(serialNumbersQuery);
+                    const docs = await getSerialNumberDocsByProductID(row.oldProductID);
 
-                    if (snapshot.empty) {
+                    if (docs.length === 0) {
                         notFoundRows++;
                         migrationResults.push({
                             rowNumber: row.rowNumber,
@@ -175,15 +170,14 @@ export function SerialProductMigrationPage() {
                             message: "No serial_numbers documents found for this productID.",
                         });
                     } else {
-                        const docs = snapshot.docs;
                         const writeBatchSize = 400;
 
                         for (let start = 0; start < docs.length; start += writeBatchSize) {
                             const chunk = docs.slice(start, start + writeBatchSize);
-                            const batch = writeBatch(db);
+                            const batch = createFirestoreBatch();
 
                             chunk.forEach((serialDoc) => {
-                                batch.update(serialDoc.ref, {
+                                updateSerialNumberInBatch(batch, serialDoc, {
                                     productID: row.newProductID,
                                     type: "sanitas-payment-ring",
                                 });
