@@ -17,6 +17,7 @@
 - Do not silently modify unrelated legacy styles.
 - Run the build and relevant tests after every implementation task.
 - Manual Firebase/Admin SDK scripts must be exposed as npm scripts or documented commands that prefix the script command with explicit `PROJECT_ID` and `GOOGLE_APPLICATION_CREDENTIALS` values, for example `PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs`.
+- All Firebase Cloud Functions must run in Europe, using `europe-west1` unless a task explicitly requires another European region. For Functions v2, set the region through `setGlobalOptions({region: "europe-west1"})` or each trigger's options. For Functions v1, use `.region("europe-west1")`. Client callable-function code must also use `getFunctions(firebaseApp, "europe-west1")`.
 
 ## Firestore architecture
 

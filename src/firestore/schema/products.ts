@@ -38,6 +38,23 @@ export type SharedContact = {
 
 const optionalString = z.string().optional().nullable();
 const optionalBoolean = z.boolean().optional().nullable();
+export const PRODUCT_TYPES = {
+    FLEX_RING: "flex-ring",
+    FLEX_CARD: "flex-card",
+    FLEX_BRACELET: "flex-bracelet",
+    PET_TAG: "pet-tag",
+    GENERIC: "generic",
+} as const;
+
+export type ProductType = typeof PRODUCT_TYPES[keyof typeof PRODUCT_TYPES];
+
+const administrativeStatusSchema = z.union([
+    z.literal("active"),
+    z.literal("suspended"),
+    z.literal("archived"),
+]);
+
+export type ProductAdministrativeStatus = z.infer<typeof administrativeStatusSchema>;
 
 export const productFirestoreSchema = z.object({
     name: optionalString,
@@ -94,6 +111,12 @@ export const productFirestoreSchema = z.object({
     previewLanguage: languageSchema.optional().nullable(),
     processed: optionalBoolean,
     category: optionalString,
+    productType: optionalString,
+    type: optionalString,
+    ownerId: optionalString,
+    serialNumber: optionalString,
+    administrativeStatus: administrativeStatusSchema.optional().nullable(),
+    createdAt: z.unknown().optional(),
     updatedAt: z.unknown().optional(),
 }).passthrough();
 
@@ -154,12 +177,16 @@ export interface Product {
     previewLanguage: Languages;
     processed?: boolean;
     category?: string;
+    productType?: string;
+    type?: string;
+    ownerId?: string;
+    serialNumber?: string;
+    administrativeStatus?: ProductAdministrativeStatus;
+    createdAt?: unknown;
     updatedAt?: unknown;
 }
 
-export type ProductCreateInput = Pick<Product, "activated" | "unlockCode" | "name" | "preview"> & {
-    processed?: boolean;
-};
+export type ProductCreateInput = Pick<Product, "activated" | "unlockCode" | "name" | "preview">;
 
 export type ProductUpdateInput = Partial<Product>;
 export type ProductReplacementInput = Product;
@@ -316,6 +343,12 @@ export function normalizeProduct(raw: unknown): Product {
         previewLanguage: data.previewLanguage && Object.values(Languages).includes(data.previewLanguage) ? data.previewLanguage : Languages.ENGLISH,
         processed: data.processed === undefined || data.processed === null ? undefined : safeBoolean(data.processed),
         category: safeString(data.category) || undefined,
+        productType: safeString(data.productType) || undefined,
+        type: safeString(data.type) || undefined,
+        ownerId: safeString(data.ownerId) || undefined,
+        serialNumber: safeString(data.serialNumber) || undefined,
+        administrativeStatus: data.administrativeStatus || undefined,
+        createdAt: data.createdAt,
         updatedAt: data.updatedAt,
     };
     return normalized;

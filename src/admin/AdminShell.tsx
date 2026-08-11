@@ -13,7 +13,7 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { useAdminAuth } from "./AdminAuthContext";
-import { findAdminRoute } from "./adminRoutes";
+import { getAdminBreadcrumbLabels, getAdminPageTitle } from "./adminRoutes";
 import { getAdminEnvironment, getAdminEnvironmentDetail } from "./environment";
 
 export function AdminShell() {
@@ -21,7 +21,8 @@ export function AdminShell() {
   const navigate = useNavigate();
   const { state, logout } = useAdminAuth();
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
-  const activeRoute = useMemo(() => findAdminRoute(location.pathname), [location.pathname]);
+  const breadcrumbs = useMemo(() => getAdminBreadcrumbLabels(location.pathname), [location.pathname]);
+  const pageTitle = useMemo(() => getAdminPageTitle(location.pathname), [location.pathname]);
   const environment = getAdminEnvironment();
   const environmentDetail = getAdminEnvironmentDetail();
   const email = state.status === "authorized" ? state.user.email : null;
@@ -63,10 +64,9 @@ export function AdminShell() {
             </IconButton>
             <Box>
               <Breadcrumbs aria-label="Admin breadcrumbs" className="admin-breadcrumbs">
-                <span>Admin</span>
-                <span>{activeRoute.label}</span>
+                {breadcrumbs.map((breadcrumb) => <span key={breadcrumb}>{breadcrumb}</span>)}
               </Breadcrumbs>
-              <Box component="h1" className="admin-page-title">{activeRoute.title}</Box>
+              <Box component="h1" className="admin-page-title">{pageTitle}</Box>
             </Box>
           </Stack>
 

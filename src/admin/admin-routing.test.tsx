@@ -169,7 +169,8 @@ describe("admin shell routing", () => {
 
     expect(await screen.findByText("Serial Migration Tool")).toBeInTheDocument();
     expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Admin");
-    expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Serial migration");
+    expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Serial numbers");
+    expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Migration");
     fireEvent.click(screen.getByRole("button", { name: "Back to Device Manager" }));
     expect(await screen.findByRole("heading", { name: "Device Manager" })).toBeInTheDocument();
   });

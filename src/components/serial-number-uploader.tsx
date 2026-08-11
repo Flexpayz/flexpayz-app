@@ -111,7 +111,6 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                                 unlockCode: hexCode,
                                 name: "New Product",
                                 preview: Preview.BUSINESS_CARD,
-                                processed: false,
                             };
 
                             setProductInBatch(batch, productRef, productInput);

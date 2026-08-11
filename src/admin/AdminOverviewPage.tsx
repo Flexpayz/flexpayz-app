@@ -27,6 +27,11 @@ export function AdminOverviewPage() {
             <span>Signed in as <strong>{email || "administrator"}</strong></span>
             <span className={`admin-environment admin-environment-${environment.toLowerCase()}`} title={environmentDetail}>{environment}</span>
           </Box>
+          <Box>
+            <AppButton variant="contained" onClick={() => navigate("/admin/products/create")} endIcon={<ArrowForwardRoundedIcon aria-hidden="true" />}>
+              Create products
+            </AppButton>
+          </Box>
         </Stack>
       </Surface>
 

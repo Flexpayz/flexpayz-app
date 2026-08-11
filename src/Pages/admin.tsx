@@ -9,7 +9,7 @@ import ExportSerialsCSVButton from "../components/serial-csv-buton";
 import {Preview} from "../preview";
 import {createEmptyAdultJournal, createEmptyBabyJournal} from "../firestore/repositories/journals";
 import {createEmptyAnimalTag} from "../firestore/repositories/animalTags";
-import {createProduct, listInactiveProducts, updateProduct} from "../firestore/repositories/products";
+import {createProduct, listInactiveProducts} from "../firestore/repositories/products";
 import {getPermissions, setPermissions, updatePermissions} from "../firestore/repositories/permissions";
 import type {FirestoreDocument} from "../firestore/schema/primitives";
 import type {Product as ProductData} from "../control-state";
@@ -34,7 +34,6 @@ export function AdminPage() {
                 unlockCode: hexCode,
                 name: "New Product",
                 preview: Preview.BUSINESS_CARD,
-                processed: false
             }).then((created) => {
                 setProducts((prev) => [...prev, created])
                 setPermissions(created.id, defaultPermissions)
@@ -153,19 +152,6 @@ const Product = ({product, onChangePermissions}: {product: FirestoreDocument<Pro
     const copyLink = (productId: string) => {
         navigator.clipboard.writeText(`https://flexpayz.com/show-product?product_id=${productId}`)
     }
-    const [processed, setProcessed] = useState(false)
-
-    useEffect(() => {
-        setProcessed(Boolean(product.data.processed))
-    }, []);
-
-    const onProcessedProduct = async (e: any) => {
-        if (product.id) {
-            await updateProduct(product.id, {processed: e.target.checked})
-            setProcessed((prevState: boolean) => !prevState)
-        }
-    }
-
     return (<div>
         <span>{product.id}</span>
         <br/>
@@ -173,7 +159,6 @@ const Product = ({product, onChangePermissions}: {product: FirestoreDocument<Pro
         <Button onClick={() => {
             copyLink(product.id)
         }}>Link</Button>
-        <Checkbox checked={processed} onChange={onProcessedProduct}/>
         <Button onClick={() => {
             onChangePermissions(product.id)
         }}>PERMISSIONS</Button>

@@ -37,7 +37,8 @@ service firebase.storage {
     function isPublicActiveProduct(productId) {
       return productExists(productId)
         && productData(productId).activated == true
-        && (!('inactive' in productData(productId)) || productData(productId).inactive != true);
+        && (!('inactive' in productData(productId)) || productData(productId).inactive != true)
+        && (!('administrativeStatus' in productData(productId)) || productData(productId).administrativeStatus == 'active');
     }
 
     function canReadProductAsset(productId) {

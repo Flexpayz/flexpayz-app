@@ -1,4 +1,11 @@
 {
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ]
+  },
   "firestore": {
     "rules": "firestore.rules"
   },
@@ -20,6 +27,9 @@
     ]
   },
   "emulators": {
+    "functions": {
+      "port": 5001
+    },
     "firestore": {
       "port": 8080
     },

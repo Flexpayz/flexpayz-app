@@ -52,7 +52,7 @@ export function ShowProduct() {
                         navigate('/app?product_id=' + productId)
                     }
                     setProduct((prev: Product) => ({...prev, ...productData}))
-                    if (productData.inactive) {
+                    if (isPublicProductUnavailable(productData)) {
                         setPasswordProtected(false);
                         setLoaded(true);
                         return;
@@ -204,7 +204,7 @@ function ShowProductView({
         );
     }
 
-    if (product.inactive) {
+    if (isPublicProductUnavailable(product)) {
         return (
             <div style={colorsStyle} className="public-routing-state public-inactive-state">
                 <div className="public-routing-card public-inactive-card">
@@ -301,6 +301,10 @@ function PublicNotConfigured() {
             </div>
         </div>
     );
+}
+
+function isPublicProductUnavailable(product: Pick<Product, "inactive" | "administrativeStatus">) {
+    return product.inactive || product.administrativeStatus === "suspended" || product.administrativeStatus === "archived";
 }
 
 function PublicSectionDashboard({product, sections, productId, fromManageDevice}: { product: Product; sections: Preview[]; productId: string; fromManageDevice: boolean }) {

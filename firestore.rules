@@ -45,11 +45,12 @@ service cloud.firestore {
     function isPublicActiveProduct(productId) {
       return productExists(productId)
         && productData(productId).activated == true
-        && productData(productId).inactive != true;
+        && productData(productId).inactive != true
+        && (!('administrativeStatus' in productData(productId)) || productData(productId).administrativeStatus == 'active');
     }
 
     function optionalString(data, key, maxLength) {
-      return !(key in data) || (data[key] is string && data[key].size() <= maxLength);
+      return !(key in data) || data[key] == null || (data[key] is string && data[key].size() <= maxLength);
     }
 
     function optionalBool(data, key) {
@@ -140,6 +141,12 @@ service cloud.firestore {
         'previewLanguage',
         'processed',
         'category',
+        'productType',
+        'type',
+        'ownerId',
+        'serialNumber',
+        'administrativeStatus',
+        'createdAt',
         'updatedAt'
       ]);
     }
@@ -199,7 +206,12 @@ service cloud.firestore {
         && optionalList(data, 'sharedContacts', 1000)
         && optionalLanguage(data, 'previewLanguage')
         && optionalBool(data, 'processed')
-        && optionalString(data, 'category', 120);
+        && optionalString(data, 'category', 120)
+        && optionalString(data, 'productType', 120)
+        && optionalString(data, 'type', 120)
+        && optionalString(data, 'ownerId', 160)
+        && optionalString(data, 'serialNumber', 200)
+        && (!('administrativeStatus' in data) || data.administrativeStatus in ['active', 'suspended', 'archived']);
     }
 
     function ownerEditableProductKeys() {
