@@ -158,6 +158,17 @@ describe("ManageDevice workspace", () => {
         expect(await screen.findByText("Product inactivated")).toBeInTheDocument();
     });
 
+    it("saves French as the default public language", async () => {
+        renderWorkspace("/manage-device?product_id=p1&tab=settings");
+
+        expect(await screen.findByRole("heading", {name: "Settings"})).toBeInTheDocument();
+        fireEvent.mouseDown(screen.getByRole("combobox", {name: "Public language"}));
+        fireEvent.click(await screen.findByRole("option", {name: "FRENCH"}));
+
+        await waitFor(() => expect(mockedUpdateDoc).toHaveBeenCalledWith({path: "products/p1"}, {previewLanguage: Languages.FRENCH}));
+        expect(await screen.findByText("Default public language updated")).toBeInTheDocument();
+    });
+
     it("saves product active state from the settings switch", async () => {
         mockedGetDoc.mockImplementation(async (ref: any) => {
             if (ref.path === "products/p1") return snap({...product, inactive: true}) as any;

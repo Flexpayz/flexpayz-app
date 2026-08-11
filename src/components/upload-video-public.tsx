@@ -9,6 +9,7 @@ import YouTube, {YouTubeEvent} from "react-youtube";
 import {Product} from "../control-state";
 import {BackButton} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
+import {TranslatePublicCopy, usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
 import {
     ParsedYouTubeUrl,
     YouTubeVideoMetadata,
@@ -29,43 +30,45 @@ export function UploadVideoPublicPage({product, productId, fromDashboard = false
     const parsed = useMemo(() => parseYouTubeUrl(product.youtubeLink || ""), [product.youtubeLink]);
     const metadata = useMemo(() => parsed ? getFallbackYouTubeMetadata(parsed) : null, [parsed]);
     const [pageShareMessage, setPageShareMessage] = useState("");
+    const {language, t} = usePublicLanguage();
 
     const goBackToContent = () => {
         if (fromDashboard && productId) {
-            window.location.href = `/show-product?product_id=${encodeURIComponent(productId)}`;
+            window.location.href = withPublicLanguageParam(`/show-product?product_id=${encodeURIComponent(productId)}`, language);
             return;
         }
         window.history.back();
     };
 
     return (
-        <section className="upload-video-public-page" aria-label="Featured video">
+        <section className="upload-video-public-page" aria-label={t("video.aria")}>
             <div className="upload-files-public-circles" aria-hidden="true"><span/><span/></div>
-            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${product.name || "FlexPayz"} featured video`} onShareMessage={setPageShareMessage}/>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={t("video.shareTitle", {name: product.name || "FlexPayz"})} onShareMessage={setPageShareMessage}/>
 
             <main className="upload-video-public-main">
                 {!parsed || !metadata ? (
                     <VideoUnavailableState
-                        title="Featured video unavailable"
-                        message="This device does not have a valid public YouTube video right now."
+                        title={t("video.unavailable.title")}
+                        message={t("video.unavailable.message")}
                         fromDashboard={fromDashboard}
                         onBack={goBackToContent}
+                        t={t}
                     />
                 ) : (
                     <>
                         <section className="upload-video-public-heading">
                             <p className="business-kicker">{product.name || "FlexPayz product"}</p>
-                            <h1>Featured video</h1>
-                            <p>A focused, poster-first viewing experience without pulling attention away from the content.</p>
+                            <h1>{t("video.title")}</h1>
+                            <p>{t("video.description")}</p>
                         </section>
-                        <UploadVideoPlayer parsed={parsed} metadata={metadata} fromDashboard={fromDashboard} onBack={goBackToContent}/>
+                        <UploadVideoPlayer parsed={parsed} metadata={metadata} fromDashboard={fromDashboard} onBack={goBackToContent} t={t}/>
                     </>
                 )}
             </main>
 
             <footer className="upload-files-public-footer">
-                <span>{pageShareMessage || "Playback remains user-initiated"}</span>
-                <strong>Powered by FlexPayz</strong>
+                <span>{pageShareMessage || t("video.footer")}</span>
+                <strong>{t("public.footer.powered")}</strong>
             </footer>
         </section>
     );
@@ -76,11 +79,13 @@ function UploadVideoPlayer({
     metadata,
     fromDashboard,
     onBack,
+    t,
 }: {
     parsed: ParsedYouTubeUrl;
     metadata: YouTubeVideoMetadata;
     fromDashboard: boolean;
     onBack(): void;
+    t: TranslatePublicCopy;
 }) {
     const [playbackState, setPlaybackState] = useState<PlaybackState>("poster");
     const [errorMessage, setErrorMessage] = useState("");
@@ -109,15 +114,16 @@ function UploadVideoPlayer({
                         metadata={metadata}
                         ended={playbackState === "ended"}
                         onPlay={startPlayback}
+                        t={t}
                     />
                 ) : playbackState === "error" ? (
                     <div className="upload-video-public-error-panel" role="alert">
                         <WarningAmberRoundedIcon/>
-                        <h2>This video can’t be played here.</h2>
-                        <p>{errorMessage || "Check your connection or open it on YouTube."}</p>
+                        <h2>{t("video.error.title")}</h2>
+                        <p>{errorMessage || t("video.error.message")}</p>
                         <div>
-                            <button type="button" onClick={retryPlayback}>Try again <ReplayRoundedIcon fontSize="small"/></button>
-                            <button type="button" onClick={openYouTube}>Open YouTube <ArrowOutwardRoundedIcon fontSize="small"/></button>
+                            <button type="button" onClick={retryPlayback}>{t("video.tryAgain")} <ReplayRoundedIcon fontSize="small"/></button>
+                            <button type="button" onClick={openYouTube}>{t("video.openYoutube")} <ArrowOutwardRoundedIcon fontSize="small"/></button>
                         </div>
                     </div>
                 ) : (
@@ -125,7 +131,7 @@ function UploadVideoPlayer({
                         {playbackState === "loading" && (
                             <div className="upload-video-public-loading" role="status">
                                 <CircularProgress size={24} color="inherit"/>
-                                <span>Loading video controls…</span>
+                                <span>{t("video.loadingControls")}</span>
                             </div>
                         )}
                         <YouTube
@@ -149,18 +155,18 @@ function UploadVideoPlayer({
 
             <div className="upload-video-public-details">
                 <div>
-                    <p className="business-kicker">NOW SHOWING</p>
+                    <p className="business-kicker">{t("video.nowShowing")}</p>
                     <h2>{metadata.title}</h2>
                     <p>{metadata.authorName} · YouTube</p>
                 </div>
-                <span><CheckRoundedIcon fontSize="small"/> User initiated</span>
-                <button type="button" onClick={openYouTube}>Watch on YouTube <ArrowOutwardRoundedIcon fontSize="small"/></button>
+                <span><CheckRoundedIcon fontSize="small"/> {t("video.userInitiated")}</span>
+                <button type="button" onClick={openYouTube}>{t("video.watchYoutube")} <ArrowOutwardRoundedIcon fontSize="small"/></button>
                 <div className="upload-video-public-notes">
-                    <strong>You’re in control</strong>
-                    <p>Playback begins only after you tap Play. Standard YouTube controls remain available.</p>
+                    <strong>{t("video.controlTitle")}</strong>
+                    <p>{t("video.controlText")}</p>
                 </div>
                 {fromDashboard && (
-                    <BackButton aria-label="Back to content" className="upload-video-public-back" onClick={onBack}/>
+                    <BackButton aria-label={t("public.back.content")} className="upload-video-public-back" onClick={onBack}/>
                 )}
             </div>
         </section>
@@ -172,11 +178,13 @@ function PublicVideoPoster({
     metadata,
     ended,
     onPlay,
+    t,
 }: {
     parsed: ParsedYouTubeUrl;
     metadata: YouTubeVideoMetadata;
     ended: boolean;
     onPlay(): void;
+    t: TranslatePublicCopy;
 }) {
     const [thumbnailIndex, setThumbnailIndex] = useState(0);
     const thumbnail = thumbnailIndex === 0 ? metadata.thumbnailUrl : parsed.thumbnailUrls[Math.min(thumbnailIndex - 1, parsed.thumbnailUrls.length - 1)];
@@ -185,10 +193,10 @@ function PublicVideoPoster({
         <div className="upload-video-public-poster">
             <img src={thumbnail} alt={`Poster for ${metadata.title}`} onError={() => setThumbnailIndex((index) => Math.min(index + 1, parsed.thumbnailUrls.length))}/>
             <span aria-hidden="true"/>
-            <button type="button" onClick={onPlay} aria-label={ended ? `Replay ${metadata.title}` : `Play ${metadata.title}`}>
+            <button type="button" onClick={onPlay} aria-label={ended ? t("video.replayLabel", {title: metadata.title}) : t("video.playLabel", {title: metadata.title})}>
                 {ended ? <ReplayRoundedIcon/> : <PlayArrowRoundedIcon/>}
             </button>
-            <strong>{ended ? "Replay video" : metadata.title}</strong>
+            <strong>{ended ? t("video.replay") : metadata.title}</strong>
         </div>
     );
 }
@@ -198,18 +206,20 @@ function VideoUnavailableState({
     message,
     fromDashboard,
     onBack,
+    t,
 }: {
     title: string;
     message: string;
     fromDashboard: boolean;
     onBack(): void;
+    t: TranslatePublicCopy;
 }) {
     return (
         <div className="upload-video-public-unavailable" role="alert">
             <WarningAmberRoundedIcon/>
             <h1>{title}</h1>
             <p>{message}</p>
-            {fromDashboard && <BackButton aria-label="Back to content" onClick={onBack}/>}
+            {fromDashboard && <BackButton aria-label={t("public.back.content")} onClick={onBack}/>}
         </div>
     );
 }

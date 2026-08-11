@@ -8,6 +8,7 @@
 - Champagne is the only supported visual theme for now.
 - Preserve Firebase contracts, database communication and authentication behavior unless a task explicitly requests data changes.
 - Keep settings/editor UI separate from public/show UI.
+- When modifying public pages or public/show UI, check whether `src/public-i18n.tsx` needs new or updated translations for English, Swedish and French.
 - Preserve the routing rule: zero selected sections shows the empty state; one selected section opens directly; two or more selected sections show the content dashboard.
 - One global password protects the complete public experience.
 - Do not add content reordering.

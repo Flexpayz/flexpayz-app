@@ -47,6 +47,7 @@ import {PermissionContext, Permissions, defaultPermissions} from "../components/
 import {ManageProductContext} from "../contexts";
 import {defaultProduct, Product, useEditState} from "../control-state";
 import {Languages} from "../languages";
+import {PUBLIC_LANGUAGES, normalizePublicLanguage} from "../public-i18n";
 import {Preview} from "../preview";
 import {
     PublicSectionDefinition,
@@ -708,9 +709,9 @@ function DeviceSettings({
             await updateDoc(doc(db, 'products', productId), {previewLanguage: language});
             updateProduct({previewLanguage: language});
             setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
-            onStatus('Profile language updated');
+            onStatus('Default public language updated');
         } catch {
-            setPublicExperienceStatus({state: 'error', message: 'Profile language could not be saved'});
+            setPublicExperienceStatus({state: 'error', message: 'Default public language could not be saved'});
         }
     };
 
@@ -816,15 +817,16 @@ function DeviceSettings({
                 <Surface className="settings-card">
                     <Box className="workspace-section-kicker">PUBLIC EXPERIENCE</Box>
                     <Box className="settings-row">
-                        <SectionIcon label="EN"/>
+                        <SectionIcon label={PUBLIC_LANGUAGES[normalizePublicLanguage(product.previewLanguage)].shortLabel}/>
                         <Box>
-                            <strong>Profile language</strong>
-                            <p>{product.previewLanguage || Languages.ENGLISH}</p>
+                            <strong>Public language</strong>
+                            <p>Default language visitors see on the public page.</p>
                         </Box>
                         <Select
                             value={product.previewLanguage || Languages.ENGLISH}
                             onChange={(event) => saveLanguage(event.target.value as Languages)}
-                            aria-label="Profile language"
+                            aria-label="Public language"
+                            inputProps={{'aria-label': 'Public language'}}
                             size="small"
                         >
                             {Object.values(Languages).map((language) => (

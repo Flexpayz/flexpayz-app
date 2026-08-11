@@ -18,6 +18,7 @@ import {
 } from "../upload-files";
 import {LoadingPanel} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
+import {TranslatePublicCopy, usePublicLanguage} from "../public-i18n";
 
 type MetadataBySlot = Record<UploadFileSlotId, UploadFileMetadataState>;
 type DocumentActionStatus = Record<string, string>;
@@ -33,6 +34,7 @@ export function UploadFilesPublicPage({product, productId, fromDashboard = false
     const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
     const [actionStatus, setActionStatus] = useState<DocumentActionStatus>({});
     const [pageShareStatus, setPageShareStatus] = useState("");
+    const {t} = usePublicLanguage();
 
     useEffect(() => {
         let active = true;
@@ -67,16 +69,16 @@ export function UploadFilesPublicPage({product, productId, fromDashboard = false
 
     const runDocumentAction = async (document: UploadFilePublicDocument, action: "download" | "share") => {
         const key = `${document.slot.id}-${action}`;
-        setActionStatus((prev) => ({...prev, [key]: action === "download" ? "Downloading…" : "Preparing share…"}));
+        setActionStatus((prev) => ({...prev, [key]: action === "download" ? t("files.downloading") : t("files.preparingShare")}));
         const result = action === "download" ? await downloadPublicDocument(document) : await sharePublicDocument(document);
         if (result.status === "cancelled") {
-            setActionStatus((prev) => ({...prev, [key]: "Share cancelled"}));
+            setActionStatus((prev) => ({...prev, [key]: t("files.shareCancelled")}));
             return;
         }
         setActionStatus((prev) => ({
             ...prev,
             [key]: result.status === "success"
-                ? action === "download" ? "Download ready" : "Shared"
+                ? action === "download" ? t("files.downloadReady") : t("files.shared")
                 : result.message,
         }));
     };
@@ -84,20 +86,20 @@ export function UploadFilesPublicPage({product, productId, fromDashboard = false
     return (
         <div className="upload-files-public-page">
             <div className="upload-files-public-circles" aria-hidden="true"><span/><span/></div>
-            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} language={product.previewLanguage || "EN"} shareTitle={`${product.name || "FlexPayz"} shared documents`} onShareMessage={setPageShareStatus}/>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={t("files.shareTitle", {name: product.name || "FlexPayz"})} onShareMessage={setPageShareStatus}/>
 
             <main className="upload-files-public-main">
                 <section className="upload-files-public-hero">
-                    <p className="business-kicker">{product.name || "FlexPayz product"}</p>
-                    <h1>Shared documents</h1>
-                    <p>Choose a document to download or share.</p>
-                    <span>{documents.length === 1 ? "1 document" : `${documents.length} documents`}</span>
+                    <p className="business-kicker">{product.name || t("files.kickerFallback")}</p>
+                    <h1>{t("files.title")}</h1>
+                    <p>{t("files.description")}</p>
+                    <span>{documents.length === 1 ? t("files.count.one") : t("files.count.other", {count: documents.length})}</span>
                 </section>
 
-                <section className="upload-files-public-panel" aria-label="Shared documents">
-                    {status === "loading" && <UploadFilesPublicSkeleton/>}
-                    {status === "error" && <UploadFilesPublicEmpty title="Documents unavailable" text="We could not load these shared documents."/>}
-                    {status === "ready" && documents.length === 0 && <UploadFilesPublicEmpty title="No documents are ready" text="This device does not have public documents available yet."/>}
+                <section className="upload-files-public-panel" aria-label={t("files.panelLabel")}>
+                    {status === "loading" && <UploadFilesPublicSkeleton t={t}/>}
+                    {status === "error" && <UploadFilesPublicEmpty title={t("files.error.title")} text={t("files.error.message")}/>}
+                    {status === "ready" && documents.length === 0 && <UploadFilesPublicEmpty title={t("files.empty.title")} text={t("files.empty.message")}/>}
                     {status === "ready" && documents.length > 0 && (
                         <ul className="upload-files-public-list">
                             {documents.map((document) => (
@@ -108,6 +110,7 @@ export function UploadFilesPublicPage({product, productId, fromDashboard = false
                                         shareStatus={actionStatus[`${document.slot.id}-share`]}
                                         onDownload={() => runDocumentAction(document, "download")}
                                         onShare={() => runDocumentAction(document, "share")}
+                                        t={t}
                                     />
                                 </li>
                             ))}
@@ -117,8 +120,8 @@ export function UploadFilesPublicPage({product, productId, fromDashboard = false
             </main>
 
             <footer className="upload-files-public-footer" aria-live="polite">
-                <span>Secure · contactless · yours</span>
-                <strong>{pageShareStatus || "Powered by FlexPayz"}</strong>
+                <span>{t("public.footer.secure")}</span>
+                <strong>{pageShareStatus || t("public.footer.powered")}</strong>
             </footer>
         </div>
     );
@@ -130,21 +133,23 @@ function DocumentRow({
     shareStatus,
     onDownload,
     onShare,
+    t,
 }: {
     document: UploadFilePublicDocument;
     downloadStatus?: string;
     shareStatus?: string;
     onDownload(): void;
     onShare(): void;
+    t: TranslatePublicCopy;
 }) {
-    const downloading = downloadStatus === "Downloading…";
-    const sharing = shareStatus === "Preparing share…";
+    const downloading = downloadStatus === t("files.downloading");
+    const sharing = shareStatus === t("files.preparingShare");
 
     return (
         <article className="upload-files-public-document">
             <span className="upload-files-public-pdf" aria-hidden="true"><DescriptionRoundedIcon/></span>
             <div>
-                <p>DOCUMENT {document.slot.number}</p>
+                <p>{t("files.document", {number: document.slot.number})}</p>
                 <h2>{document.displayName}</h2>
                 <small>{document.originalName} · PDF · {document.sizeLabel}</small>
                 {(downloadStatus || shareStatus) && <em aria-live="polite">{downloadStatus || shareStatus}</em>}
@@ -152,21 +157,21 @@ function DocumentRow({
             <div>
                 <button type="button" onClick={onDownload} disabled={downloading} aria-label={`Download ${document.displayName}`}>
                     {downloading ? <CircularProgress size={16} color="inherit"/> : <DownloadRoundedIcon fontSize="small"/>}
-                    Download
+                    {t("files.download")}
                 </button>
                 <button type="button" onClick={onShare} disabled={sharing} aria-label={`Share ${document.displayName}`}>
                     {sharing ? <CircularProgress size={16} color="inherit"/> : <IosShareRoundedIcon fontSize="small"/>}
-                    Share
+                    {t("files.share")}
                 </button>
             </div>
         </article>
     );
 }
 
-function UploadFilesPublicSkeleton() {
+function UploadFilesPublicSkeleton({t}: {t: TranslatePublicCopy}) {
     return (
         <div className="upload-files-public-skeleton">
-            <LoadingPanel text="Loading shared documents"/>
+            <LoadingPanel text={t("files.loading")}/>
         </div>
     );
 }

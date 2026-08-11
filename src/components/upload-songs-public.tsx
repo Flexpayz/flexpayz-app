@@ -19,6 +19,7 @@ import {
 } from "../upload-songs";
 import {LoadingPanel} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
+import {TranslatePublicCopy, usePublicLanguage} from "../public-i18n";
 
 type MetadataBySlot = Record<UploadSongSlotId, UploadSongMetadataState>;
 type LoadState = "loading" | "ready" | "error";
@@ -34,6 +35,7 @@ export function UploadSongsPublicPage({product, productId, fromDashboard = false
     const [trackUrls, setTrackUrls] = useState<Record<UploadSongSlotId, string>>({song1: "", song2: "", song3: ""});
     const [loadState, setLoadState] = useState<LoadState>("loading");
     const [pageShareMessage, setPageShareMessage] = useState("");
+    const {t} = usePublicLanguage();
 
     useEffect(() => {
         let active = true;
@@ -78,31 +80,31 @@ export function UploadSongsPublicPage({product, productId, fromDashboard = false
     ), [metadataBySlot, product, productId, trackUrls]);
 
     return (
-        <section className="upload-songs-public-page" aria-label="Audio collection">
+        <section className="upload-songs-public-page" aria-label={t("songs.aria")}>
             <div className="upload-files-public-circles" aria-hidden="true"><span/><span/></div>
-            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={`${product.name || "FlexPayz"} audio collection`} onShareMessage={setPageShareMessage}/>
+            <PublicPageHeader productId={productId} fromDashboard={fromDashboard} shareTitle={t("songs.shareTitle", {name: product.name || "FlexPayz"})} onShareMessage={setPageShareMessage}/>
 
             <main className="upload-songs-public-main">
                 {loadState === "loading" ? (
-                    <LoadingPanel text="Loading audio collection"/>
+                    <LoadingPanel text={t("songs.loading")}/>
                 ) : loadState === "error" ? (
-                    <UploadSongsPublicState title="Audio collection unavailable" message="Refresh and try again."/>
+                    <UploadSongsPublicState title={t("songs.error.title")} message={t("songs.error.message")}/>
                 ) : tracks.length === 0 ? (
-                    <UploadSongsPublicState title="No tracks are ready yet." message="This device has no public audio tracks right now."/>
+                    <UploadSongsPublicState title={t("songs.empty.title")} message={t("songs.empty.message")}/>
                 ) : (
-                    <UploadSongsPlayer product={product} tracks={tracks}/>
+                    <UploadSongsPlayer product={product} tracks={tracks} t={t}/>
                 )}
             </main>
 
             <footer className="upload-files-public-footer">
-                <span>{pageShareMessage || "Secure · contactless · yours"}</span>
-                <strong>Powered by FlexPayz</strong>
+                <span>{pageShareMessage || t("public.footer.secure")}</span>
+                <strong>{t("public.footer.powered")}</strong>
             </footer>
         </section>
     );
 }
 
-function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadSongPublicTrack[]}) {
+function UploadSongsPlayer({product, tracks, t}: {product: Product; tracks: UploadSongPublicTrack[]; t: TranslatePublicCopy}) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -127,10 +129,10 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
             await audioRef.current.play();
             setIsPlaying(true);
         } catch {
-            setPlaybackError(`Couldn’t play “${activeTrack.title}”. Check your connection and try again.`);
+            setPlaybackError(t("songs.playbackError", {title: activeTrack.title}));
             setIsPlaying(false);
         }
-    }, [activeTrack.title]);
+    }, [activeTrack.title, t]);
 
     const pauseTrack = () => {
         audioRef.current?.pause();
@@ -151,7 +153,7 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
         if (nextIndex < 0 || nextIndex >= tracks.length) return;
         setActiveIndex(nextIndex);
         window.setTimeout(() => {
-            audioRef.current?.play().catch(() => setPlaybackError("Playback could not continue. Choose a track and try again."));
+            audioRef.current?.play().catch(() => setPlaybackError(t("songs.continueError")));
         }, 0);
     };
 
@@ -161,14 +163,14 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
                 <div className="upload-songs-public-titlemark" aria-hidden="true"><MusicNoteRoundedIcon/></div>
                 <div>
                     <p className="business-kicker">{product.name || "FlexPayz product"}</p>
-                    <h1>Audio collection</h1>
-                    <p>{tracks.length === 1 ? "One track" : `${tracks.length} tracks`} · choose one to start playback.</p>
+                    <h1>{t("songs.title")}</h1>
+                    <p>{tracks.length === 1 ? t("songs.count.one") : t("songs.count.other", {count: tracks.length})} · {t("songs.choose")}</p>
                 </div>
             </div>
 
             <div className="upload-songs-public-workspace">
                 <section className="upload-songs-playlist" aria-labelledby="upload-songs-playlist-title">
-                    <p className="business-kicker" id="upload-songs-playlist-title">PLAYLIST</p>
+                    <p className="business-kicker" id="upload-songs-playlist-title">{t("songs.playlist")}</p>
                     <ol>
                         {tracks.map((track, index) => (
                             <li key={track.slot.id}>
@@ -188,7 +190,7 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
                             </li>
                         ))}
                     </ol>
-                    <p className="upload-songs-public-note">Secure · contactless · yours</p>
+                    <p className="upload-songs-public-note">{t("public.footer.secure")}</p>
                 </section>
 
                 <section className="upload-songs-now-playing" aria-labelledby="upload-songs-now-playing-title">
@@ -208,16 +210,16 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
                             if (activeIndex < tracks.length - 1) setActiveIndex((index) => index + 1);
                         }}
                         onError={() => {
-                            setPlaybackError(`Couldn’t play “${activeTrack.title}”. Check your connection and try again.`);
+                            setPlaybackError(t("songs.playbackError", {title: activeTrack.title}));
                             setIsPlaying(false);
                             setIsBuffering(false);
                         }}
                     >
                         <source src={activeTrack.src} type={activeTrack.contentType}/>
                     </audio>
-                    <p className="business-kicker" id="upload-songs-now-playing-title">NOW PLAYING</p>
+                    <p className="business-kicker" id="upload-songs-now-playing-title">{t("songs.nowPlaying")}</p>
                     <h2>{activeTrack.title}</h2>
-                    <span>Track {activeIndex + 1} of {tracks.length}</span>
+                    <span>{t("songs.trackOf", {current: activeIndex + 1, total: tracks.length})}</span>
                     <Waveform active/>
                     <div className="upload-songs-progress-row">
                         <input
@@ -237,14 +239,14 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
                         <small>{formatTime(duration)}</small>
                     </div>
                     <div className="upload-songs-controls">
-                        <button type="button" onClick={() => playRelative(-1)} disabled={activeIndex === 0} aria-label="Previous track"><SkipPreviousRoundedIcon/></button>
-                        <button type="button" onClick={togglePlay} aria-label={isPlaying ? `Pause ${activeTrack.title}` : `Play ${activeTrack.title}`}>
+                        <button type="button" onClick={() => playRelative(-1)} disabled={activeIndex === 0} aria-label={t("songs.previous")}><SkipPreviousRoundedIcon/></button>
+                        <button type="button" onClick={togglePlay} aria-label={isPlaying ? t("songs.pause", {title: activeTrack.title}) : t("songs.play", {title: activeTrack.title})}>
                             {isBuffering ? <CircularProgress size={20} color="inherit"/> : isPlaying ? <PauseRoundedIcon/> : <PlayArrowRoundedIcon/>}
                         </button>
-                        <button type="button" onClick={() => playRelative(1)} disabled={activeIndex === tracks.length - 1} aria-label="Next track"><SkipNextRoundedIcon/></button>
+                        <button type="button" onClick={() => playRelative(1)} disabled={activeIndex === tracks.length - 1} aria-label={t("songs.next")}><SkipNextRoundedIcon/></button>
                     </div>
                     <label className="upload-songs-volume">
-                        <span>Volume</span>
+                        <span>{t("songs.volume")}</span>
                         <VolumeUpRoundedIcon fontSize="small"/>
                         <input
                             type="range"
@@ -259,7 +261,7 @@ function UploadSongsPlayer({product, tracks}: {product: Product; tracks: UploadS
                             }}
                         />
                     </label>
-                    <p className="upload-songs-playback-message" role={playbackError ? "alert" : "status"}>{playbackError || (isBuffering ? "Buffering audio…" : "Playback stays on this page")}</p>
+                    <p className="upload-songs-playback-message" role={playbackError ? "alert" : "status"}>{playbackError || (isBuffering ? t("songs.buffering") : t("songs.playback"))}</p>
                 </section>
             </div>
         </>

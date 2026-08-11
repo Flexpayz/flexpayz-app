@@ -19,6 +19,7 @@ import {
 import {DB_COLLECTIONS, BabyJournalInformation} from "./baby-journal-settings";
 import {BackButton, LoadingPanel} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
+import {usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
 
 type PublicTab = "home" | "health";
 
@@ -35,6 +36,7 @@ export function BabyJournalPreview({
     const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
     const [activeTab, setActiveTab] = useState<PublicTab>("home");
     const headingRef = useRef<HTMLHeadingElement | null>(null);
+    const {language, t} = usePublicLanguage();
 
     useEffect(() => {
         let active = true;
@@ -70,7 +72,7 @@ export function BabyJournalPreview({
     if (state === "loading") {
         return (
             <div className="baby-journal-public-page">
-                <LoadingPanel text="Loading protected journal"/>
+                <LoadingPanel text={t("journal.loadingBaby")}/>
             </div>
         );
     }
@@ -78,7 +80,7 @@ export function BabyJournalPreview({
     if (state === "error") {
         return (
             <div className="baby-journal-public-page">
-                <PublicState title="Journal unavailable" message="Refresh the page and try again."/>
+                <PublicState title={t("journal.unavailable")} message={t("journal.refresh")}/>
             </div>
         );
     }
@@ -86,27 +88,27 @@ export function BabyJournalPreview({
     const safeJournal = journal || normalizeBabyJournal({});
 
     return (
-        <section className="baby-journal-public-page" aria-label="Baby Journal">
+        <section className="baby-journal-public-page" aria-label={t("journal.babyAria")}>
             <div className="baby-journal-public-circles" aria-hidden="true"><span/><span/></div>
-            <PublicPageHeader productId={productId || ""} fromDashboard={fromDashboard} shareTitle={`${safeJournal.name || product?.name || "Baby Journal"}`}/>
+            <PublicPageHeader productId={productId || ""} fromDashboard={fromDashboard} shareTitle={`${safeJournal.name || product?.name || t("section.babyJournal.title")}`}/>
 
             <main className="baby-journal-public-layout">
-                <aside className="baby-journal-public-sidebar" aria-label="Journal sections">
+                <aside className="baby-journal-public-sidebar" aria-label={t("journal.sections")}>
                     <BabyPublicIdentity journal={safeJournal}/>
-                    <nav role="tablist" aria-label="Baby Journal public sections">
-                        <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}><HomeRoundedIcon fontSize="small"/> Home</button>
-                        <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}><FavoriteBorderRoundedIcon fontSize="small"/> Health</button>
+                    <nav role="tablist" aria-label={t("journal.babySections")}>
+                        <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}><HomeRoundedIcon fontSize="small"/> {t("journal.home")}</button>
+                        <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}><FavoriteBorderRoundedIcon fontSize="small"/> {t("journal.health")}</button>
                     </nav>
                     <div className="baby-journal-public-note">
-                        <strong>Protected journal</strong>
-                        <span>Global access verified</span>
+                        <strong>{t("journal.protectedJournal")}</strong>
+                        <span>{t("journal.accessVerified")}</span>
                     </div>
                 </aside>
 
                 <section className="baby-journal-public-main">
-                    <div className="baby-journal-public-tabs" role="tablist" aria-label="Baby Journal public sections">
-                        <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}><HomeRoundedIcon fontSize="small"/> Home</button>
-                        <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}><FavoriteBorderRoundedIcon fontSize="small"/> Health</button>
+                    <div className="baby-journal-public-tabs" role="tablist" aria-label={t("journal.babySections")}>
+                        <button type="button" role="tab" aria-selected={activeTab === "home"} className={activeTab === "home" ? "active" : ""} onClick={() => setActiveTab("home")}><HomeRoundedIcon fontSize="small"/> {t("journal.home")}</button>
+                        <button type="button" role="tab" aria-selected={activeTab === "health"} className={activeTab === "health" ? "active" : ""} onClick={() => setActiveTab("health")}><FavoriteBorderRoundedIcon fontSize="small"/> {t("journal.health")}</button>
                     </div>
                     {activeTab === "home" ? (
                         <BabyJournalPublicHome journal={safeJournal} headingRef={headingRef}/>
@@ -114,8 +116,8 @@ export function BabyJournalPreview({
                         <BabyJournalPublicHealth journal={safeJournal} headingRef={headingRef}/>
                     )}
                     <footer className="baby-journal-public-bar">
-                        <span>Private information is shown only after global access verification.</span>
-                        {fromDashboard && <BackButton aria-label="Back to content" href={`/show-product?product_id=${productId}`}/>}
+                        <span>{t("journal.privateFooter")}</span>
+                        {fromDashboard && <BackButton aria-label={t("public.back.content")} href={withPublicLanguageParam(`/show-product?product_id=${productId}`, language)}/>}
                     </footer>
                 </section>
             </main>
@@ -135,11 +137,12 @@ function PublicState({title, message}: {title: string; message: string}) {
 
 function BabyPublicIdentity({journal}: {journal: BabyJournalInformation}) {
     const photo = journal.profilePicture[0];
+    const {t} = usePublicLanguage();
     return (
         <div className="baby-journal-public-identity">
             {photo ? <img src={photo.url} alt=""/> : <span aria-hidden="true">⌒</span>}
-            <p>{journal.name || "Baby Journal"}</p>
-            <strong>Baby Journal</strong>
+            <p>{journal.name || t("section.babyJournal.title")}</p>
+            <strong>{t("section.babyJournal.title")}</strong>
         </div>
     );
 }
@@ -147,29 +150,30 @@ function BabyPublicIdentity({journal}: {journal: BabyJournalInformation}) {
 function BabyJournalPublicHome({journal, headingRef}: {journal: BabyJournalInformation; headingRef: RefObject<HTMLHeadingElement>}) {
     const milestones = useMemo(() => getDatedMilestones(journal), [journal]);
     const latestSleep = useMemo(() => getLatestSleepEntry(journal.sleepSchedule), [journal.sleepSchedule]);
+    const {t} = usePublicLanguage();
     return (
         <>
             <section className="baby-journal-public-hero">
                 <BabyPublicAvatar journal={journal}/>
                 <div>
-                    <p className="business-kicker">BABY JOURNAL</p>
-                    <h1 ref={headingRef} tabIndex={-1}>{journal.name || "Family journal"}</h1>
-                    <p><strong>Born {formatJournalDate(journal.birthDate, "date pending")}</strong>{deriveBabyAgeLabel(journal.birthDate) ? ` · ${deriveBabyAgeLabel(journal.birthDate)}` : ""}{journal.gender ? ` · ${journal.gender}` : ""}{journal.bloodType ? ` · ${journal.bloodType}` : ""}</p>
+                    <p className="business-kicker">{t("section.babyJournal.title").toUpperCase()}</p>
+                    <h1 ref={headingRef} tabIndex={-1}>{journal.name || t("journal.familyFallback")}</h1>
+                    <p><strong>{t("journal.born", {date: formatJournalDate(journal.birthDate, t("journal.birthPending"))})}</strong>{deriveBabyAgeLabel(journal.birthDate) ? ` · ${deriveBabyAgeLabel(journal.birthDate)}` : ""}{journal.gender ? ` · ${journal.gender}` : ""}{journal.bloodType ? ` · ${journal.bloodType}` : ""}</p>
                     {journal.biography && <p>{journal.biography}</p>}
                 </div>
             </section>
 
-            <section className="baby-journal-public-snapshot" aria-label="Birth snapshot">
-                <PublicMetric label="Time of birth" value={journal.timeOfBirth}/>
+            <section className="baby-journal-public-snapshot" aria-label={t("journal.birthSnapshot")}>
+                <PublicMetric label={t("journal.timeOfBirth")} value={journal.timeOfBirth}/>
                 <PublicMetric label="APGAR" value={journal.apgar}/>
-                <PublicMetric label="Weight" value={journal.weightOnBirth}/>
-                <PublicMetric label="Height" value={journal.heightOnBirth}/>
-                <PublicMetric label="Birthplace" value={journal.placeOfBirth}/>
+                <PublicMetric label={t("journal.weight")} value={journal.weightOnBirth}/>
+                <PublicMetric label={t("journal.height")} value={journal.heightOnBirth}/>
+                <PublicMetric label={t("journal.birthplace")} value={journal.placeOfBirth}/>
             </section>
 
             <div className="baby-journal-public-grid">
                 <section className="baby-journal-public-card">
-                    <p className="business-kicker">PHYSICAL MILESTONES</p>
+                    <p className="business-kicker">{t("journal.physicalMilestones")}</p>
                     {milestones.length > 0 ? milestones.map((milestone) => (
                         <div className="baby-journal-public-timeline-row" key={milestone.field}>
                             <span aria-hidden="true"/>
@@ -178,42 +182,43 @@ function BabyJournalPublicHome({journal, headingRef}: {journal: BabyJournalInfor
                                 <p>{formatJournalDate(milestone.value)}</p>
                             </div>
                         </div>
-                    )) : <EmptyPublicRecord message="No milestones recorded yet."/>}
+                    )) : <EmptyPublicRecord message={t("journal.noMilestones")}/>}
                 </section>
 
                 <section className="baby-journal-public-card accent">
-                    <p className="business-kicker">LATEST SLEEP ENTRY</p>
+                    <p className="business-kicker">{t("journal.latestSleep")}</p>
                     {latestSleep ? (
                         <>
                             <strong>{formatJournalDate(latestSleep.dateKey)}</strong>
-                            <PublicInfoRow label="Day sleep" value={latestSleep.value.daySleeping}/>
-                            <PublicInfoRow label="Night sleep" value={latestSleep.value.nightSleeping}/>
-                            <PublicInfoRow label="Ways of sleeping" value={latestSleep.value.waysOfSleeping}/>
-                            <PublicInfoRow label="Progress" value={latestSleep.value.nightSleepingProgress}/>
+                            <PublicInfoRow label={t("journal.daySleep")} value={latestSleep.value.daySleeping}/>
+                            <PublicInfoRow label={t("journal.nightSleep")} value={latestSleep.value.nightSleeping}/>
+                            <PublicInfoRow label={t("journal.waysSleeping")} value={latestSleep.value.waysOfSleeping}/>
+                            <PublicInfoRow label={t("journal.progress")} value={latestSleep.value.nightSleepingProgress}/>
                         </>
-                    ) : <EmptyPublicRecord message="No sleep entries recorded yet."/>}
+                    ) : <EmptyPublicRecord message={t("journal.noSleep")}/>}
                 </section>
             </div>
 
             <section className="baby-journal-public-card">
-                <p className="business-kicker">FEEDING NOTES</p>
-                <PublicInfoRow label="First breastfeeding" value={journal.firstBreastfeeding}/>
-                <PublicInfoRow label="First formula" value={journal.firstFormula}/>
-                <PublicInfoRow label="First solid feeding" value={journal.firstSolidFeeding}/>
-                <PublicInfoRow label="Food preferences" value={journal.foodPreferences}/>
-                <PublicInfoRow label="Food aversions" value={journal.foodAversions}/>
+                <p className="business-kicker">{t("journal.feeding")}</p>
+                <PublicInfoRow label={t("journal.firstBreastfeeding")} value={journal.firstBreastfeeding}/>
+                <PublicInfoRow label={t("journal.firstFormula")} value={journal.firstFormula}/>
+                <PublicInfoRow label={t("journal.firstSolid")} value={journal.firstSolidFeeding}/>
+                <PublicInfoRow label={t("journal.foodPreferences")} value={journal.foodPreferences}/>
+                <PublicInfoRow label={t("journal.foodAversions")} value={journal.foodAversions}/>
             </section>
         </>
     );
 }
 
 function BabyJournalPublicHealth({journal, headingRef}: {journal: BabyJournalInformation; headingRef: RefObject<HTMLHeadingElement>}) {
+    const {t} = usePublicLanguage();
     return (
         <>
             <section className="baby-journal-public-section-heading">
-                <p className="business-kicker">HEALTH TAB</p>
-                <h1 ref={headingRef} tabIndex={-1}>Health overview</h1>
-                <p>Health Card and parent profiles continue below.</p>
+                <p className="business-kicker">{t("journal.healthTab")}</p>
+                <h1 ref={headingRef} tabIndex={-1}>{t("journal.healthOverview")}</h1>
+                <p>{t("journal.healthBabyIntro")}</p>
             </section>
 
             <section className="baby-journal-public-card">
@@ -229,18 +234,18 @@ function BabyJournalPublicHealth({journal, headingRef}: {journal: BabyJournalInf
                         </div>
                     );
                 })}
-                {journal.otherHealthConditions && <PublicInfoRow label="Other health conditions" value={journal.otherHealthConditions}/>}
+                {journal.otherHealthConditions && <PublicInfoRow label={t("journal.otherHealth")} value={journal.otherHealthConditions}/>}
             </section>
 
             <div className="baby-journal-public-grid">
-                <ParentPublicCard title="Mother" parent={journal.mother}/>
-                <ParentPublicCard title="Father" parent={journal.father}/>
+                <ParentPublicCard title={t("journal.mother")} parent={journal.mother}/>
+                <ParentPublicCard title={t("journal.father")} parent={journal.father}/>
             </div>
 
             <section className="baby-journal-public-card accent">
-                <p className="business-kicker">MEDICAL FILES</p>
-                <PublicInfoRow label="Medical records" value={journal.medicalRecords.length ? `${journal.medicalRecords.length} files protected` : "No medical files attached"}/>
-                <PublicInfoRow label="European Health Card" value={journal.europeanHealthCard.length ? "Protected file available" : "No file attached"}/>
+                <p className="business-kicker">{t("journal.medicalFiles")}</p>
+                <PublicInfoRow label={t("journal.medicalRecords")} value={journal.medicalRecords.length ? t("journal.filesProtected", {count: journal.medicalRecords.length}) : t("journal.noFiles")}/>
+                <PublicInfoRow label={t("journal.healthCard")} value={journal.europeanHealthCard.length ? t("journal.fileAvailable") : t("journal.noFiles")}/>
             </section>
         </>
     );
@@ -261,10 +266,11 @@ function PublicMetric({label, value}: {label: string; value: string}) {
 }
 
 function PublicInfoRow({label, value}: {label: string; value: string}) {
+    const {t} = usePublicLanguage();
     return (
         <div className="baby-journal-public-info-row">
             <span>{label}</span>
-            <strong>{value || "Not recorded"}</strong>
+            <strong>{value || t("journal.notRecorded")}</strong>
         </div>
     );
 }
@@ -274,14 +280,15 @@ function EmptyPublicRecord({message}: {message: string}) {
 }
 
 function ParentPublicCard({title, parent}: {title: string; parent: BabyJournalInformation["mother"]}) {
+    const {t} = usePublicLanguage();
     return (
         <section className="baby-journal-public-card">
             <p className="business-kicker">{title.toUpperCase()}</p>
-            <PublicInfoRow label="Name" value={parent.name}/>
-            <PublicInfoRow label="Blood type" value={parent.bloodType}/>
-            <PublicInfoRow label="Allergies" value={parent.allergies}/>
-            <PublicInfoRow label="Diseases" value={parent.diseases}/>
-            <PublicInfoRow label="Chronic adverse reactions" value={parent.chronicAversions}/>
+            <PublicInfoRow label={t("journal.name")} value={parent.name}/>
+            <PublicInfoRow label={t("journal.bloodType")} value={parent.bloodType}/>
+            <PublicInfoRow label={t("journal.allergies")} value={parent.allergies}/>
+            <PublicInfoRow label={t("journal.diseases")} value={parent.diseases}/>
+            <PublicInfoRow label={t("journal.chronic")} value={parent.chronicAversions}/>
         </section>
     );
 }

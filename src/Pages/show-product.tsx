@@ -30,6 +30,8 @@ import {UploadFilesPublicPage} from "../components/upload-files-public";
 import {UploadSongsPublicPage} from "../components/upload-songs-public";
 import {UploadVideoPublicPage} from "../components/upload-video-public";
 import {BackButton, FlexPayzLogo, LoadingPanel} from "../components/design-system";
+import {PublicLanguageProvider, TranslatePublicCopy, usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
+import {PublicLanguagePicker} from "../components/public-page-header";
 
 export function ShowProduct() {
     const navigate = useNavigate()
@@ -49,12 +51,10 @@ export function ShowProduct() {
                 const productRef = doc(db, 'products', productId)
                 const docSnap = await getDoc(productRef);
                 if (docSnap.exists()) {
-                    console.log("it exists")
                     const productData = docSnap.data() as Product;
                     if (!productData.activated) {
                         navigate('/app?product_id=' + productId)
                     }
-                    console.log("is activated")
                     setProduct((prev: Product) => ({...prev, ...productData}))
                     if (productData.inactive) {
                         setPasswordProtected(false);
@@ -121,9 +121,6 @@ export function ShowProduct() {
             });
     }
 
-    console.log('product, product', product)
-    console.log(product.color1, product.color2)
-
     const colorsStyle = {
         "--color1": product.color1 || '#467083',
         "--color2": product.color2 || "#A3B0B5",
@@ -139,10 +136,74 @@ export function ShowProduct() {
     const showSectionDashboard = publicRoutingMode === 'dashboard' && !opensSectionFromDashboard;
     const openedFromManageDevice = urlParams.get('from') === 'manage-device';
 
+    return (
+        <PublicLanguageProvider productId={productId || ""} defaultLanguage={product.previewLanguage}>
+            <ShowProductView
+                loaded={loaded}
+                product={product}
+                productId={productId || ""}
+                colorsStyle={colorsStyle}
+                passwordProtected={passwordProtected}
+                password={password}
+                setPassword={setPassword}
+                setPasswordProtected={setPasswordProtected}
+                publicRoutingMode={publicRoutingMode}
+                showSectionDashboard={showSectionDashboard}
+                visibleSections={visibleSections}
+                openedFromManageDevice={openedFromManageDevice}
+                activePreview={activePreview}
+                openedFromDashboard={openedFromDashboard}
+                profileImageURL={profileImageURL}
+                logoImageURL={logoImageURL}
+                downloadCV={downloadCV}
+            />
+        </PublicLanguageProvider>
+    );
+}
+
+function ShowProductView({
+    loaded,
+    product,
+    productId,
+    colorsStyle,
+    passwordProtected,
+    password,
+    setPassword,
+    setPasswordProtected,
+    publicRoutingMode,
+    showSectionDashboard,
+    visibleSections,
+    openedFromManageDevice,
+    activePreview,
+    openedFromDashboard,
+    profileImageURL,
+    logoImageURL,
+    downloadCV,
+}: {
+    loaded: boolean;
+    product: Product;
+    productId: string;
+    colorsStyle: CSSProperties;
+    passwordProtected: boolean;
+    password: string;
+    setPassword: (password: string) => void;
+    setPasswordProtected: (protectedPage: boolean) => void;
+    publicRoutingMode: string;
+    showSectionDashboard: boolean;
+    visibleSections: Preview[];
+    openedFromManageDevice: boolean;
+    activePreview: Preview | null;
+    openedFromDashboard: boolean;
+    profileImageURL: string;
+    logoImageURL: string;
+    downloadCV: () => void;
+}) {
+    const {t} = usePublicLanguage();
+
     if (!loaded) {
         return (
             <div style={colorsStyle} className="public-loading-page">
-                <LoadingPanel text="Loading public page"/>
+                <LoadingPanel text={t("public.loading")}/>
             </div>
         );
     }
@@ -152,8 +213,9 @@ export function ShowProduct() {
             <div style={colorsStyle} className="public-routing-state public-inactive-state">
                 <div className="public-routing-card public-inactive-card">
                     <FlexPayzLogo className="public-routing-logo"/>
-                    <h1>This device is inactive.</h1>
-                    <span>The owner has temporarily disabled this public page.</span>
+                    <PublicLanguagePicker/>
+                    <h1>{t("public.inactive.title")}</h1>
+                    <span>{t("public.inactive.message")}</span>
                 </div>
             </div>
         );
@@ -164,11 +226,12 @@ export function ShowProduct() {
             <div style={colorsStyle} className="password-page">
                 <div className="public-routing-card password-card">
                     <FlexPayzLogo className="public-routing-logo"/>
-                    <p>PROTECTED PAGE</p>
-                    <h1>Enter password</h1>
-                    <span>This FlexPayz page is protected by the owner.</span>
+                    <PublicLanguagePicker/>
+                    <p>{t("public.protected.kicker")}</p>
+                    <h1>{t("public.protected.title")}</h1>
+                    <span>{t("public.protected.message")}</span>
                     <TextField
-                        label="Password"
+                        label={t("public.password.label")}
                         type="password"
                         className="password-card-input"
                         value={password}
@@ -195,14 +258,14 @@ export function ShowProduct() {
             <PublicSectionDashboard
                 product={product}
                 sections={visibleSections}
-                productId={productId || ''}
+                productId={productId}
                 fromManageDevice={openedFromManageDevice}
             />
         )}
         {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.BUSINESS_CARD &&
             <BusinessCardPublicPage
                 product={product}
-                productId={productId || ""}
+                productId={productId}
                 profileImageURL={profileImageURL}
                 logoImageURL={logoImageURL}
                 onDownloadCV={downloadCV}
@@ -211,32 +274,34 @@ export function ShowProduct() {
         {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.CUSTOM_LINK &&
             <CustomLinkPublicPage
                 product={product}
-                productId={productId || ""}
+                productId={productId}
                 fromDashboard={openedFromDashboard}
             />}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE &&
-            <UploadFilesPublicPage product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
+            <UploadFilesPublicPage product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO &&
-            <UploadVideoPublicPage product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
+            <UploadVideoPublicPage product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS &&
-            <UploadSongsPublicPage product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
+            <UploadSongsPublicPage product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL &&
-            <BabyJournalPreview product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
+            <BabyJournalPreview product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ADULT_JOURNAL &&
-            <AdultJournalPreview product={product} productId={productId || ""} fromDashboard={openedFromDashboard}/>}
+            <AdultJournalPreview product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
 
     </div>)
-
 }
 
 function PublicNotConfigured() {
+    const {t} = usePublicLanguage();
+
     return (
         <div className="public-routing-state">
             <div className="public-routing-card">
                 <FlexPayzLogo className="public-routing-logo"/>
-                <h1>This device is not configured.</h1>
-                <span>No public sections are visible yet.</span>
+                <PublicLanguagePicker/>
+                <h1>{t("public.empty.title")}</h1>
+                <span>{t("public.empty.message")}</span>
             </div>
         </div>
     );
@@ -244,25 +309,29 @@ function PublicNotConfigured() {
 
 function PublicSectionDashboard({product, sections, productId, fromManageDevice}: { product: Product; sections: Preview[]; productId: string; fromManageDevice: boolean }) {
     const visibleDefinitions = PUBLIC_SECTION_ORDER.filter((section) => sections.includes(section.id));
+    const {language, t} = usePublicLanguage();
 
     return (
         <div className="public-routing-state">
             <div className="public-routing-card public-routing-dashboard">
-                <FlexPayzLogo className="public-routing-logo"/>
-                {fromManageDevice && <BackButton aria-label="Back to device dashboard" className="public-routing-back" href={`/manage-device?product_id=${encodeURIComponent(productId)}`}/>}
-                <h1>{product.name || 'FlexPayz product'}</h1>
-                <span>Choose what you want to open.</span>
+                <div className="public-routing-toolbar">
+                    <FlexPayzLogo className="public-routing-logo"/>
+                    {fromManageDevice && <BackButton aria-label={t("public.back.device")} className="public-routing-back" href={`/manage-device?product_id=${encodeURIComponent(productId)}`}/>}
+                    <PublicLanguagePicker/>
+                </div>
+                <h1>{product.name || t("public.dashboard.titleFallback")}</h1>
+                <span>{t("public.dashboard.message")}</span>
                 <div className="public-routing-section-list">
                     {visibleDefinitions.map((section) => (
                         <a
                             key={section.id}
-                            href={`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}&from=dashboard`}
+                            href={withPublicLanguageParam(`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}&from=dashboard`, language)}
                             className="public-routing-section"
                         >
                             <span className="public-routing-section-icon" aria-hidden="true">{getPublicSectionIcon(section.id)}</span>
                             <span>
-                                <strong>{section.title}</strong>
-                                <small>{section.description}</small>
+                                <strong>{getPublicSectionTitle(section.id, t)}</strong>
+                                <small>{getPublicSectionDescription(section.id, t)}</small>
                             </span>
                         </a>
                     ))}
@@ -270,6 +339,48 @@ function PublicSectionDashboard({product, sections, productId, fromManageDevice}
             </div>
         </div>
     );
+}
+
+function getPublicSectionTitle(sectionId: Preview, t: TranslatePublicCopy) {
+    switch (sectionId) {
+        case Preview.BUSINESS_CARD:
+            return t("section.businessCard.title");
+        case Preview.CUSTOM_LINK:
+            return t("section.customLink.title");
+        case Preview.UPLOAD_FILE:
+            return t("section.uploadFiles.title");
+        case Preview.UPLOAD_VIDEO:
+            return t("section.uploadVideo.title");
+        case Preview.UPLOAD_SONGS:
+            return t("section.uploadSongs.title");
+        case Preview.BABY_JOURNAL:
+            return t("section.babyJournal.title");
+        case Preview.ADULT_JOURNAL:
+            return t("section.adultJournal.title");
+        case Preview.ANIMAL_TAG:
+            return t("section.animalTag.title");
+    }
+}
+
+function getPublicSectionDescription(sectionId: Preview, t: TranslatePublicCopy) {
+    switch (sectionId) {
+        case Preview.BUSINESS_CARD:
+            return t("section.businessCard.description");
+        case Preview.CUSTOM_LINK:
+            return t("section.customLink.description");
+        case Preview.UPLOAD_FILE:
+            return t("section.uploadFiles.description");
+        case Preview.UPLOAD_VIDEO:
+            return t("section.uploadVideo.description");
+        case Preview.UPLOAD_SONGS:
+            return t("section.uploadSongs.description");
+        case Preview.BABY_JOURNAL:
+            return t("section.babyJournal.description");
+        case Preview.ADULT_JOURNAL:
+            return t("section.adultJournal.description");
+        case Preview.ANIMAL_TAG:
+            return t("section.animalTag.description");
+    }
 }
 
 function getPublicSectionIcon(sectionId: Preview) {

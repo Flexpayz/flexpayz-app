@@ -104,6 +104,57 @@
     letter-spacing: 0.12em;
 }
 
+.public-share-icon-button {
+    width: var(--fp-size-interactive-min);
+    height: var(--fp-size-interactive-min);
+    min-width: var(--fp-size-interactive-min);
+    padding: 0;
+    border-radius: 999px;
+}
+
+.public-language-picker {
+    position: relative;
+    width: var(--fp-size-interactive-min);
+    height: var(--fp-size-interactive-min);
+    min-width: var(--fp-size-interactive-min);
+    min-height: var(--fp-size-interactive-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--fp-color-border);
+    border-radius: 999px;
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    overflow: hidden;
+}
+
+.public-language-picker span {
+    pointer-events: none;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.public-language-picker select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: 0;
+    cursor: pointer;
+}
+
+.public-language-picker select:focus-visible {
+    outline: var(--fp-focus-outline);
+    outline-offset: var(--fp-focus-offset);
+    box-shadow: var(--fp-focus-ring);
+}
+
 .business-public-topbar .fp-back-button {
     width: 2.75rem;
     height: 2.75rem;
@@ -566,7 +617,21 @@
         white-space: nowrap;
     }
 
-    .business-public-link svg {
+    .public-share-icon-button {
+        width: 2.5rem;
+        height: 2.5rem;
+        min-width: 2.5rem;
+        padding: 0;
+    }
+
+    .public-language-picker {
+        width: 2.5rem;
+        height: 2.5rem;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+    }
+
+    .business-public-link:not(.public-share-icon-button) svg {
         display: none;
     }
 
@@ -760,6 +825,10 @@
     .business-public-link {
         padding: 0 var(--fp-space-2);
         font-size: 0.72rem;
+    }
+
+    .public-share-icon-button {
+        padding: 0;
     }
 
     .business-public-topbar .fp-back-button {
@@ -1081,9 +1150,25 @@
     margin-bottom: var(--fp-space-4);
 }
 
+.public-routing-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--fp-space-3);
+    margin-bottom: var(--fp-space-5);
+}
+
+.public-routing-toolbar .public-routing-logo {
+    flex: 1 1 auto;
+    width: min(12rem, 48vw);
+    margin-bottom: 0;
+}
+
+.public-routing-toolbar .public-language-picker {
+    flex: 0 0 auto;
+}
+
 .public-routing-back {
-    float: right;
-    margin-left: var(--fp-space-3);
+    flex: 0 0 auto;
 }
 
 .public-routing-card h1 {
@@ -1154,6 +1239,26 @@
 
 .public-routing-section-icon svg {
     font-size: 1.15rem;
+}
+
+@media (max-width: 700px) {
+    .public-routing-toolbar {
+        gap: var(--fp-space-2);
+    }
+
+    .public-routing-toolbar .public-routing-logo {
+        width: min(9.5rem, 42vw);
+    }
+}
+
+@media (max-width: 430px) {
+    .public-routing-card {
+        padding: var(--fp-space-5);
+    }
+
+    .public-routing-toolbar .public-routing-logo {
+        width: min(6.5rem, 34vw);
+    }
 }
 
 .custom-link-public-page {

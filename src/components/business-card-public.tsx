@@ -26,7 +26,7 @@ import {
 import {Product} from "../control-state";
 import {AppButton} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
-import {translatedText} from "../languages";
+import {TranslatePublicCopy, usePublicLanguage} from "../public-i18n";
 import {ReactComponent as FacebookIcon} from "../assets/social/facebook.svg";
 import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
 import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
@@ -54,7 +54,7 @@ type ShareStatus = "idle" | "sending" | "sent" | "failed";
 
 export function BusinessCardPublicPage({product, productId, profileImageURL, logoImageURL, onDownloadCV, fromDashboard = false}: BusinessCardPublicPageProps) {
     const normalized = normalizeBusinessCardProduct(product);
-    const copy = translatedText[normalized.previewLanguage] || translatedText.english;
+    const {t} = usePublicLanguage();
     const [contactSheetOpen, setContactSheetOpen] = useState(false);
     const [shareDetailsOpen, setShareDetailsOpen] = useState(false);
     const [pageShareMessage, setPageShareMessage] = useState("");
@@ -65,8 +65,8 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
     const publicName = getPublicName(normalized);
     const firstName = normalized.firstName || publicName.split(" ")[0] || "this profile";
     const companyAddress = formatCompanyAddress(normalized);
-    const contactOptions = useMemo(() => buildContactOptions(normalized), [normalized]);
-    const primaryActions = contactOptions.filter((option) => ["Call", "Email", "Open"].includes(option.action)).slice(0, 3);
+    const contactOptions = useMemo(() => buildContactOptions(normalized, t), [normalized, t]);
+    const primaryActions = contactOptions.slice(0, 3);
     const socialLinks = [
         {label: "LinkedIn", value: normalized.linkedIn, icon: "in"},
         {label: "Instagram", value: normalized.instagram, icon: <InstagramIcon/>},
@@ -102,11 +102,11 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
     const submitSharedDetails = async (event: FormEvent) => {
         event.preventDefault();
         const nextErrors: Record<string, string> = {};
-        if (!shareForm.name.trim()) nextErrors.name = "Enter your full name.";
-        if (!shareForm.email.trim() && !shareForm.phone.trim()) nextErrors.contact = "Enter at least an email or phone.";
-        if (shareForm.email.trim() && !isValidEmail(shareForm.email)) nextErrors.email = "Enter a valid email.";
-        if (shareForm.phone.trim() && shareForm.phone.replace(/[^\d+]/g, "").length < 6) nextErrors.phone = "Enter a valid phone.";
-        if (!shareForm.consent) nextErrors.consent = "Consent is required.";
+        if (!shareForm.name.trim()) nextErrors.name = t("business.error.name");
+        if (!shareForm.email.trim() && !shareForm.phone.trim()) nextErrors.contact = t("business.error.contact");
+        if (shareForm.email.trim() && !isValidEmail(shareForm.email)) nextErrors.email = t("business.error.email");
+        if (shareForm.phone.trim() && shareForm.phone.replace(/[^\d+]/g, "").length < 6) nextErrors.phone = t("business.error.phone");
+        if (!shareForm.consent) nextErrors.consent = t("business.error.consent");
         setShareErrors(nextErrors);
         if (Object.keys(nextErrors).length > 0 || !productId) return;
 
@@ -146,7 +146,7 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                         {(normalized.companyName || normalized.city) && <strong>{[normalized.companyName, normalized.city].filter(Boolean).join(" · ")}</strong>}
                         {normalized.about && <p className="business-public-about">{normalized.about}</p>}
                         <div className="business-public-actions">
-                            <button type="button" className="business-public-button primary" onClick={downloadVCard}>{copy["Save my contact details"]} <span>+</span></button>
+                            <button type="button" className="business-public-button primary" onClick={downloadVCard}>{t("business.saveContact")} <span>+</span></button>
                             {primaryActions.map((option) => (
                                 <a key={`${option.label}-${option.value}`} className="business-public-button" href={option.href} target={option.external ? "_blank" : undefined} rel={option.external ? "noopener noreferrer" : undefined}>
                                     {option.action}
@@ -156,8 +156,8 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                     </div>
 
                     <div className="business-public-panel">
-                        <p className="business-kicker">DIRECT CONTACT</p>
-                        <h2>Everything useful, one tap away.</h2>
+                        <p className="business-kicker">{t("business.directContact")}</p>
+                        <h2>{t("business.directContactTitle")}</h2>
                         <div className="business-public-contact-list">
                             {contactOptions.slice(0, 4).map((option) => (
                                 <a key={`${option.label}-${option.value}`} href={option.href} target={option.external ? "_blank" : undefined} rel={option.external ? "noopener noreferrer" : undefined}>
@@ -169,7 +169,7 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                         </div>
                         {socialLinks.length > 0 && (
                             <>
-                                <p className="business-kicker">CONNECT</p>
+                                <p className="business-kicker">{t("business.connect")}</p>
                                 <div className="business-public-socials">
                                     {socialLinks.map((social) => (
                                         <a key={social.label} href={normalizeExternalUrl(social.value)} target="_blank" rel="noopener noreferrer" aria-label={`Open ${publicName} on ${social.label}`}>
@@ -187,8 +187,8 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                             </button>
                         )}
                         <button type="button" className="business-public-exchange" onClick={() => setShareDetailsOpen(true)}>
-                            <small>EXCHANGE DETAILS</small>
-                            <strong>Share your details</strong>
+                            <small>{t("business.exchange.kicker")}</small>
+                            <strong>{t("business.exchange.title")}</strong>
                             <ArrowOutwardRoundedIcon/>
                         </button>
                     </div>
@@ -197,18 +197,18 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                 <section className="business-public-lower">
                     {hasCompany && (
                         <article className="business-public-card">
-                            <p className="business-kicker">COMPANY</p>
-                            <h2>{normalized.companyName || "Company"}</h2>
+                            <p className="business-kicker">{t("business.company")}</p>
+                            <h2>{normalized.companyName || t("business.companyFallback")}</h2>
                             {normalized.companyAbout && <p>{normalized.companyAbout}</p>}
                             {companyAddress && <strong>{companyAddress}</strong>}
                         </article>
                     )}
                     <button type="button" className="business-public-contact-sheet-trigger" onClick={() => setContactSheetOpen(true)}>
-                        All contact options <ArrowOutwardRoundedIcon fontSize="small"/>
+                        {t("business.allContactOptions")} <ArrowOutwardRoundedIcon fontSize="small"/>
                     </button>
                 </section>
 
-                <footer className="business-public-footer">Secure · contactless · yours</footer>
+                <footer className="business-public-footer">{t("business.footer")}</footer>
             </div>
 
             <ContactDetailsDialog
@@ -216,6 +216,7 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                 onClose={() => setContactSheetOpen(false)}
                 options={contactOptions}
                 onSaveAll={downloadVCard}
+                t={t}
             />
             <ShareDetailsDialog
                 open={shareDetailsOpen}
@@ -230,18 +231,19 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                 status={shareStatus}
                 setForm={setShareForm}
                 onSubmit={submitSharedDetails}
+                t={t}
             />
         </main>
     );
 }
 
-function ContactDetailsDialog({open, onClose, options, onSaveAll}: {open: boolean; onClose: () => void; options: ContactOption[]; onSaveAll: () => void}) {
+function ContactDetailsDialog({open, onClose, options, onSaveAll, t}: {open: boolean; onClose: () => void; options: ContactOption[]; onSaveAll: () => void; t: TranslatePublicCopy}) {
     return (
         <Modal open={open} onClose={onClose} aria-labelledby="business-contact-options-title">
             <Box className="business-public-modal">
-                <button type="button" className="business-public-modal-close" aria-label="Close contact options" onClick={onClose}><CloseRoundedIcon/></button>
-                <p className="business-kicker">CONTACT DETAILS</p>
-                <h2 id="business-contact-options-title">All contact options</h2>
+                <button type="button" className="business-public-modal-close" aria-label={t("business.modal.contact.close")} onClick={onClose}><CloseRoundedIcon/></button>
+                <p className="business-kicker">{t("business.modal.contact.kicker")}</p>
+                <h2 id="business-contact-options-title">{t("business.modal.contact.title")}</h2>
                 <div className="business-public-modal-grid">
                     {options.map((option) => (
                         <a key={`${option.label}-${option.value}`} href={option.href} target={option.external ? "_blank" : undefined} rel={option.external ? "noopener noreferrer" : undefined}>
@@ -251,7 +253,7 @@ function ContactDetailsDialog({open, onClose, options, onSaveAll}: {open: boolea
                         </a>
                     ))}
                 </div>
-                <AppButton variant="contained" fullWidth onClick={onSaveAll}>Save all details to contacts</AppButton>
+                <AppButton variant="contained" fullWidth onClick={onSaveAll}>{t("business.modal.contact.saveAll")}</AppButton>
             </Box>
         </Modal>
     );
@@ -266,6 +268,7 @@ function ShareDetailsDialog({
     status,
     setForm,
     onSubmit,
+    t,
 }: {
     open: boolean;
     onClose: () => void;
@@ -275,34 +278,35 @@ function ShareDetailsDialog({
     status: ShareStatus;
     setForm: (form: {name: string; email: string; phone: string; message: string; consent: boolean}) => void;
     onSubmit: (event: FormEvent) => void;
+    t: TranslatePublicCopy;
 }) {
     return (
         <Modal open={open} onClose={onClose} aria-labelledby="business-share-details-title">
             <Box className="business-public-modal business-share-modal">
-                <button type="button" className="business-public-modal-close" aria-label="Close share details" onClick={onClose}><CloseRoundedIcon/></button>
-                <p className="business-kicker">SHARE YOUR DETAILS</p>
+                <button type="button" className="business-public-modal-close" aria-label={t("business.modal.share.close")} onClick={onClose}><CloseRoundedIcon/></button>
+                <p className="business-kicker">{t("business.modal.share.kicker")}</p>
                 {status === "sent" ? (
                     <div className="business-share-thank-you" role="status">
-                        <h2 id="business-share-details-title">Thank you</h2>
-                        <p>Your contact details were sent successfully.</p>
-                        <AppButton variant="contained" onClick={onClose}>Close</AppButton>
+                        <h2 id="business-share-details-title">{t("business.modal.share.thanks")}</h2>
+                        <p>{t("business.modal.share.sent")}</p>
+                        <AppButton variant="contained" onClick={onClose}>{t("business.modal.share.closeAction")}</AppButton>
                     </div>
                 ) : (
                     <>
-                        <h2 id="business-share-details-title">Send your contact back to {firstName}</h2>
+                        <h2 id="business-share-details-title">{t("business.modal.share.title", {name: firstName})}</h2>
                         <form onSubmit={onSubmit} className="business-share-form">
-                            <TextField label="Full name" value={form.name} onChange={(event) => setForm({...form, name: event.target.value})} error={Boolean(errors.name)} helperText={errors.name} size="small"/>
-                            <TextField label="Email" value={form.email} onChange={(event) => setForm({...form, email: event.target.value})} error={Boolean(errors.email || errors.contact)} helperText={errors.email || errors.contact} size="small" type="email" inputMode="email"/>
-                            <TextField label="Phone" value={form.phone} onChange={(event) => setForm({...form, phone: event.target.value})} error={Boolean(errors.phone || errors.contact)} helperText={errors.phone} size="small" type="tel" inputMode="tel"/>
-                            <TextField className="wide" label="Message · optional" value={form.message} onChange={(event) => setForm({...form, message: event.target.value})} size="small" multiline minRows={3}/>
+                            <TextField label={t("business.form.fullName")} value={form.name} onChange={(event) => setForm({...form, name: event.target.value})} error={Boolean(errors.name)} helperText={errors.name} size="small"/>
+                            <TextField label={t("business.form.email")} value={form.email} onChange={(event) => setForm({...form, email: event.target.value})} error={Boolean(errors.email || errors.contact)} helperText={errors.email || errors.contact} size="small" type="email" inputMode="email"/>
+                            <TextField label={t("business.form.phone")} value={form.phone} onChange={(event) => setForm({...form, phone: event.target.value})} error={Boolean(errors.phone || errors.contact)} helperText={errors.phone} size="small" type="tel" inputMode="tel"/>
+                            <TextField className="wide" label={t("business.form.message")} value={form.message} onChange={(event) => setForm({...form, message: event.target.value})} size="small" multiline minRows={3}/>
                             <label className={`business-share-consent ${errors.consent ? "has-error" : ""}`}>
                                 <Checkbox checked={form.consent} onChange={(event) => setForm({...form, consent: event.target.checked})}/>
-                                <span>I agree to share these details with this profile owner.</span>
+                                <span>{t("business.form.consent")}</span>
                             </label>
                             {errors.consent && <p className="business-share-error">{errors.consent}</p>}
-                            {status === "failed" && <p className="business-share-error" role="alert">Could not send details. Try again.</p>}
+                            {status === "failed" && <p className="business-share-error" role="alert">{t("business.error.send")}</p>}
                             <AppButton type="submit" variant="contained" disabled={status === "sending"} endIcon={status === "sending" ? <CircularProgress size={16} color="inherit"/> : <ArrowOutwardRoundedIcon/>}>
-                                Send details
+                                {t("business.form.send")}
                             </AppButton>
                         </form>
                     </>
@@ -312,34 +316,34 @@ function ShareDetailsDialog({
     );
 }
 
-function buildContactOptions(product: Product): ContactOption[] {
+function buildContactOptions(product: Product, t: TranslatePublicCopy): ContactOption[] {
     const emails = [product.email, product.email2, product.email3].filter(Boolean).map((email, index) => ({
-        label: index === 0 ? "Email" : `Email ${index + 1}`,
+        label: index === 0 ? t("business.form.email") : `${t("business.form.email")} ${index + 1}`,
         value: email,
         href: sanitizeMailHref(email),
-        action: "Email",
+        action: t("business.action.email"),
         icon: <MailRoundedIcon/>,
     }));
     const phones = [product.phoneNumber, product.phoneNumber2, product.phoneNumber3].filter(Boolean).map((phone, index) => ({
-        label: index === 0 ? "Phone" : `Phone ${index + 1}`,
+        label: index === 0 ? t("business.form.phone") : `${t("business.form.phone")} ${index + 1}`,
         value: phone,
         href: sanitizePhoneHref(phone),
-        action: "Call",
+        action: t("business.action.call"),
         icon: <PhoneRoundedIcon/>,
     }));
     const websites = [product.website, product.website2].filter(Boolean).map((website, index) => ({
-        label: index === 0 ? "Website" : `Website ${index + 1}`,
+        label: index === 0 ? t("business.label.website") : `${t("business.label.website")} ${index + 1}`,
         value: website,
         href: normalizeExternalUrl(website),
-        action: "Open",
+        action: t("business.action.open"),
         icon: <PublicRoundedIcon/>,
         external: true,
     }));
     const location = formatAddress(product) ? [{
-        label: "Location",
+        label: t("business.label.location"),
         value: formatAddress(product),
         href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formatAddress(product))}`,
-        action: "Open",
+        action: t("business.action.open"),
         icon: <PlaceRoundedIcon/>,
         external: true,
     }] : [];

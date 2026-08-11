@@ -2,7 +2,6 @@ import {Box, Stack} from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import DiamondOutlinedIcon from "@mui/icons-material/DiamondOutlined";
 import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
-import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import NorthEastRoundedIcon from "@mui/icons-material/NorthEastRounded";
 import TouchAppOutlinedIcon from "@mui/icons-material/TouchAppOutlined";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
@@ -61,14 +60,6 @@ function EntryPage({onManageDevices}: EntryPageProps) {
                                 onClick={() => window.open(SUPPORT_URL, '_blank', 'noopener,noreferrer')}
                             >
                                 <HelpOutlineRoundedIcon fontSize="small" aria-hidden="true"/>
-                            </button>
-                            <button
-                                type="button"
-                                className="entry-language-button"
-                                aria-label="Language selector, English"
-                            >
-                                <span>EN</span>
-                                <KeyboardArrowDownRoundedIcon fontSize="small" aria-hidden="true"/>
                             </button>
                         </Stack>
                     </Box>
