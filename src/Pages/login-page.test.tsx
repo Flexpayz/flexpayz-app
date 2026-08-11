@@ -12,15 +12,18 @@ import {FirstPageWrapper} from "./landing-page";
 import {MainContext} from "../contexts";
 import {FlexPayzThemeProvider} from "../theme";
 
+const mockAuth = {};
+const mockUserDoc = {};
+
 jest.mock("firebase/auth", () => ({
-    getAuth: jest.fn(() => ({})),
+    getAuth: jest.fn(() => mockAuth),
     createUserWithEmailAndPassword: jest.fn(),
     signInWithEmailAndPassword: jest.fn(),
     sendPasswordResetEmail: jest.fn(),
 }));
 
 jest.mock("firebase/firestore", () => ({
-    doc: jest.fn(() => ({})),
+    doc: jest.fn(() => mockUserDoc),
     setDoc: jest.fn(),
 }));
 
@@ -83,7 +86,7 @@ describe("Login authentication flow", () => {
         fireEvent.change(screen.getByLabelText("Password"), {target: {value: "secret123"}});
         fireEvent.click(screen.getByRole("button", {name: /sign in/i}));
 
-        await waitFor(() => expect(mockedSignIn).toHaveBeenCalledWith(undefined, "user@example.com", "secret123"));
+        await waitFor(() => expect(mockedSignIn).toHaveBeenCalledWith(mockAuth, "user@example.com", "secret123"));
         expect(await screen.findByRole("heading", {name: "Manage devices"})).toBeInTheDocument();
     });
 
@@ -169,8 +172,8 @@ describe("Registration authentication flow", () => {
         fireEvent.click(screen.getByLabelText(/terms of service/i));
         fireEvent.click(screen.getByRole("button", {name: /^create account$/i}));
 
-        await waitFor(() => expect(mockedCreateUser).toHaveBeenCalledWith(undefined, "new@example.com", "Secret123"));
-        await waitFor(() => expect(mockedSetDoc).toHaveBeenCalledWith(undefined, {country: "Sweden", products: []}));
+        await waitFor(() => expect(mockedCreateUser).toHaveBeenCalledWith(mockAuth, "new@example.com", "Secret123"));
+        await waitFor(() => expect(mockedSetDoc).toHaveBeenCalledWith(mockUserDoc, {country: "Sweden", products: []}));
         expect(await screen.findByRole("heading", {name: "Manage devices"})).toBeInTheDocument();
     });
 
@@ -219,7 +222,7 @@ describe("Forgot password authentication flow", () => {
         fireEvent.change(screen.getByLabelText("Email address"), {target: {value: "robert@example.com"}});
         fireEvent.click(screen.getByRole("button", {name: /send reset link/i}));
 
-        await waitFor(() => expect(mockedResetEmail).toHaveBeenCalledWith(undefined, "robert@example.com"));
+        await waitFor(() => expect(mockedResetEmail).toHaveBeenCalledWith(mockAuth, "robert@example.com"));
         expect(await screen.findByRole("heading", {level: 1, name: "Check your inbox."})).toBeInTheDocument();
         expect(screen.getByText("We sent a password reset link to ro••••@example.com.")).toBeInTheDocument();
         expect(screen.getByText("The link will expire for your security.")).toBeInTheDocument();
