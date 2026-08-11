@@ -25,7 +25,6 @@ import ContactsRoundedIcon from "@mui/icons-material/ContactsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
-import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import PetsRoundedIcon from "@mui/icons-material/PetsRounded";
@@ -309,9 +308,6 @@ function MobileWorkspaceHeader({
                         {product.inactive ? 'Inactive' : visibleCount > 0 ? 'Active' : 'Setup needed'}
                     </small>
                 </Box>
-                <IconButton aria-label="Open device actions">
-                    <MoreHorizRoundedIcon/>
-                </IconButton>
             </Surface>
             <Tabs
                 value={activeTab}
