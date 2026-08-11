@@ -2,16 +2,23 @@ import {useProductInformation} from "../control-state";
 import VCard from "vcard-creator";
 import {SettingsHeader} from "../Pages/manage-device";
 import {normalizeSharedContacts, SharedContact} from "../business-card";
+import {doc, updateDoc} from "firebase/firestore";
+import {useState} from "react";
+import {db} from "../App";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import {getProductIdFromURL} from "../utils";
 
-function Contact({contact}: {contact: SharedContact}) {
+function Contact({contact, onDelete}: {contact: SharedContact; onDelete: () => void}) {
     const saveContact = () => {
         const contactVCard = new VCard()
         contactVCard.addName(contact.name)
+        if (contact.company) contactVCard.addCompany(contact.company)
         if (contact.email) contactVCard.addEmail(contact.email)
         if (contact.phone) contactVCard.addPhoneNumber(contact.phone)
         const blob = new Blob([contactVCard.toString()], {type: "text/vcard"})
@@ -29,6 +36,9 @@ function Contact({contact}: {contact: SharedContact}) {
 
     return (
         <article className="shared-contact-card">
+            <button type="button" onClick={onDelete} className="shared-contact-delete-button" aria-label={`Delete ${contact.name || "contact"}`}>
+                <DeleteOutlineRoundedIcon fontSize="small" aria-hidden="true"/>
+            </button>
             <div className="shared-contact-card-header">
                 <div>
                     <span className="fp-typography-eyebrow">{formatSharedContactDate(contact.date)}</span>
@@ -40,6 +50,13 @@ function Contact({contact}: {contact: SharedContact}) {
                 </button>
             </div>
             <div className="shared-contact-details">
+                {contact.company && (
+                    <div className="shared-contact-detail">
+                        <span aria-hidden="true"><BusinessRoundedIcon fontSize="small"/></span>
+                        <strong>Company</strong>
+                        <small>{contact.company}</small>
+                    </div>
+                )}
                 {contact.email && (
                     <a href={`mailto:${contact.email}`} className="shared-contact-detail">
                         <span aria-hidden="true"><EmailOutlinedIcon fontSize="small"/></span>
@@ -69,11 +86,27 @@ function Contact({contact}: {contact: SharedContact}) {
 export function SharedContacts() {
 
     // const {productState} = useContext(ManageProductContext)
-    const {productState} = useProductInformation()
+    const {productState, setProductState} = useProductInformation()
+    const productId = getProductIdFromURL();
     const contacts = normalizeSharedContacts(productState?.sharedContacts)
+    const [contactToDelete, setContactToDelete] = useState<number | null>(null);
+    const [deleteError, setDeleteError] = useState("");
     const contactsExist = contacts.length > 0
     const latestContactDate = getLatestSharedContactDate(contacts)
 
+    const deleteContact = async () => {
+        if (contactToDelete === null || !productId) return;
+
+        const nextContacts = contacts.filter((_, index) => index !== contactToDelete);
+        try {
+            await updateDoc(doc(db, "products", productId), {sharedContacts: nextContacts});
+            setProductState((current) => ({...current, sharedContacts: nextContacts}));
+            setContactToDelete(null);
+            setDeleteError("");
+        } catch {
+            setDeleteError("Contact could not be deleted. Please try again.");
+        }
+    };
 
     return (<div className="settings-page shared-contacts-page">
         <SettingsHeader/>
@@ -117,16 +150,33 @@ export function SharedContacts() {
                 )}
                 {contactsExist && (
                     <div className="shared-contact-list">
-                        {contacts.map((contact) => (
+                        {contacts.map((contact, index) => (
                             <Contact
-                                key={`${contact.date}-${contact.email}-${contact.phone}-${contact.name}`}
+                                key={`${contact.date}-${contact.email}-${contact.phone}-${contact.name}-${contact.company || ""}`}
                                 contact={contact}
+                                onDelete={() => {
+                                    setContactToDelete(index);
+                                    setDeleteError("");
+                                }}
                             />
                         ))}
                     </div>
                 )}
             </section>
         </main>
+        {contactToDelete !== null && (
+            <div className="shared-contact-confirm-backdrop" role="presentation">
+                <div className="shared-contact-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="shared-contact-delete-title">
+                    <h2 id="shared-contact-delete-title">Delete contact card?</h2>
+                    <p>This removes {contacts[contactToDelete]?.name || "this contact"} from your shared contacts. This action cannot be undone.</p>
+                    {deleteError && <p className="shared-contact-delete-error" role="alert">{deleteError}</p>}
+                    <div className="shared-contact-confirm-actions">
+                        <button type="button" className="shared-contact-cancel-button" onClick={() => setContactToDelete(null)}>Cancel</button>
+                        <button type="button" className="shared-contact-confirm-delete-button" onClick={deleteContact}>Delete contact</button>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>)
 }
 

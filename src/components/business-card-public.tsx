@@ -60,7 +60,7 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
     const [pageShareMessage, setPageShareMessage] = useState("");
     const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
     const [shareErrors, setShareErrors] = useState<Record<string, string>>({});
-    const [shareForm, setShareForm] = useState({name: "", email: "", phone: "", message: "", consent: false});
+    const [shareForm, setShareForm] = useState({name: "", company: "", email: "", phone: "", message: "", consent: false});
 
     const publicName = getPublicName(normalized);
     const firstName = normalized.firstName || publicName.split(" ")[0] || "this profile";
@@ -115,6 +115,7 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
             await updateDoc(doc(db, "products", productId), {
                 sharedContacts: arrayUnion({
                     name: shareForm.name.trim(),
+                    ...(shareForm.company.trim() ? {company: shareForm.company.trim()} : {}),
                     email: shareForm.email.trim(),
                     phone: shareForm.phone.trim(),
                     date: Date.now(),
@@ -123,7 +124,7 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
                 }),
             });
             setShareStatus("sent");
-            setShareForm({name: "", email: "", phone: "", message: "", consent: false});
+            setShareForm({name: "", company: "", email: "", phone: "", message: "", consent: false});
         } catch {
             setShareStatus("failed");
         }
@@ -273,10 +274,10 @@ function ShareDetailsDialog({
     open: boolean;
     onClose: () => void;
     firstName: string;
-    form: {name: string; email: string; phone: string; message: string; consent: boolean};
+    form: {name: string; company: string; email: string; phone: string; message: string; consent: boolean};
     errors: Record<string, string>;
     status: ShareStatus;
-    setForm: (form: {name: string; email: string; phone: string; message: string; consent: boolean}) => void;
+    setForm: (form: {name: string; company: string; email: string; phone: string; message: string; consent: boolean}) => void;
     onSubmit: (event: FormEvent) => void;
     t: TranslatePublicCopy;
 }) {
@@ -296,6 +297,7 @@ function ShareDetailsDialog({
                         <h2 id="business-share-details-title">{t("business.modal.share.title", {name: firstName})}</h2>
                         <form onSubmit={onSubmit} className="business-share-form">
                             <TextField label={t("business.form.fullName")} value={form.name} onChange={(event) => setForm({...form, name: event.target.value})} error={Boolean(errors.name)} helperText={errors.name} size="small"/>
+                            <TextField label={t("business.form.company")} value={form.company} onChange={(event) => setForm({...form, company: event.target.value})} size="small"/>
                             <TextField label={t("business.form.email")} value={form.email} onChange={(event) => setForm({...form, email: event.target.value})} error={Boolean(errors.email || errors.contact)} helperText={errors.email || errors.contact} size="small" type="email" inputMode="email"/>
                             <TextField label={t("business.form.phone")} value={form.phone} onChange={(event) => setForm({...form, phone: event.target.value})} error={Boolean(errors.phone || errors.contact)} helperText={errors.phone} size="small" type="tel" inputMode="tel"/>
                             <TextField className="wide" label={t("business.form.message")} value={form.message} onChange={(event) => setForm({...form, message: event.target.value})} size="small" multiline minRows={3}/>

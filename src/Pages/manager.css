@@ -2395,6 +2395,7 @@ h2.pinline span:after {
 }
 
 .shared-contact-card {
+    position: relative;
     padding: var(--fp-space-4);
     border-radius: var(--fp-radius-lg);
     display: grid;
@@ -2408,7 +2409,9 @@ h2.pinline span:after {
     gap: var(--fp-space-3);
 }
 
-.shared-contact-save-button {
+.shared-contact-save-button,
+.shared-contact-cancel-button,
+.shared-contact-confirm-delete-button {
     min-height: var(--fp-size-interactive-min);
     display: inline-flex;
     align-items: center;
@@ -2424,6 +2427,84 @@ h2.pinline span:after {
     font-weight: 600;
     line-height: var(--fp-line-height-control);
     cursor: pointer;
+}
+
+.shared-contact-cancel-button {
+    border-color: var(--fp-color-border);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+}
+
+.shared-contact-delete-button {
+    position: absolute;
+    top: var(--fp-space-4);
+    right: var(--fp-space-4);
+    width: var(--fp-size-interactive-min);
+    height: var(--fp-size-interactive-min);
+    min-width: var(--fp-size-interactive-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    cursor: pointer;
+}
+
+.shared-contact-confirm-delete-button {
+    border-color: var(--fp-color-danger);
+    background: var(--fp-color-danger);
+    color: var(--fp-color-surface-primary);
+}
+
+.shared-contact-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: var(--fp-space-5);
+    background: rgb(31 28 24 / 0.42);
+}
+
+.shared-contact-confirm-dialog {
+    width: min(100%, 28rem);
+    display: grid;
+    gap: var(--fp-space-4);
+    padding: var(--fp-space-5);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-lg);
+    background: var(--fp-color-surface-primary);
+    box-shadow: var(--fp-shadow-raised);
+    color: var(--fp-color-ink);
+}
+
+.shared-contact-confirm-dialog h2 {
+    margin: 0;
+    font-family: var(--fp-font-family-display);
+    font-size: var(--fp-font-size-heading);
+    font-weight: 500;
+    line-height: 1;
+}
+
+.shared-contact-confirm-dialog p {
+    margin: 0;
+    color: var(--fp-color-text-muted);
+    line-height: var(--fp-line-height-body);
+}
+
+.shared-contact-delete-error {
+    color: var(--fp-color-danger) !important;
+    font-weight: 600;
+}
+
+.shared-contact-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--fp-space-2);
 }
 
 .shared-contact-details {

@@ -4,6 +4,7 @@ import type {Product} from "./control-state";
 
 export type SharedContact = {
     name: string;
+    company?: string;
     email: string;
     phone: string;
     date: number;
@@ -113,6 +114,7 @@ export function normalizeSharedContacts(rawContacts: unknown): SharedContact[] {
         .filter((contact) => contact && typeof contact === "object")
         .map((contact: any) => ({
             name: safeString(contact.name),
+            ...(safeString(contact.company) ? {company: safeString(contact.company)} : {}),
             email: safeString(contact.email),
             phone: safeString(contact.phone),
             date: typeof contact.date === "number" ? contact.date : 0,
