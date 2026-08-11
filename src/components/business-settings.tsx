@@ -20,10 +20,10 @@ import {Asset, DB_STORAGE} from "./baby-journal-settings";
 import {ImageAssetUpload} from "./image-asset-upload";
 import {getProductIdFromURL} from "../utils";
 import {useSaveBusinessCardData} from "../useProductData";
-import {ReactComponent as FacebookIcon} from "../assets/social/facebook.svg";
-import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
-import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
-import {ReactComponent as YouTubeIcon} from "../assets/social/youtube.svg";
+import FacebookIcon from "../assets/social/facebook.svg?react";
+import InstagramIcon from "../assets/social/instagram.svg?react";
+import TikTokIcon from "../assets/social/tiktok.svg?react";
+import YouTubeIcon from "../assets/social/youtube.svg?react";
 import "../Pages/manager.css";
 import {getProduct, updateProduct} from "../firestore/repositories/products";
 

@@ -26,10 +26,10 @@ import {Product} from "../control-state";
 import {AppButton} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
 import {TranslatePublicCopy, usePublicLanguage} from "../public-i18n";
-import {ReactComponent as FacebookIcon} from "../assets/social/facebook.svg";
-import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
-import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
-import {ReactComponent as YouTubeIcon} from "../assets/social/youtube.svg";
+import FacebookIcon from "../assets/social/facebook.svg?react";
+import InstagramIcon from "../assets/social/instagram.svg?react";
+import TikTokIcon from "../assets/social/tiktok.svg?react";
+import YouTubeIcon from "../assets/social/youtube.svg?react";
 import {addSharedContact} from "../firestore/repositories/products";
 
 type BusinessCardPublicPageProps = {
