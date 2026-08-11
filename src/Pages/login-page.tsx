@@ -26,7 +26,6 @@ import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import {useNavigate} from "react-router";
 import {toast} from "react-toastify";
 import {MainContext} from "../contexts";
@@ -35,6 +34,7 @@ import {BackButton} from "../components/design-system/BackButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
+import {createUserProfile} from "../firestore/repositories/users";
 
 export const notify = (message?: string) => toast(message, {
     position: "top-right",
@@ -258,7 +258,6 @@ function LoginForm({onRegister, onForgotPassword}: {onRegister: () => void; onFo
 }
 
 function RegisterForm({onLogin}: {onLogin: () => void}) {
-    const {db} = useContext(MainContext);
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -290,7 +289,7 @@ function RegisterForm({onLogin}: {onLogin: () => void}) {
         try {
             const auth = getAuth();
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await setDoc(doc(db, 'users', userCredential.user.uid), {
+            await createUserProfile(userCredential.user.uid, {
                 country,
                 products: []
             });

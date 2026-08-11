@@ -2,7 +2,7 @@ import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 import {useState} from "react";
 import {onAuthStateChanged, signOut} from "firebase/auth";
-import {arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where} from "firebase/firestore";
+import {arrayUnion, collection, doc, getDoc, getDocs, limit, query, updateDoc, where} from "firebase/firestore";
 import {ManageDevices} from "./manage-devices";
 import {MainContext} from "../contexts";
 import {FlexPayzThemeProvider} from "../theme";
@@ -19,6 +19,7 @@ jest.mock("firebase/firestore", () => ({
     doc: jest.fn((_db, ...path) => ({path: path.join('/')})),
     getDoc: jest.fn(),
     getDocs: jest.fn(),
+    limit: jest.fn((value) => ({limit: value})),
     query: jest.fn((collectionRef, ...constraints) => ({collectionRef, constraints})),
     updateDoc: jest.fn(),
     where: jest.fn((field, op, value) => ({field, op, value})),
@@ -35,6 +36,7 @@ const mockedCollection = collection as jest.MockedFunction<typeof collection>;
 const mockedDoc = doc as jest.MockedFunction<typeof doc>;
 const mockedGetDoc = getDoc as jest.MockedFunction<typeof getDoc>;
 const mockedGetDocs = getDocs as jest.MockedFunction<typeof getDocs>;
+const mockedLimit = limit as jest.MockedFunction<typeof limit>;
 const mockedQuery = query as jest.MockedFunction<typeof query>;
 const mockedUpdateDoc = updateDoc as jest.MockedFunction<typeof updateDoc>;
 const mockedWhere = where as jest.MockedFunction<typeof where>;
@@ -94,6 +96,7 @@ beforeEach(() => {
     });
     mockedSignOut.mockResolvedValue(undefined);
     mockedUpdateDoc.mockResolvedValue(undefined as any);
+    mockedLimit.mockImplementation((value: number) => ({limit: value}) as any);
     mockedGetDoc.mockImplementation(async (ref: any) => {
         if (ref.path === "users/user-1") return docSnap({products: ["p1", "p2", "p3"]}) as any;
         const productId = ref.path.replace("products/", "");

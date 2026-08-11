@@ -32,10 +32,8 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {FormEvent, KeyboardEvent, RefObject, SyntheticEvent, useEffect, useMemo, useRef, useState} from "react";
 import {useLocation, useNavigate} from "react-router";
-import {db} from "../App";
 import {AppButton} from "../components/design-system/AppButton";
 import {BackButton} from "../components/design-system/BackButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
@@ -59,6 +57,8 @@ import {
 } from "../product-visibility";
 import {getProductIdFromURL} from "../utils";
 import {useResetDevice} from "../useProductData";
+import {getProduct, updateProduct as updateProductDocument} from "../firestore/repositories/products";
+import {getPermissions} from "../firestore/repositories/permissions";
 
 type WorkspaceTab = 'overview' | 'content' | 'settings';
 type SaveState = 'idle' | 'saving' | 'success' | 'error';
@@ -104,16 +104,16 @@ export function ManageDevice() {
             setLoading(true);
             setError('');
             try {
-                const productSnap = await getDoc(doc(db, 'products', productId));
-                if (!productSnap.exists()) {
+                const product = await getProduct(productId);
+                if (!product) {
                     if (!ignore) setError('Device not found.');
                     return;
                 }
 
-                const permissionSnap = await getDoc(doc(db, 'permissions', productId));
+                const productPermissions = await getPermissions(productId);
                 if (!ignore) {
-                    setProductState((current) => ({...current, ...productSnap.data() as Product}));
-                    setPermissions(permissionSnap.exists() ? {...defaultPermissions, ...permissionSnap.data() as Permissions} : defaultPermissions);
+                    setProductState((current) => ({...current, ...product}));
+                    setPermissions(productPermissions);
                 }
             } catch (requestError: any) {
                 if (!ignore) setError(getWorkspaceError(requestError?.code));
@@ -558,7 +558,7 @@ function VisibleSectionsDialog({
         setError('');
         try {
             const payload = buildVisibleSectionsWrite(draft, permissions);
-            await updateDoc(doc(db, 'products', productId), payload);
+            await updateProductDocument(productId, payload);
             onSaved(payload.visibleSections);
             setSaveState('success');
             onClose();
@@ -689,7 +689,7 @@ function DeviceSettings({
         setNameState('saving');
         setNameError('');
         try {
-            await updateDoc(doc(db, 'products', productId), {name: nextName});
+            await updateProductDocument(productId, {name: nextName});
             updateProduct({name: nextName});
             setNameState('success');
             onStatus('Device name updated');
@@ -702,7 +702,7 @@ function DeviceSettings({
     const saveLanguage = async (language: Languages) => {
         setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
         try {
-            await updateDoc(doc(db, 'products', productId), {previewLanguage: language});
+            await updateProductDocument(productId, {previewLanguage: language});
             updateProduct({previewLanguage: language});
             setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
             onStatus('Default public language updated');
@@ -718,7 +718,7 @@ function DeviceSettings({
         setActivationState('saving');
         setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
         try {
-            await updateDoc(doc(db, 'products', productId), {inactive: nextInactive});
+            await updateProductDocument(productId, {inactive: nextInactive});
             setActivationState('success');
             setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
             onStatus(nextActive ? 'Product activated' : 'Product inactivated');
@@ -741,7 +741,7 @@ function DeviceSettings({
         setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
         try {
             const payload = {publicPagePasswordActivated: nextEnabled};
-            await updateDoc(doc(db, 'products', productId), payload);
+            await updateProductDocument(productId, payload);
             updateProduct(payload);
             setPasswordState('success');
             setPublicExperienceStatus({state: 'success', message: 'Settings saved'});
@@ -763,7 +763,7 @@ function DeviceSettings({
         setPublicExperienceStatus({state: 'saving', message: 'Saving data'});
         try {
             const payload = {publicPagePasswordActivated: true, publicPagePassword: nextPassword};
-            await updateDoc(doc(db, 'products', productId), payload);
+            await updateProductDocument(productId, payload);
             updateProduct(payload);
             setPasswordDraft('');
             setPasswordEnabled(true);

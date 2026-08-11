@@ -17,6 +17,24 @@
 - Do not silently modify unrelated legacy styles.
 - Run the build and relevant tests after every implementation task.
 
+## Firestore architecture
+
+- Preserve the Firestore database contract unless a task explicitly requests a data migration or contract change.
+- Keep collection names and document path construction centralized in `src/firestore/collections.ts`.
+- Do not add raw Firestore SDK access in feature, page, component or utility modules. Production reads and writes must go through `src/firestore/repositories/*`.
+- Keep `getDoc`, `getDocs`, `setDoc`, `updateDoc`, `addDoc`, `writeBatch`, `arrayUnion`, `serverTimestamp`, `snapshot.data()` and direct collection references inside repository modules or repository tests.
+- Add or update Zod schemas in `src/firestore/schema/*` before introducing new Firestore fields or changing read/write payloads.
+- Keep separate raw Firestore, normalized app model, create input, replacement input, update input and `{id, data}` result types where a collection has reads or writes.
+- Legacy reads should remain loose and normalize sparse, optional or nullable Firestore data into current UI models. Canonical writes must keep existing collection names and field names.
+- Keep Cloud Firestore Security Rules in `firestore.rules` aligned with repository behavior and collection schemas.
+- When rules change, add or update emulator tests in `src/firestore/rules/*` and run `npm run test:firestore:rules` when Java/Firebase Emulator are available.
+- Keep Firebase Cloud Storage Security Rules in `storage.rules` aligned with current upload paths, ownership checks and public-active product reads.
+- When Storage upload paths, content types or size limits change, update `storage.rules`, `src/storage/rules/*` tests and the deploy script if needed.
+- Public-password-gated media is not truly private while the browser reads Storage objects directly; do not represent Storage rules as solving that without a backend-gated read design.
+- When modifying Firestore-backed behavior, check `docs/firestore-schema-audit.md` and update it if collections, fields, ID semantics, readers, writers, legacy formats, risks or migration order change.
+- Product, permission, user activation, serial upload/migration/export, journal save, animal-tag save and mail enqueue flows must use typed repositories.
+- After Firestore-related work, run relevant schema/repository tests plus the build, and search for new raw Firestore access outside `src/firestore/repositories`.
+
 ## Non-image file uploads
 
 - All new or redesigned non-image file-upload flows must use the shared `FileUploadField` component and its approved `useResumableFileUpload` adapter.

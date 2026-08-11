@@ -2,9 +2,7 @@ import {useProductInformation} from "../control-state";
 import VCard from "vcard-creator";
 import {SettingsHeader} from "../Pages/manage-device";
 import {normalizeSharedContacts, SharedContact} from "../business-card";
-import {doc, updateDoc} from "firebase/firestore";
 import {useState} from "react";
-import {db} from "../App";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
@@ -13,6 +11,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import {getProductIdFromURL} from "../utils";
+import {updateProduct} from "../firestore/repositories/products";
 
 function Contact({contact, onDelete}: {contact: SharedContact; onDelete: () => void}) {
     const saveContact = () => {
@@ -99,7 +98,7 @@ export function SharedContacts() {
 
         const nextContacts = contacts.filter((_, index) => index !== contactToDelete);
         try {
-            await updateDoc(doc(db, "products", productId), {sharedContacts: nextContacts});
+            await updateProduct(productId, {sharedContacts: nextContacts});
             setProductState((current) => ({...current, sharedContacts: nextContacts}));
             setContactToDelete(null);
             setDeleteError("");

@@ -1,8 +1,6 @@
 import {createContext, useCallback, useContext, useEffect, useMemo, useState} from "react";
 import {LoadingScreenContext} from "./loading-sreen";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
-import {doc, getDoc} from "firebase/firestore";
-import {db} from "../App";
 import {
     Asset,
     BabyJournalInformation,
@@ -13,6 +11,7 @@ import {
 import {useNavigate} from "react-router";
 import {getProductIdFromURL} from "../utils";
 import {AdultJournalWorkspace} from "./adult-journal-workspace";
+import {getAdultJournal} from "../firestore/repositories/journals";
 export function AdultJournalSettings() {
     return <AdultJournalWorkspace/>
 }
@@ -821,14 +820,11 @@ function useAdultJournalInformation(): UseAdultJournalInformationValue {
                 const urlParams = new URLSearchParams(window.location.search)
                 const productId = urlParams.get('product_id')
                 if (productId) {
-                    const productRef = doc(db, DB_COLLECTIONS.ADULT_JOURNALS, productId)
-                    const docSnap = await getDoc(productRef);
-                    if (docSnap.exists()) {
-                        setAdultJournalState((prev: AdultJournalInformation) => ({...prev, ...docSnap.data() as AdultJournalInformation}))
-                        setOriginalJournalState((prev: AdultJournalInformation) => ({...prev, ...docSnap.data() as AdultJournalInformation}))
-                        setIsLoading(false)
-                    }
+                    const normalized = await getAdultJournal(productId)
+                    setAdultJournalState(normalized)
+                    setOriginalJournalState(normalized)
                 }
+                setIsLoading(false)
             })()
             // notify(`Don't forget to save after changes`)
         }, []

@@ -6,8 +6,6 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import {doc, getDoc} from "firebase/firestore";
-import {db} from "../App";
 import {Product} from "../control-state";
 import {
     careSections,
@@ -18,14 +16,13 @@ import {
     getLatestVitalSigns,
     investigationGroups,
     maskPersonalId,
-    normalizeAdultJournal,
     sortAdultDateKeysNewestFirst,
 } from "../adult-journal";
-import {DB_COLLECTIONS} from "./baby-journal-settings";
 import type {AdultJournalInformation, Investigation} from "./adult-journal-settings";
 import {BackButton, LoadingPanel} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
 import {usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
+import {getAdultJournal} from "../firestore/repositories/journals";
 
 type PublicTab = "home" | "health" | "tests" | "care";
 
@@ -53,11 +50,10 @@ export function AdultJournalPreview({
                 return;
             }
             try {
-                const snapshot = await getDoc(doc(db, DB_COLLECTIONS.ADULT_JOURNALS, productId));
+                const normalized = await getAdultJournal(productId);
                 if (!active) return;
-                const normalized = normalizeAdultJournal(snapshot.exists() ? snapshot.data() : {});
                 setJournal(normalized);
-                setState(snapshot.exists() ? "ready" : "empty");
+                setState("ready");
             } catch {
                 if (active) setState("error");
             }

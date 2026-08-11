@@ -2,9 +2,7 @@ import {AnimalTagConfig, defaultAnimalTagConfig} from "./config";
 import {createContext, useContext, useEffect, useState} from "react";
 import {LoadingScreenContext} from "../../components/loading-sreen";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
-import {doc, getDoc} from "firebase/firestore";
-import {db} from "../../App";
-import {DB_COLLECTIONS} from "../../components/baby-journal-settings";
+import {getAnimalTag} from "../../firestore/repositories/animalTags";
 
 export interface AnimalTagInformation {
     state: AnimalTagConfig,
@@ -33,21 +31,15 @@ function useAnimalTagInformation(): AnimalTagInformation {
                 const urlParams = new URLSearchParams(window.location.search)
                 const productId = urlParams.get('product_id')
                 if (productId) {
-                    const productRef = doc(db, DB_COLLECTIONS.ANIMAL_TAG, productId)
-                    const docSnap = await getDoc(productRef);
-                    console.log(docSnap, docSnap.exists(), docSnap.data())
-                    if (docSnap.exists()) {
-                        setState((prev: AnimalTagConfig) => ({...prev, ...docSnap.data() as AnimalTagConfig}))
-                        setOriginalState((prev: AnimalTagConfig) => ({...prev, ...docSnap.data() as AnimalTagConfig}))
-                        setIsLoading(false)
-                    }
+                    const normalized = await getAnimalTag(productId)
+                    setState(normalized as AnimalTagConfig)
+                    setOriginalState(normalized as AnimalTagConfig)
                 }
+                setIsLoading(false)
             })()
             // notify(`Don't forget to save after changes`)
         }, []
     );
-
-    console.log("Animal tag state", state)
 
     return {state, setState, originalState, setOriginalState}
 }

@@ -2,8 +2,6 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import type {ReactNode} from "react";
 import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
-import {db} from "../App";
 import {
     buildAdultJournalUpdate,
     careSections,
@@ -17,18 +15,18 @@ import {
     investigationGroups,
     latestRecordDate,
     maskPersonalId,
-    normalizeAdultJournal,
     sortAdultDateKeysNewestFirst,
     type InvestigationField,
 } from "../adult-journal";
 import {getProductIdFromURL} from "../utils";
 import {notify} from "../Pages/login-page";
 import {BackButton, FlexPayzLogo, LoadingPanel} from "./design-system";
-import {DB_COLLECTIONS, DB_STORAGE} from "./baby-journal-settings";
+import {DB_STORAGE} from "./baby-journal-settings";
 import type {AdultJournalInformation, Consultation, FollowUp, Investigation, VitalSigns} from "./adult-journal-settings";
 import {ProfileUpload} from "./profile-upload";
 import {JournalFileUpload} from "./journal-file-upload";
 import {useNavigate} from "react-router";
+import {getAdultJournal, updateAdultJournal} from "../firestore/repositories/journals";
 
 type AdultJournalEditorTab = "home" | "health" | "tests" | "care";
 type SaveState = "clean" | "dirty" | "saving" | "saved" | "failed";
@@ -118,9 +116,8 @@ export function AdultJournalWorkspace() {
                 return;
             }
             try {
-                const snapshot = await getDoc(doc(db, DB_COLLECTIONS.ADULT_JOURNALS, productId));
+                const normalized = await getAdultJournal(productId);
                 if (!active) return;
-                const normalized = normalizeAdultJournal(snapshot.exists() ? snapshot.data() : {});
                 setJournal(normalized);
                 setOriginalJournal(normalized);
                 setLoadState("ready");
@@ -350,7 +347,7 @@ export function AdultJournalWorkspace() {
         setSaveState("saving");
         setSaveMessage("Saving journal…");
         try {
-            await updateDoc(doc(db, DB_COLLECTIONS.ADULT_JOURNALS, productId), updates as Record<string, any>);
+            await updateAdultJournal(productId, updates);
             setOriginalJournal(journal);
             setSaveState("saved");
             setSaveMessage("Changes saved");

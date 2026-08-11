@@ -1,8 +1,7 @@
 import {createContext, useEffect, useState} from "react";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
-import {doc, getDoc} from "firebase/firestore";
-import {db} from "../App";
 import {defaultPermissions, Permissions} from "../permissions";
+import {getPermissions} from "../firestore/repositories/permissions";
 
 export {defaultPermissions};
 export type {Permissions};
@@ -22,12 +21,7 @@ export function usePermission(): Permissions {
                 const urlParams = new URLSearchParams(window.location.search)
                 const productId = urlParams.get('product_id')
                 if (productId) {
-                    const productRef = doc(db, 'permissions', productId)
-                    const docSnap = await getDoc(productRef);
-                    console.log(docSnap, docSnap.exists(), docSnap.data())
-                    if (docSnap.exists()) {
-                        setPermissions((prev: Permissions) => ({...prev, ...docSnap.data() as Permissions}))
-                    }
+                    setPermissions(await getPermissions(productId))
                 }
             })()
             // notify(`Don't forget to save after changes`)

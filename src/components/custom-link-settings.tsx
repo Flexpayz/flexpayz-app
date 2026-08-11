@@ -4,15 +4,14 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {useNavigate} from "react-router";
-import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {buildCustomLinkUpdate, parseCustomLink} from "../custom-link";
 import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
 import {getProductIdFromURL} from "../utils";
 import "../Pages/manager.css";
+import {getProduct, updateProduct} from "../firestore/repositories/products";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "failed";
 const AUTOSAVE_DELAY = 1200;
@@ -32,13 +31,13 @@ export function CustomLinkSettingsWrapper() {
             }
 
             try {
-                const snapshot = await getDoc(doc(db, "products", productId));
+                const product = await getProduct(productId);
                 if (!active) return;
-                if (!snapshot.exists()) {
+                if (!product) {
                     setStatus("not-found");
                     return;
                 }
-                setProductState((prev) => ({...prev, ...snapshot.data() as Product}));
+                setProductState(product);
                 setStatus("ready");
             } catch {
                 if (active) setStatus("error");
@@ -81,7 +80,7 @@ export function CustomLinkSettings() {
             setSaveState("saving");
             setSaveMessage("Autosaving");
             try {
-                await updateDoc(doc(db, "products", productId || ""), buildCustomLinkUpdate(draft));
+                await updateProduct(productId || "", buildCustomLinkUpdate(draft));
                 lastSaved.current = result.normalizedUrl || "";
                 setProductState((prev: Product) => ({...prev, customLink: result.normalizedUrl || ""}));
                 setSaveState("saved");
@@ -115,7 +114,7 @@ export function CustomLinkSettings() {
         setSaveMessage("Saving destination");
         try {
             const payload = buildCustomLinkUpdate(draft);
-            await updateDoc(doc(db, "products", productId), payload);
+            await updateProduct(productId, payload);
             lastSaved.current = payload.customLink;
             setProductState((prev: Product) => ({...prev, customLink: payload.customLink}));
             setSaveState("saved");

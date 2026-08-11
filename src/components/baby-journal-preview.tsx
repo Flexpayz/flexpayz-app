@@ -4,8 +4,6 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
-import {doc, getDoc} from "firebase/firestore";
-import {db} from "../App";
 import {Product} from "../control-state";
 import {
     deriveBabyAgeLabel,
@@ -16,10 +14,11 @@ import {
     normalizeBabyJournal,
     sortJournalDateKeysNewestFirst,
 } from "../baby-journal";
-import {DB_COLLECTIONS, BabyJournalInformation} from "./baby-journal-settings";
+import {BabyJournalInformation} from "./baby-journal-settings";
 import {BackButton, LoadingPanel} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
 import {usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
+import {getBabyJournal} from "../firestore/repositories/journals";
 
 type PublicTab = "home" | "health";
 
@@ -46,14 +45,9 @@ export function BabyJournalPreview({
                 return;
             }
             try {
-                const snapshot = await getDoc(doc(db, DB_COLLECTIONS.BABY_JOURNALS, productId));
+                const normalized = await getBabyJournal(productId);
                 if (!active) return;
-                if (!snapshot.exists()) {
-                    setJournal(normalizeBabyJournal({}));
-                    setState("empty");
-                    return;
-                }
-                setJournal(normalizeBabyJournal(snapshot.data()));
+                setJournal(normalized);
                 setState("ready");
             } catch {
                 if (active) setState("error");

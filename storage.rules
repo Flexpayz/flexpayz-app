@@ -1,0 +1,154 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function userExists(uid) {
+      return firestore.exists(/databases/(default)/documents/users/$(uid));
+    }
+
+    function productExists(productId) {
+      return firestore.exists(/databases/(default)/documents/products/$(productId));
+    }
+
+    function productData(productId) {
+      return firestore.get(/databases/(default)/documents/products/$(productId)).data;
+    }
+
+    function ownsProduct(productId) {
+      return signedIn()
+        && userExists(request.auth.uid)
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.products is list
+        && productId in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.products;
+    }
+
+    function isPublicActiveProduct(productId) {
+      return productExists(productId)
+        && productData(productId).activated == true
+        && (!('inactive' in productData(productId)) || productData(productId).inactive != true);
+    }
+
+    function canReadProductAsset(productId) {
+      return isAdmin() || ownsProduct(productId) || isPublicActiveProduct(productId);
+    }
+
+    function canWriteProductAsset(productId) {
+      return isAdmin() || ownsProduct(productId);
+    }
+
+    function maxSize(bytes) {
+      return request.resource != null && request.resource.size > 0 && request.resource.size <= bytes;
+    }
+
+    function isImage(maxBytes) {
+      return maxSize(maxBytes) && request.resource.contentType.matches('image/.*');
+    }
+
+    function isPdf(maxBytes) {
+      return maxSize(maxBytes) && request.resource.contentType == 'application/pdf';
+    }
+
+    function isVCard(maxBytes) {
+      return maxSize(maxBytes)
+        && (
+          request.resource.contentType == 'text/vcard'
+          || request.resource.contentType == 'text/x-vcard'
+          || request.resource.contentType == 'text/plain'
+          || request.resource.contentType == 'application/octet-stream'
+        );
+    }
+
+    function isAudio(maxBytes) {
+      return maxSize(maxBytes)
+        && (
+          request.resource.contentType == 'audio/mpeg'
+          || request.resource.contentType == 'audio/mp4'
+          || request.resource.contentType == 'audio/wav'
+          || request.resource.contentType == 'audio/x-wav'
+          || request.resource.contentType == 'audio/x-m4a'
+        );
+    }
+
+    function imageProductId(imageName) {
+      return imageName.matches('logo-.+') ? imageName[5:imageName.size()] : imageName;
+    }
+
+    function validDocumentSlot(fileName) {
+      return fileName in ['file1', 'file2', 'file3', 'CV'];
+    }
+
+    function validAudioSlot(fileName) {
+      return fileName in ['song1', 'song2', 'song3'];
+    }
+
+    // Public-password-gated pages still load media directly from the browser.
+    // These rules align media access with public active products, but cannot
+    // make password-gated Storage objects private without backend-gated reads.
+    match /images/{imageName} {
+      allow get: if canReadProductAsset(imageProductId(imageName));
+      allow list: if isAdmin();
+      allow create, update: if canWriteProductAsset(imageProductId(imageName)) && isImage(5 * 1024 * 1024);
+      allow delete: if canWriteProductAsset(imageProductId(imageName));
+    }
+
+    match /documents/{productId}/{fileName} {
+      allow get: if canReadProductAsset(productId);
+      allow list: if isAdmin();
+      allow create, update: if canWriteProductAsset(productId)
+        && (
+          (validDocumentSlot(fileName) && isPdf(10 * 1024 * 1024))
+          || (fileName == 'vCard' && isVCard(1024 * 1024))
+        );
+      allow delete: if canWriteProductAsset(productId);
+    }
+
+    match /audio/{productId}/{fileName} {
+      allow get: if canReadProductAsset(productId);
+      allow list: if isAdmin();
+      allow create, update: if canWriteProductAsset(productId)
+        && validAudioSlot(fileName)
+        && isAudio(25 * 1024 * 1024);
+      allow delete: if canWriteProductAsset(productId);
+    }
+
+    match /baby_journal/{productId}/{assetPath=**} {
+      allow get: if canReadProductAsset(productId);
+      allow list: if isAdmin();
+      allow create, update: if canWriteProductAsset(productId)
+        && (isPdf(10 * 1024 * 1024) || isImage(5 * 1024 * 1024));
+      allow delete: if canWriteProductAsset(productId);
+    }
+
+    match /adult_journal/{productId}/{assetPath=**} {
+      allow get: if canReadProductAsset(productId);
+      allow list: if isAdmin();
+      allow create, update: if canWriteProductAsset(productId)
+        && (isPdf(10 * 1024 * 1024) || isImage(5 * 1024 * 1024));
+      allow delete: if canWriteProductAsset(productId);
+    }
+
+    match /animal_tag/{productId}/{assetPath=**} {
+      allow get: if canReadProductAsset(productId);
+      allow list: if isAdmin();
+      allow create, update: if canWriteProductAsset(productId) && isImage(5 * 1024 * 1024);
+      allow delete: if canWriteProductAsset(productId);
+    }
+
+    match /uploads/{productId}/{fileName} {
+      allow get: if canReadProductAsset(productId);
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

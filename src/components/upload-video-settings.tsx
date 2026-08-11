@@ -7,9 +7,7 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import YouTube from "react-youtube";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {useNavigate} from "react-router";
-import {db} from "../App";
 import {Product, defaultProduct} from "../control-state";
 import {ManageProductContext} from "../contexts";
 import {AppButton, BackButton, FlexPayzLogo, LoadingPanel, PageShell} from "./design-system";
@@ -24,6 +22,7 @@ import {
     parseYouTubeUrl,
 } from "../youtube-video";
 import "../Pages/manager.css";
+import {getProduct, updateProduct} from "../firestore/repositories/products";
 
 type SaveState = "idle" | "dirty" | "checking" | "saving" | "saved" | "failed";
 type PageStatus = "loading" | "ready" | "not-found" | "error";
@@ -43,13 +42,13 @@ export function UploadVideoSettingsWrapper() {
             }
 
             try {
-                const snapshot = await getDoc(doc(db, "products", productId));
+                const product = await getProduct(productId);
                 if (!active) return;
-                if (!snapshot.exists()) {
+                if (!product) {
                     setStatus("not-found");
                     return;
                 }
-                setProductState((prev) => ({...prev, ...snapshot.data() as Product}));
+                setProductState(product);
                 setStatus("ready");
             } catch {
                 if (active) setStatus("error");
@@ -148,7 +147,7 @@ export function UploadVideoSettings() {
         setSaveState("saving");
         setSaveMessage(nextYoutubeLink ? "Saving featured video" : "Removing featured video");
         try {
-            await updateDoc(doc(db, "products", productId), {youtubeLink: nextYoutubeLink});
+            await updateProduct(productId, {youtubeLink: nextYoutubeLink});
             setProductState((prev: Product) => ({...prev, youtubeLink: nextYoutubeLink}));
             setSaveState("saved");
             setSaveMessage(nextYoutubeLink ? "Featured video saved" : "Featured video removed");

@@ -8,9 +8,8 @@ import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
-import {arrayUnion, doc, updateDoc} from "firebase/firestore";
 import {getDownloadURL, ref} from "firebase/storage";
-import {db, storage} from "../App";
+import {storage} from "../App";
 import {
     downloadGeneratedVCard,
     formatAddress,
@@ -27,10 +26,11 @@ import {Product} from "../control-state";
 import {AppButton} from "./design-system";
 import {PublicPageHeader} from "./public-page-header";
 import {TranslatePublicCopy, usePublicLanguage} from "../public-i18n";
-import {ReactComponent as FacebookIcon} from "../assets/social/facebook.svg";
-import {ReactComponent as InstagramIcon} from "../assets/social/instagram.svg";
-import {ReactComponent as TikTokIcon} from "../assets/social/tiktok.svg";
-import {ReactComponent as YouTubeIcon} from "../assets/social/youtube.svg";
+import FacebookIcon from "../assets/social/facebook.svg?react";
+import InstagramIcon from "../assets/social/instagram.svg?react";
+import TikTokIcon from "../assets/social/tiktok.svg?react";
+import YouTubeIcon from "../assets/social/youtube.svg?react";
+import {addSharedContact} from "../firestore/repositories/products";
 
 type BusinessCardPublicPageProps = {
     product: Product;
@@ -112,16 +112,14 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
 
         setShareStatus("sending");
         try {
-            await updateDoc(doc(db, "products", productId), {
-                sharedContacts: arrayUnion({
-                    name: shareForm.name.trim(),
-                    ...(shareForm.company.trim() ? {company: shareForm.company.trim()} : {}),
-                    email: shareForm.email.trim(),
-                    phone: shareForm.phone.trim(),
-                    date: Date.now(),
-                    ...(shareForm.message.trim() ? {message: shareForm.message.trim()} : {}),
-                    consentAccepted: true,
-                }),
+            await addSharedContact(productId, {
+                name: shareForm.name.trim(),
+                ...(shareForm.company.trim() ? {company: shareForm.company.trim()} : {}),
+                email: shareForm.email.trim(),
+                phone: shareForm.phone.trim(),
+                date: Date.now(),
+                ...(shareForm.message.trim() ? {message: shareForm.message.trim()} : {}),
+                consentAccepted: true,
             });
             setShareStatus("sent");
             setShareForm({name: "", company: "", email: "", phone: "", message: "", consent: false});
