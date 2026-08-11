@@ -26,7 +26,7 @@ import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail
 } from "firebase/auth";
-import {useNavigate} from "react-router";
+import {useLocation, useNavigate} from "react-router";
 import {toast} from "react-toastify";
 import {MainContext} from "../contexts";
 import {AppButton} from "../components/design-system/AppButton";
@@ -35,6 +35,7 @@ import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
 import {createUserProfile} from "../firestore/repositories/users";
+import {safeReturnToPath} from "../admin/returnTo";
 
 export const notify = (message?: string) => toast(message, {
     position: "top-right",
@@ -195,6 +196,7 @@ function AuthBrandPanel({panel, isSent}: {panel: ReturnType<typeof getBrandPanel
 function LoginForm({onRegister, onForgotPassword}: {onRegister: () => void; onForgotPassword: () => void}) {
     const {setState} = useContext(MainContext);
     const navigate = useNavigate();
+    const location = useLocation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -218,7 +220,8 @@ function LoginForm({onRegister, onForgotPassword}: {onRegister: () => void; onFo
             const auth = getAuth();
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             setState((prev: any) => ({...prev, userId: userCredential.user.uid}));
-            navigate('/manage-devices');
+            const params = new URLSearchParams(location.search);
+            navigate(safeReturnToPath(params.get("returnTo")) || '/manage-devices');
         } catch (error: any) {
             setFormError(getFirebaseMessage(error?.code, 'Sign in is temporarily unavailable.'));
         } finally {

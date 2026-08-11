@@ -55,6 +55,14 @@ describeRules("Cloud Storage security rules", () => {
         await assertSucceeds(storage.ref("images/public-product").getMetadata());
     });
 
+    it("authorizes only the system-admin role for admin-only listing", async () => {
+        await assertSucceeds(adminStorage().ref("images").listAll());
+        await assertSucceeds(adminWithOldClaimStorage().ref("images").listAll());
+        await assertFails(oldAdminOnlyStorage().ref("images").listAll());
+        await assertFails(otherStorage().ref("images").listAll());
+        await assertFails(publicStorage().ref("images").listAll());
+    });
+
     it("allows product owners to write and delete current product media paths", async () => {
         const storage = ownerStorage();
 
@@ -159,6 +167,14 @@ function otherStorage() {
 }
 
 function adminStorage() {
+    return testEnv.authenticatedContext("admin", {role: "system-admin"}).storage();
+}
+
+function adminWithOldClaimStorage() {
+    return testEnv.authenticatedContext("admin", {role: "system-admin", admin: true}).storage();
+}
+
+function oldAdminOnlyStorage() {
     return testEnv.authenticatedContext("admin", {admin: true}).storage();
 }
 

@@ -1,5 +1,4 @@
 import {Button, Checkbox, Input} from "@mui/material";
-import {useNavigate} from "react-router";
 import {useEffect, useMemo, useRef, useState} from "react";
 import './admin.css'
 import {notify} from "./login-page";
@@ -7,9 +6,7 @@ import {defaultPermissions, Permissions} from "../components/usePermission";
 import {QRCodeCanvas} from "qrcode.react";
 import SerialUploader from "../components/serial-number-uploader";
 import ExportSerialsCSVButton from "../components/serial-csv-buton";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Modular import for auth
 import {Preview} from "../preview";
-import {LoadingPanel} from "../components/design-system";
 import {createEmptyAdultJournal, createEmptyBabyJournal} from "../firestore/repositories/journals";
 import {createEmptyAnimalTag} from "../firestore/repositories/animalTags";
 import {createProduct, listInactiveProducts, updateProduct} from "../firestore/repositories/products";
@@ -27,40 +24,6 @@ export const random_hex_code = () => {
 export function AdminPage() {
     const [orderedProducts, setOrderedProducts] = useState(0)
     const [products, setProducts] = useState<FirestoreDocument<ProductData>[]>([])
-    const navigate = useNavigate()
-
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [loading, setLoading] = useState(true); // To handle loading state
-
-    useEffect(() => {
-        const auth = getAuth(); // Get the auth instance
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          if (user) {
-            // Get ID token result to check for custom claims (like admin)
-            user.getIdTokenResult()
-              .then((idTokenResult) => {
-                if (idTokenResult.claims.admin) {
-                  setIsAdmin(true);
-                } else {
-                  setIsAdmin(false);
-                }
-              })
-              .catch((error) => {
-                console.error('Error checking admin claim:', error);
-                setIsAdmin(false);
-              })
-              .finally(() => setLoading(false)); // Set loading to false after the check
-          } else {
-            setIsAdmin(false);
-            setLoading(false); // If no user, set loading to false
-          }
-        });
-    
-        // Clean up the subscription when the component unmounts
-        return () => unsubscribe();
-      }, []);
-
-  console.log(isAdmin, 'isAdmin')
 
     const createProducts = async () => {
 
@@ -87,29 +50,16 @@ export function AdminPage() {
 
 
     useEffect(() => {
-        if (!isAdmin) return;
         (async () => {
             const inactiveProducts = await listInactiveProducts();
             setProducts(inactiveProducts);
         })()
-    }, [isAdmin])
+    }, [])
 
     const [changePermissionsProduct, setChangePermissionsProduct] = useState<string>("")
 
-  if (loading) {
-    return <div className="admin-loading-screen"><LoadingPanel text="Loading admin dashboard"/></div>;
-  }
-
-  if (!isAdmin) {
-    return <div>You do not have admin permissions.</div>;
-  }
-
-
-    return (<div className={"page"}>
+    return (<div className={"admin-products-page"}>
         <div className={"modal"}>
-            <Button onClick={() => navigate("/admin/serial-migration")}>
-                Open Serial Migration Page
-            </Button>
             <Input value={orderedProducts} type={'number'} onChange={(e: any) => {
                 setOrderedProducts(e.target.value)
             }}/>

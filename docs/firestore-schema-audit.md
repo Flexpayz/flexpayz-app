@@ -81,7 +81,7 @@ The main regression risk is accidentally making sparse legacy documents invalid.
 
 ## Security Rules Notes
 
-- Admin access uses the Firebase Auth custom claim `admin == true`, matching `admin-scripts/setAdminClaim.ts`.
+- System admin access uses only the Firebase Auth custom claim `role == "system-admin"`. `admin-scripts/setAdminClaim.cjs` removes the old `admin` claim while preserving unrelated custom claims.
 - Owner access is derived from `users/{uid}.products` containing the product ID.
 - Public reads are intentionally allowed for activated products where `inactive != true` so `/show-product` continues to work without authentication.
 - Public mail enqueue requires `productId` and validates that the target animal tag is active, lost, and has a matching contact email.

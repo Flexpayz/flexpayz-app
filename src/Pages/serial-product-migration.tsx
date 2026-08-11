@@ -1,8 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "@mui/material";
-import { useNavigate } from "react-router";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import {LoadingPanel} from "../components/design-system";
 import {createFirestoreBatch} from "../firestore/repositories/batches";
 import {getSerialNumberDocsByProductID, updateSerialNumberInBatch} from "../firestore/repositories/serialNumbers";
 
@@ -67,42 +64,12 @@ const parseMigrationCsv = (text: string): MigrationRow[] => {
 };
 
 export function SerialProductMigrationPage() {
-    const navigate = useNavigate();
-
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [checkingPermissions, setCheckingPermissions] = useState(true);
-
     const [fileName, setFileName] = useState<string>("");
     const [rows, setRows] = useState<MigrationRow[]>([]);
     const [running, setRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [results, setResults] = useState<MigrationResult[]>([]);
     const [summary, setSummary] = useState<MigrationSummary | null>(null);
-
-    useEffect(() => {
-        const auth = getAuth();
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                setIsAdmin(false);
-                setCheckingPermissions(false);
-                return;
-            }
-
-            user
-                .getIdTokenResult()
-                .then((idTokenResult) => {
-                    setIsAdmin(Boolean(idTokenResult.claims.admin));
-                })
-                .catch(() => {
-                    setIsAdmin(false);
-                })
-                .finally(() => {
-                    setCheckingPermissions(false);
-                });
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     const previewRows = useMemo(() => rows.slice(0, 5), [rows]);
 
@@ -227,14 +194,6 @@ export function SerialProductMigrationPage() {
         });
     };
 
-    if (checkingPermissions) {
-        return <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}><LoadingPanel text="Loading migration tools"/></div>;
-    }
-
-    if (!isAdmin) {
-        return <div style={{ padding: 24 }}>You do not have admin permissions.</div>;
-    }
-
     return (
         <div style={{ maxWidth: 900, margin: "0 auto", padding: 24, textAlign: "left" }}>
             <h1>Serial Product Migration</h1>
@@ -243,12 +202,6 @@ export function SerialProductMigrationPage() {
                 <br />
                 <code>https://flexpayz.com/app?product_id=OLD_ID,NEW_ID</code>
             </p>
-
-            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                <Button variant="outlined" onClick={() => navigate("/admin")} disabled={running}>
-                    Back to Admin
-                </Button>
-            </div>
 
             <input type="file" accept=".csv,.txt" onChange={onFileUpload} disabled={running} />
 

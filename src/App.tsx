@@ -5,7 +5,6 @@ import {Route, Routes} from "react-router";
 import {LoginPageWrapper} from "./Pages/login-page";
 import {FirstPageWrapper} from "./Pages/landing-page";
 import {MainContext} from "./contexts";
-import {AdminPage} from "./Pages/admin";
 import {ManageDevices} from "./Pages/manage-devices";
 import {ManageDevice} from "./Pages/manage-device";
 import {ShowProduct} from "./Pages/show-product";
@@ -21,10 +20,9 @@ import {BabyJournalSettings} from "./components/baby-journal-settings";
 import {AdultJournalSettings} from "./components/adult-journal-settings";
 import {AnimalTagSettingsWrapper} from "./Pages/animal-tag/animal-tag-settings";
 import { SerialNumberRedirect } from './Pages/serial-number-redirect';
-import GetUnlockCode from "./Pages/GetUnlockCode";
-import { SerialProductMigrationPage } from "./Pages/serial-product-migration";
 import { DesignSystemPreview } from "./components/design-system/DesignSystemPreview";
 import {db} from "./firebase";
+import { createAdminRouteElements } from "./admin/adminRoutes";
 
 export {db, storage} from "./firebase";
 
@@ -50,9 +48,7 @@ function App() {
                     <Route path={'/'} element={<FirstPageWrapper/>}/>
                     <Route path={'/app'} element={<FirstPageWrapper/>}/>
                     <Route path={'/login'} element={<LoginPageWrapper/>}/>
-                    <Route path={'/admin'} element={<AdminPage/>}/>
-                    <Route path={'/admin/unlock-code'} element={<GetUnlockCode/>}/>
-                    <Route path={'/admin/serial-migration'} element={<SerialProductMigrationPage/>}/>
+                    {createAdminRouteElements()}
                     <Route path={'/manage-devices'} element={<ManageDevices/>}/>
                     <Route path={'/manage-device'} element={<ManageDevice/>}/>
                     <Route path={'/manage-device/business-card'} element={<BusinessSettingsWrapper/>}/>

@@ -59,6 +59,14 @@ describeRules("Firestore security rules", () => {
         await assertSucceeds(addDoc(collection(db, "mail"), mail("public-product", "owner@example.com")));
     });
 
+    it("authorizes only the system-admin role for admin-only collection access", async () => {
+        await assertSucceeds(getDocs(collection(adminDb(), "products")));
+        await assertSucceeds(getDocs(collection(adminWithOldClaimDb(), "products")));
+        await assertFails(getDocs(collection(oldAdminOnlyDb(), "products")));
+        await assertFails(getDocs(collection(authedDb("regular"), "products")));
+        await assertFails(getDocs(collection(publicDb(), "products")));
+    });
+
     it("keeps user profiles scoped to the signed-in uid", async () => {
         const owner = authedDb("owner");
         const other = authedDb("other");
@@ -194,6 +202,14 @@ function authedDb(uid: string, claims: Record<string, unknown> = {}) {
 }
 
 function adminDb() {
+    return authedDb("admin", {role: "system-admin"});
+}
+
+function adminWithOldClaimDb() {
+    return authedDb("admin", {role: "system-admin", admin: true});
+}
+
+function oldAdminOnlyDb() {
     return authedDb("admin", {admin: true});
 }
 

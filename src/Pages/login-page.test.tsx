@@ -55,6 +55,7 @@ function renderAuth(initialEntry = "/login") {
                             <Route path="/" element={<FirstPageWrapper/>}/>
                             <Route path="/app" element={<FirstPageWrapper/>}/>
                             <Route path="/login" element={<LoginPageWrapper/>}/>
+                            <Route path="/admin/products" element={<h1>Admin products</h1>}/>
                             <Route path="/manage-devices" element={<h1>Manage devices</h1>}/>
                         </Routes>
                     </MemoryRouter>
@@ -87,6 +88,26 @@ describe("Login authentication flow", () => {
         fireEvent.click(screen.getByRole("button", {name: /sign in/i}));
 
         await waitFor(() => expect(mockedSignIn).toHaveBeenCalledWith(mockAuth, "user@example.com", "secret123"));
+        expect(await screen.findByRole("heading", {name: "Manage devices"})).toBeInTheDocument();
+    });
+
+    it("restores a safe returnTo path after sign-in", async () => {
+        renderAuth("/login?returnTo=%2Fadmin%2Fproducts");
+
+        fireEvent.change(screen.getByLabelText("Email address"), {target: {value: "admin@example.com"}});
+        fireEvent.change(screen.getByLabelText("Password"), {target: {value: "secret123"}});
+        fireEvent.click(screen.getByRole("button", {name: /sign in/i}));
+
+        expect(await screen.findByRole("heading", {name: "Admin products"})).toBeInTheDocument();
+    });
+
+    it("rejects unsafe returnTo values after sign-in", async () => {
+        renderAuth("/login?returnTo=https%3A%2F%2Fevil.example%2Fadmin");
+
+        fireEvent.change(screen.getByLabelText("Email address"), {target: {value: "user@example.com"}});
+        fireEvent.change(screen.getByLabelText("Password"), {target: {value: "secret123"}});
+        fireEvent.click(screen.getByRole("button", {name: /sign in/i}));
+
         expect(await screen.findByRole("heading", {name: "Manage devices"})).toBeInTheDocument();
     });
 

@@ -64,6 +64,9 @@
     "deploy": "npm run build && firebase deploy",
     "deploy:firestore:rules": "firebase deploy --only firestore:rules",
     "deploy:storage:rules": "firebase deploy --only storage",
+    "admin:set-claim": "PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs",
+    "admin:cleanup-legacy-claim": "PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs cleanup-legacy",
+    "admin:revoke-claim": "PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs revoke",
     "test:firestore:rules": "firebase emulators:exec --only firestore \"npm test -- --watchAll=false src/firestore/rules/firestore-rules.test.ts\"",
     "test:storage:rules": "firebase emulators:exec --only firestore,storage \"npm test -- --watchAll=false src/storage/rules/storage-rules.test.ts\""
   },

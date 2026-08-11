@@ -1,7 +1,7 @@
 import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 import {useState} from "react";
-import {onAuthStateChanged, signOut} from "firebase/auth";
+import {getIdTokenResult, onAuthStateChanged, signOut} from "firebase/auth";
 import {arrayUnion, collection, doc, getDoc, getDocs, limit, query, updateDoc, where} from "firebase/firestore";
 import {ManageDevices} from "./manage-devices";
 import {MainContext} from "../contexts";
@@ -9,6 +9,7 @@ import {FlexPayzThemeProvider} from "../theme";
 
 jest.mock("firebase/auth", () => ({
     getAuth: jest.fn(() => ({})),
+    getIdTokenResult: jest.fn(),
     onAuthStateChanged: jest.fn(),
     signOut: jest.fn(),
 }));
@@ -30,6 +31,7 @@ jest.mock("../control-state", () => ({
 }));
 
 const mockedOnAuthStateChanged = onAuthStateChanged as jest.MockedFunction<typeof onAuthStateChanged>;
+const mockedGetIdTokenResult = getIdTokenResult as jest.MockedFunction<typeof getIdTokenResult>;
 const mockedSignOut = signOut as jest.MockedFunction<typeof signOut>;
 const mockedArrayUnion = arrayUnion as jest.MockedFunction<typeof arrayUnion>;
 const mockedCollection = collection as jest.MockedFunction<typeof collection>;
@@ -73,6 +75,7 @@ function renderManageDevices() {
                             <Route path="/app" element={<h1>Entry page</h1>}/>
                             <Route path="/manage-devices" element={<ManageDevices/>}/>
                             <Route path="/manage-device" element={<h1>Manage device page</h1>}/>
+                            <Route path="/admin" element={<h1>Admin dashboard</h1>}/>
                         </Routes>
                     </MemoryRouter>
                 </MainContext.Provider>
@@ -94,6 +97,7 @@ beforeEach(() => {
         callback({uid: "user-1"});
         return jest.fn();
     });
+    mockedGetIdTokenResult.mockResolvedValue({claims: {role: "system-admin"}} as any);
     mockedSignOut.mockResolvedValue(undefined);
     mockedUpdateDoc.mockResolvedValue(undefined as any);
     mockedLimit.mockImplementation((value: number) => ({limit: value}) as any);
@@ -123,6 +127,7 @@ describe("ManageDevices dashboard", () => {
         expect(screen.queryByRole("button", {name: /Open actions for/i})).not.toBeInTheDocument();
 
         expect(screen.getByRole("button", {name: "Open profile menu"})).toBeInTheDocument();
+        expect(await screen.findByRole("button", {name: "Open admin dashboard"})).toBeInTheDocument();
         expect(screen.queryByText("RM")).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", {name: "Open profile menu"}));
         expect(screen.getByRole("menuitem", {name: "Logout"})).toBeInTheDocument();
@@ -172,6 +177,18 @@ describe("ManageDevices dashboard", () => {
         expect(await screen.findByText("Midnight Ring")).toBeInTheDocument();
         fireEvent.click(screen.getAllByRole("button", {name: "Manage device"})[0]);
         expect(await screen.findByRole("heading", {name: "Manage device page"})).toBeInTheDocument();
+    });
+
+    it("shows the admin dashboard shortcut only for system admins", async () => {
+        renderManageDevices();
+
+        fireEvent.click(await screen.findByRole("button", {name: "Open admin dashboard"}));
+        expect(await screen.findByRole("heading", {name: "Admin dashboard"})).toBeInTheDocument();
+
+        mockedGetIdTokenResult.mockResolvedValueOnce({claims: {}} as any);
+        renderManageDevices();
+        await screen.findByText("3 active FlexPayz products");
+        expect(screen.queryByRole("button", {name: "Open admin dashboard"})).not.toBeInTheDocument();
     });
 });
 

@@ -118,6 +118,10 @@
     transform: translateY(-1px);
 }
 
+.devices-admin-button {
+    color: var(--fp-color-champagne-dark);
+}
+
 .devices-profile-button:active {
     transform: translateY(0);
 }

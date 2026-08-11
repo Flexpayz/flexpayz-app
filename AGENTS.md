@@ -16,6 +16,7 @@
 - Avoid large page rewrites. Migrate one flow at a time.
 - Do not silently modify unrelated legacy styles.
 - Run the build and relevant tests after every implementation task.
+- Manual Firebase/Admin SDK scripts must be exposed as npm scripts or documented commands that prefix the script command with explicit `PROJECT_ID` and `GOOGLE_APPLICATION_CREDENTIALS` values, for example `PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs`.
 
 ## Firestore architecture
 

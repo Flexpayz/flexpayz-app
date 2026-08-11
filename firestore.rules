@@ -6,8 +6,13 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isSystemAdmin() {
+      return signedIn()
+        && request.auth.token.role == "system-admin";
+    }
+
     function isAdmin() {
-      return signedIn() && request.auth.token.admin == true;
+      return isSystemAdmin();
     }
 
     function productPath(productId) {
