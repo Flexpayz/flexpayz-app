@@ -1,13 +1,226 @@
+:root {
+  --fp-color-canvas: #EEE8DE;
+  --fp-color-background-secondary: #E5DCCE;
+  --fp-color-surface-primary: #FFFCF7;
+  --fp-color-white: #FFFFFF;
+  --fp-color-surface-sand: #EDE2D3;
+  --fp-color-champagne-soft: #F5EBDD;
+  --fp-color-ink: #211F1C;
+  --fp-color-text-muted: #7A736B;
+  --fp-color-text-faint: #A49B91;
+  --fp-color-border: #DED4C8;
+  --fp-color-champagne: #C5965D;
+  --fp-color-champagne-dark: #7A5730;
+  --fp-color-success: #50765B;
+  --fp-color-success-soft: #E4EFE6;
+  --fp-color-danger: #9B4B32;
+  --fp-font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fp-font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --fp-font-family-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --fp-font-size-eyebrow: 10px;
+  --fp-font-size-caption: 0.75rem;
+  --fp-font-size-body-small: 0.875rem;
+  --fp-font-size-body: 1rem;
+  --fp-font-size-body-large: 1.125rem;
+  --fp-font-size-title-small: 1.25rem;
+  --fp-font-size-title: 1.5rem;
+  --fp-font-size-heading: 2rem;
+  --fp-font-size-display: 3rem;
+  --fp-line-height-tight: 1.15;
+  --fp-line-height-heading: 1.2;
+  --fp-line-height-body: 1.6;
+  --fp-line-height-control: 1.25;
+  --fp-letter-spacing-reset: 0;
+  --fp-letter-spacing-eyebrow: 0.2em;
+  --fp-space-0: 0;
+  --fp-space-1: 0.25rem;
+  --fp-space-2: 0.5rem;
+  --fp-space-3: 0.75rem;
+  --fp-space-4: 1rem;
+  --fp-space-5: 1.25rem;
+  --fp-space-6: 1.5rem;
+  --fp-space-7: 1.75rem;
+  --fp-space-8: 2rem;
+  --fp-space-10: 2.5rem;
+  --fp-space-12: 3rem;
+  --fp-space-16: 4rem;
+  --fp-space-20: 5rem;
+  --fp-space-24: 6rem;
+  --fp-radius-xs: 8px;
+  --fp-radius-sm: 12px;
+  --fp-radius-md: 16px;
+  --fp-radius-lg: 24px;
+  --fp-radius-xl: 32px;
+  --fp-radius-pill: 999px;
+  --fp-shadow-soft: 0 8px 24px rgba(33, 31, 28, 0.06);
+  --fp-shadow-raised: 0 12px 32px rgba(33, 31, 28, 0.08);
+  --fp-shadow-floating: 0 20px 56px rgba(33, 31, 28, 0.12);
+  --fp-shadow-champagne: 0 16px 40px rgba(122, 87, 48, 0.16);
+  --fp-transition-fast: 120ms ease;
+  --fp-transition-standard: 180ms ease;
+  --fp-transition-slow: 260ms ease;
+  --fp-focus-ring: 0 0 0 3px rgba(197, 150, 93, 0.34);
+  --fp-focus-outline: 2px solid #7A5730;
+  --fp-focus-offset: 3px;
+  --fp-size-interactive-min: 44px;
+  color-scheme: light;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--fp-font-ui);
+  color: var(--fp-color-ink);
+  background: var(--fp-color-canvas);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--fp-font-ui);
+}
+
+.flexpayz-logo-image {
+  width: min(15rem, 40vw);
+  max-width: 40vw;
+  min-width: 0;
+  object-fit: contain;
+}
+
+.flexpayz-logo-default {
+  width: min(15rem, 40vw);
+}
+
+.fp-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--fp-size-interactive-min);
+  width: var(--fp-size-interactive-min);
+  height: var(--fp-size-interactive-min);
+  min-width: var(--fp-size-interactive-min);
+  min-height: var(--fp-size-interactive-min);
+  border: 1px solid var(--fp-color-border);
+  border-radius: 999px;
+  color: var(--fp-color-ink);
+  background: color-mix(in srgb, var(--fp-color-surface-primary) 78%, transparent);
+  box-shadow: var(--fp-shadow-raised);
+  cursor: pointer;
+  transition:
+    background-color var(--fp-transition-standard),
+    border-color var(--fp-transition-standard),
+    box-shadow var(--fp-transition-standard),
+    transform var(--fp-transition-fast);
+}
+
+.fp-back-button:hover {
+  border-color: var(--fp-color-champagne);
+  background: var(--fp-color-surface-primary);
+  transform: translateY(-1px);
+}
+
+.fp-back-button:active {
+  transform: translateY(0);
+}
+
+.fp-back-button:focus-visible {
+  outline: var(--fp-focus-outline);
+  outline-offset: var(--fp-focus-offset);
+  box-shadow: var(--fp-focus-ring);
+}
+
+.fp-loading-panel {
+  width: min(calc(100% - var(--fp-space-8)), 36rem);
+  min-height: 11rem;
+  margin: var(--fp-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fp-space-5);
+  padding: var(--fp-space-8) var(--fp-space-6);
+  border: 1px solid var(--fp-color-border);
+  border-radius: var(--fp-radius-xl);
+  color: var(--fp-color-champagne);
+  background: var(--fp-color-surface-primary);
+  box-shadow: var(--fp-shadow-floating);
+  text-align: center;
+}
+
+.fp-loading-panel strong {
+  color: var(--fp-color-ink);
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-title-small);
+  font-weight: 600;
+  line-height: var(--fp-line-height-control);
+}
+
+.fp-typography-display,
+.fp-typography-page-title,
+.fp-typography-heading {
+  font-family: var(--fp-font-display);
+  font-weight: 400;
+  line-height: var(--fp-line-height-tight);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-page-title {
+  font-size: var(--fp-font-size-display);
+}
+
+.fp-typography-heading {
+  font-size: var(--fp-font-size-heading);
+}
+
+.fp-typography-display-emphasis {
+  font-family: var(--fp-font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.fp-typography-body {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-body);
+  font-weight: 400;
+  line-height: var(--fp-line-height-body);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-label {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-body-small);
+  font-weight: 600;
+  line-height: var(--fp-line-height-control);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-caption {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-caption);
+  font-weight: 400;
+  line-height: var(--fp-line-height-control);
+  letter-spacing: var(--fp-letter-spacing-reset);
+}
+
+.fp-typography-eyebrow,
+.auth-kicker,
+.entry-kicker,
+.business-kicker,
+.workspace-kicker,
+.workspace-section-kicker,
+.workspace-sidebar-kicker,
+.devices-kicker,
+.devices-card-kicker,
+.custom-link-public-kicker,
+.business-editor-section > p,
+.device-identity-card span,
+.device-sidebar-identity span,
+.dialog-title-row span,
+.reset-device-dialog .MuiDialogTitle-root span {
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-font-size-eyebrow);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: var(--fp-letter-spacing-eyebrow);
+  text-transform: uppercase;
+  color: var(--fp-color-text-muted);
 }

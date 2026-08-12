@@ -2,46 +2,29 @@ import React, {useState} from 'react';
 import './App.css';
 import './Pages/basic.css';
 import {Route, Routes} from "react-router";
-import {LoginPage, FirstPageWrapper} from "./Pages/login-page";
-import {LoginFormContext, MainContext, RegisterFormContext} from "./contexts";
-import {InitialPage} from "./Pages/initial-page";
-import {initializeApp} from 'firebase/app';
-import {getFirestore} from "firebase/firestore";
-import {AdminPage} from "./Pages/admin";
+import {LoginPageWrapper} from "./Pages/login-page";
+import {FirstPageWrapper} from "./Pages/landing-page";
+import {MainContext} from "./contexts";
 import {ManageDevices} from "./Pages/manage-devices";
 import {ManageDevice} from "./Pages/manage-device";
-import {getStorage, ref} from "firebase/storage";
 import {ShowProduct} from "./Pages/show-product";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'
-import {BusinessSettings, BusinessSettingsWrapper} from "./components/business-settings";
-import {CustomLinkSettings, CustomLinkSettingsWrapper} from "./components/custom-link-settings";
-import {UploadFileSettings, UploadFileSettingsWrapper} from "./components/upload-file-settings";
-import {UploadVideoSettings, UploadVideoSettingsWrapper} from "./components/upload-video-settings";
-import {UploadSongsSettings, UploadSongsSettingsWrapper} from "./components/upload-songs-settings";
+import {BusinessSettingsWrapper} from "./components/business-settings";
+import {CustomLinkSettingsWrapper} from "./components/custom-link-settings";
+import {UploadFileSettingsWrapper} from "./components/upload-file-settings";
+import {UploadVideoSettingsWrapper} from "./components/upload-video-settings";
+import {UploadSongsSettingsWrapper} from "./components/upload-songs-settings";
 import {SharedContacts} from "./components/shared-contacts";
 import {BabyJournalSettings} from "./components/baby-journal-settings";
 import {AdultJournalSettings} from "./components/adult-journal-settings";
 import {AnimalTagSettingsWrapper} from "./Pages/animal-tag/animal-tag-settings";
 import { SerialNumberRedirect } from './Pages/serial-number-redirect';
-import GetUnlockCode from "./Pages/GetUnlockCode";
-import { SerialProductMigrationPage } from "./Pages/serial-product-migration";
+import { DesignSystemPreview } from "./components/design-system/DesignSystemPreview";
+import {db} from "./firebase";
+import { createAdminRouteElements } from "./admin/adminRoutes";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyD95KPFA7TG3QepgOl8iJdUM3c9RnEM11Q",
-    authDomain: "bussiness-card-bda7f.firebaseapp.com",
-    projectId: "bussiness-card-bda7f",
-    storageBucket: "bussiness-card-bda7f.appspot.com",
-    messagingSenderId: "788931798027",
-    appId: "1:788931798027:web:54941df048478186d7930e"
-};
-
-
-const app = initializeApp(firebaseConfig);
-
-export const db = getFirestore(app);
-export const storage = getStorage(app)
-
+export {db, storage} from "./firebase";
 
 const defaultState: any = {
     login: {email: "", password: ""},
@@ -52,19 +35,20 @@ const defaultState: any = {
 
 function App() {
     const [state, setState] = useState(defaultState)
+    const showDesignSystemPreview = process.env.NODE_ENV === "development" && window.location.pathname === "/__design-system";
+
+    if (showDesignSystemPreview) {
+        return <DesignSystemPreview />;
+    }
 
     return (
         <div className="App">
-            <link rel="preconnect" href="https://fonts.googleapis.com"/>
-                <link rel="preconnect" href="https://fonts.gstatic.com"/>
-                    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
             <MainContext.Provider value={{state, setState, db}}>
                 <Routes>
-                    <Route path={'/'} element={<InitialPage/>}/>
+                    <Route path={'/'} element={<FirstPageWrapper/>}/>
                     <Route path={'/app'} element={<FirstPageWrapper/>}/>
-                    <Route path={'/admin'} element={<AdminPage/>}/>
-                    <Route path={'/admin/unlock-code'} element={<GetUnlockCode/>}/>
-                    <Route path={'/admin/serial-migration'} element={<SerialProductMigrationPage/>}/>
+                    <Route path={'/login'} element={<LoginPageWrapper/>}/>
+                    {createAdminRouteElements()}
                     <Route path={'/manage-devices'} element={<ManageDevices/>}/>
                     <Route path={'/manage-device'} element={<ManageDevice/>}/>
                     <Route path={'/manage-device/business-card'} element={<BusinessSettingsWrapper/>}/>

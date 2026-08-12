@@ -1,8 +1,7 @@
 import React from 'react';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import Papa from 'papaparse';
-import { DB_COLLECTIONS } from './baby-journal-settings';
-import { db } from '../App';
+import {listSerialNumbers} from '../firestore/repositories/serialNumbers';
+import {getProduct} from '../firestore/repositories/products';
 
 interface SerialData {
   serialNumber: string;
@@ -12,25 +11,19 @@ interface SerialData {
 
 const ExportSerialsCSVButton: React.FC = () => {
   const handleExport = async () => {
-    const serialsRef = collection(db, DB_COLLECTIONS.SERIAL_NUMBERS);
-
     try {
-      const serialsSnapshot = await getDocs(serialsRef);
+      const serials = await listSerialNumbers();
       const rows: SerialData[] = [];
 
-      for (const serialDoc of serialsSnapshot.docs) {
+      for (const serialDoc of serials) {
         const serialNumber = serialDoc.id;
-        const productID = serialDoc.data().productID || '';
+        const productID = serialDoc.data.productID || '';
 
         let unlockCode = '';
 
         if (productID) {
-          const productDocRef = doc(db, DB_COLLECTIONS.PRODUCTS, productID);
-          const productDoc = await getDoc(productDocRef);
-
-          if (productDoc.exists()) {
-            unlockCode = productDoc.data().unlockCode || '';
-          }
+          const product = await getProduct(productID);
+          unlockCode = product?.unlockCode || '';
         }
 
         rows.push({ serialNumber, productID, unlockCode });

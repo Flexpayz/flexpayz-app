@@ -1,16 +1,6 @@
-import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { db } from "../App";
-import { DB_COLLECTIONS } from "../components/baby-journal-settings";
-
-type SerialNumberType = "default" | "sanitas-payment-ring";
-
-type SerialNumberDoc = {
-    productID?: string;
-    type?: SerialNumberType;
-    redirectUrl?: string;
-};
+import {getSerialNumber} from "../firestore/repositories/serialNumbers";
 
 const SANITAS_URL_TEMPLATE = (productID: string) =>
     `https://app.sanitas.org.ro/show/dashboard?product_id=${productID}`;
@@ -33,10 +23,8 @@ export function SerialNumberRedirect() {
 
         (async () => {
             try {
-                const ref = doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serialNumber);
-                const snap = await getDoc(ref);
-
-                if (!snap.exists()) {
+                const serialDoc = await getSerialNumber(serialNumber);
+                if (!serialDoc) {
                     setState({
                         status: "error",
                         message: "Număr serial invalid. Te rugăm contactează suportul.",
@@ -44,7 +32,7 @@ export function SerialNumberRedirect() {
                     return;
                 }
 
-                const data = snap.data() as SerialNumberDoc;
+                const data = serialDoc.data;
                 const productID = data.productID;
 
                 if (!productID) {
@@ -55,7 +43,7 @@ export function SerialNumberRedirect() {
                     return;
                 }
 
-                const type = (data.type ?? "default") as SerialNumberType;
+                const type = data.type ?? "default";
 
                 if (type === "sanitas-payment-ring") {
                     const target =

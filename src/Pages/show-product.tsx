@@ -1,215 +1,102 @@
 import {useNavigate} from "react-router";
-import {CSSProperties, useContext, useEffect, useMemo, useState} from "react";
-import {arrayUnion, doc, getDoc, updateDoc} from "firebase/firestore";
-import {MainContext, ManageProductContext} from "../contexts";
+import {CSSProperties, useEffect, useState} from "react";
+import ChildCareRoundedIcon from "@mui/icons-material/ChildCareRounded";
+import ContactPageRoundedIcon from "@mui/icons-material/ContactPageRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
+import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import PetsRoundedIcon from "@mui/icons-material/PetsRounded";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import {getDownloadURL, ref} from "firebase/storage";
-import {db, storage} from "../App";
-import {Preview} from "./admin";
+import {storage} from "../App";
+import {Preview} from "../preview";
 import './show-product.css'
-import ShareButton from '../assets/share.svg'
-import Logo from '../assets/flexpayz-logo.svg'
-import InstagramLogo from '../assets/instagram.svg'
-import FacebookLogo from '../assets/facebook.svg'
-import LinkedInLogo from '../assets/linkedin.svg'
-import YoutubeLogo from '../assets/youtube-svgrepo-com.svg'
-import YouTube from "react-youtube";
-import WorkIcon from '../assets/work-icon.svg'
-import LocationIcon from '../assets/location-icon.svg'
-import WebsiteIcon from '../assets/website-icon.svg'
-import TikTokLogo from '../assets/tiktok-square-icon.svg'
 import {defaultProduct, Product} from "../control-state";
-import {Box, Modal, TextField} from "@mui/material";
-import {getProductIdFromURL, onChangeWrapper} from "../utils";
-import {AudioPage} from "../components/audio-page";
-import {useResetDevice} from "../useProductData";
-import {notify} from "./login-page";
-import {translatedText} from "../languages";
+import {TextField} from "@mui/material";
 import {BabyJournalPreview} from "../components/baby-journal-preview";
 import {AdultJournalPreview} from "../components/adult-journal-preview";
 import { AnimalTagPreviewWrapper} from "./animal-tag/animal-tag-preview";
-function addHttps(site: string) {
-    if (site.trim().startsWith('http')) {
-        return site
-    } else {
-        return `https://${site}`
-    }
-}
-
-function GetContact({product}: { product: Product }) {
-    const [showModal, setShowModal] = useState(false)
-    const onResetProduct = useResetDevice()
-    const handleCloseModal = () => {
-        setShowModal(false)
-    }
-    console.log('product', product.previewLanguage)
-    const handleOpenModal = () => {
-        setShowModal(true)
-    }
-
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [phone, setPhone] = useState("")
-
-    const handleShareContact = async () => {
-        const productId = getProductIdFromURL()
-        const date = Date.now()
-        if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {sharedContacts: arrayUnion({name, email, phone, date})})
-            notify('Shared contact')
-            handleCloseModal()
-        }
-
-    }
-
-    return (<div className={'reset-product-container'}>
-        <button className={'share-contact-with-me'}
-                onClick={handleOpenModal}>{translatedText[product.previewLanguage]["Share your contact with me"]}
-        </button>
-        <Modal open={showModal} onClose={handleCloseModal}>
-            <Box className={'inside-modal-2'}>
-                <div className={'modal-inputs'}>
-                    <TextField label={'Name'} type={'text'} className={'form-manager-input'} value={name}
-                               onChange={(e) => {
-                                   setName(e.target.value)
-                               }} variant={"outlined"} size={"small"} sx={{textarea: {color: 'white'}}}/>
-                    <TextField label={'Phone'} type={'text'} value={phone} className={'form-manager-input'}
-                               onChange={(e) => {
-                                   setPhone(e.target.value)
-                               }} variant={"outlined"} size={"small"}/>
-                    <TextField label={'Email'} type={'email'} className={'form-manager-input'} value={email}
-                               onChange={(e) => {
-                                   setEmail(e.target.value)
-                               }} variant={"outlined"} size={"small"}/>
-                </div>
-                <button style={{marginBottom: '12px'}} className={'reset-button'}
-                        onClick={handleShareContact}>{translatedText[product.previewLanguage].Share}
-                </button>
-
-            </Box>
-
-        </Modal>
-    </div>)
-}
+import {
+    getPublicRoutingMode,
+    getVisibleSections,
+    PUBLIC_SECTION_ORDER,
+} from "../product-visibility";
+import {BusinessCardPublicPage} from "../components/business-card-public";
+import {CustomLinkPublicPage} from "../components/custom-link-public";
+import {UploadFilesPublicPage} from "../components/upload-files-public";
+import {UploadSongsPublicPage} from "../components/upload-songs-public";
+import {UploadVideoPublicPage} from "../components/upload-video-public";
+import {BackButton, FlexPayzLogo, LoadingPanel} from "../components/design-system";
+import {PublicLanguageProvider, TranslatePublicCopy, usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
+import {PublicLanguagePicker} from "../components/public-page-header";
+import {getProduct} from "../firestore/repositories/products";
 
 export function ShowProduct() {
     const navigate = useNavigate()
     const [product, setProduct] = useState<Product>(defaultProduct)
     const urlParams = new URLSearchParams(window.location.search)
     const productId = urlParams.get('product_id')
-    const {db} = useContext(MainContext)
     const [profileImageURL, setProfileImageURL] = useState('')
     const [logoImageURL, setLogoImageURL] = useState('')
 
     const [passwordProtected, setPasswordProtected] = useState(false)
     const [password, setPassword] = useState('')
     const [loaded, setLoaded] = useState(false)
-    const [songs, setSongs] = useState<any[]>([])
-
-
-    getYoutubeLink('//https://youtu.be/GF8hpmGhBtI?si=W3ww_cb9OBGhuBIO')
-
+    const [loadFailed, setLoadFailed] = useState(false)
     useEffect(() => {
         (async () => {
             if (productId) {
-                const productRef = doc(db, 'products', productId)
-                const docSnap = await getDoc(productRef);
-                if (docSnap.exists()) {
-                    console.log("it exists")
-                    if (!docSnap.data().activated) {
+                let productData: Product | null = null;
+                try {
+                    productData = await getProduct(productId);
+                } catch (error) {
+                    console.error("Public product load failed", error);
+                    setLoadFailed(true);
+                    setPasswordProtected(false);
+                    setLoaded(true);
+                    return;
+                }
+                if (productData) {
+                    if (!productData.activated) {
                         navigate('/app?product_id=' + productId)
                     }
-                    console.log("is activated")
-                    setProduct((prev: Product) => ({...prev, ...docSnap.data() as Product}))
-                    setPasswordProtected((docSnap.data() as Product).publicPagePasswordActivated)
-                    setLoaded(true)
-                    if (docSnap.data().preview === Preview.CUSTOM_LINK) {
-                        window.location.replace(docSnap.data().customLink)
+                    setProduct((prev: Product) => ({...prev, ...productData}))
+                    if (isPublicProductUnavailable(productData)) {
+                        setPasswordProtected(false);
+                        setLoaded(true);
+                        return;
                     }
-                    const song1Ref = ref(storage, `audio/${productId}/song1`)
-                    const song2Ref = ref(storage, `audio/${productId}/song2`)
-                    const song3Ref = ref(storage, `audio/${productId}/song3`)
-                    getDownloadURL(song1Ref)
-                        .then(url => {
-                            setSongs((prev) => [...prev, {title: docSnap.data().song1, src: url}])
-                            return Promise.resolve(true);
-                        })
-                        .catch(error => {
-                            if (error.code === 'storage/object-not-found') {
-                                return Promise.resolve(false);
-                            } else {
-                                return Promise.reject(error);
-                            }
-                        });
-                    getDownloadURL(song2Ref)
-                        .then(url => {
-                            console.log('song2', product.song2)
-                            setSongs((prev) => [...prev, {title: docSnap.data().song2, src: url}])
-                            return Promise.resolve(true);
-                        })
-                        .catch(error => {
-                            if (error.code === 'storage/object-not-found') {
-                                return Promise.resolve(false);
-                            } else {
-                                return Promise.reject(error);
-                            }
-                        });
-                    getDownloadURL(song3Ref)
-                        .then(url => {
-                            setSongs((prev) => [...prev, {title: docSnap.data().song3, src: url}])
-                            return Promise.resolve(true);
-                        })
-                        .catch(error => {
-                            if (error.code === 'storage/object-not-found') {
-                                return Promise.resolve(false);
-                            } else {
-                                return Promise.reject(error);
-                            }
-                        });
+                    setPasswordProtected(productData.publicPagePasswordActivated)
                 } else {
+                    setLoaded(true)
                     // navigate('/app')
+                    return;
                 }
                 const imageRef = ref(storage, `images/${productId}`)
-                getDownloadURL(imageRef)
-                    .then(url => {
-                        setProfileImageURL(url)
-                        return Promise.resolve(true);
-                    })
-                    .catch(error => {
-                        if (error.code === 'storage/object-not-found') {
-                            return Promise.resolve(false);
-                        } else {
-                            return Promise.reject(error);
-                        }
-                    });
                 const logoRef = ref(storage, `images/logo-${productId}`)
-                getDownloadURL(logoRef)
-                    .then(url => {
-                        setLogoImageURL(url)
-                        return Promise.resolve(true);
-                    })
-                    .catch(error => {
+                const [profileUrl, logoUrl] = await Promise.all([
+                    getDownloadURL(imageRef).catch(error => {
                         if (error.code === 'storage/object-not-found') {
-                            return Promise.resolve(false);
-                        } else {
-                            return Promise.reject(error);
+                            return "";
                         }
-                    });
-
-
+                        return "";
+                    }),
+                    getDownloadURL(logoRef).catch(error => {
+                        if (error.code === 'storage/object-not-found') {
+                            return "";
+                        }
+                        return "";
+                    }),
+                ]);
+                setProfileImageURL(profileUrl)
+                setLogoImageURL(logoUrl)
+                setLoaded(true)
+            } else {
+                setLoaded(true)
             }
         })()
     }, [])
-
-    const share = () => {
-        const url = window.location.href
-        if(navigator.share) {
-            navigator.share({
-                title: `${product.firstName} ${product.lastName} - Business Card`,
-                url: url
-            }).catch(console.error)
-        }
-    }
 
     const downloadCV = () => {
         const documentRef = ref(storage, `documents/${productId}/CV` )
@@ -240,285 +127,311 @@ export function ShowProduct() {
             });
     }
 
-    const downloadFile1 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file1` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${product.filename1}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-    const downloadFile2 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file2` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${product.filename2}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-    const downloadFile3 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file3` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${product.filename3}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-
-    const downloadVCard = () => {
-        const documentRef = ref(storage, `documents/${productId}/vCard` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `vCard.vcf`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-                xhr.open('GET', url);
-                xhr.send();
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-
-    const shareFile1 = () => {
-    }
-
-    const shareFile2 = () => {
-
-    }
-    const shareFile3 = () => {
-        const documentRef = ref(storage, `documents/${productId}/file3` )
-        getDownloadURL(documentRef)
-            .then(url => {
-                console.log(url);
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = function () {
-                    const blob = xhr.response;
-                    const file = new File([blob], `${product.filename3}.pdf`, {
-                        type: blob.type,
-                    });
-                    navigator.share({
-                        title: product.filename3,
-                        files:[file]
-                    })
-                };
-                return Promise.resolve(true);
-            })
-            .catch(error => {
-                if (error.code === 'storage/object-not-found') {
-                    return Promise.resolve(false);
-                } else {
-                    return Promise.reject(error);
-                }
-            });
-    }
-
-    const post = getYoutubeLink(product.youtubeLink)
-    const youtubeID = post?.split('v=')[1];
-    const onReady = (event: any) => {
-        console.log(event.target)
-        event.target.playVideo();
-    };
-
-    console.log('product, product', product)
-    console.log(product.color1, product.color2)
-
     const colorsStyle = {
         "--color1": product.color1 || '#467083',
         "--color2": product.color2 || "#A3B0B5",
     } as CSSProperties;
+    const visibleSections = loaded ? getVisibleSections(product) : [];
+    const publicRoutingMode = getPublicRoutingMode(visibleSections);
+    const requestedSection = urlParams.get('section') as Preview | null;
+    const opensSectionFromDashboard = publicRoutingMode === 'dashboard' && Boolean(requestedSection && visibleSections.includes(requestedSection));
+    const openedFromDashboard = opensSectionFromDashboard && urlParams.get('from') === 'dashboard';
+    const activePreview = opensSectionFromDashboard
+        ? requestedSection
+        : publicRoutingMode === 'single' ? visibleSections[0] : product.preview;
+    const showSectionDashboard = publicRoutingMode === 'dashboard' && !opensSectionFromDashboard;
+    const openedFromManageDevice = urlParams.get('from') === 'manage-device';
 
-    return (<div style={colorsStyle}>
-        {passwordProtected && <div className={'password-page'}>
-            <TextField label={'Unlock page'} type={'password'} className={'form-manager-input'} value={password}
-                       onChange={(e) => {
-                           setPassword(e.target.value)
-                           if (e.target.value === product.publicPagePassword) {
-                               setPasswordProtected(false)
-                           }
-                       }} variant={"outlined"} size={"small"}/>
-        </div>}
-        {loaded && !passwordProtected && product.preview === Preview.BUSINESS_CARD &&
-            <div className={"page-show-product-business"}>
-            <div className={'profile-picture-container'}>
-                <img className={'profile-picture'} src={profileImageURL}/>
-                <div className={'profile-data'}>
-                    <div className={'name-title'}>
-                        <div className={'name-container'}>{product.firstName} {product.lastName}</div>
-                        <div className={'title-container'}>{product.title}</div>
-                    </div>
-                    {logoImageURL && <img className={'logo-profile'} src={logoImageURL}/>}
-                </div>
-            </div>
-            <div className={'share-button'} onClick={share}><img className={'share-icon'} src={ShareButton}/></div>
-            <div className={'data-selectors'}>
-                <div className={'data-line'}><img src={WorkIcon} className={'presentation-icon'}/>{product.companyName}
-                </div>
-                <div className={'data-line'}><img src={LocationIcon} className={'presentation-icon'}/>{product.city}
-                </div>
-                <div className={'data-line'} onClick={() => {
-                    window.open(addHttps(product.website))
-                }}><img src={WebsiteIcon} className={'presentation-icon'}/>{product.website}</div>
-            </div>
-            <div className={'about-container'}>
-                <div className={'about-me-title'}>{translatedText[product.previewLanguage]["About me"]}</div>
-                <div className={'about-me-text'}>{product.about}</div>
-            </div>
-
-            <div className={'social-media-bar'}>
-                {product.instagram && <img src={InstagramLogo} onClick={() => {
-                    window.location.replace(product.instagram)
-                }}/>}
-                {product.facebook && <img src={FacebookLogo} onClick={() => {
-                    window.location.replace(product.facebook)
-                }}/>}
-                {product.linkedIn && <img src={LinkedInLogo} onClick={() => {
-                    window.location.replace(product.linkedIn)
-                }}/>}
-                {product.youtube && <img src={YoutubeLogo} onClick={() => {
-                    window.location.replace(product.youtube)
-                }}/>}
-                {product.tiktok && <img src={TikTokLogo} onClick={() => {
-                    window.location.replace(product.tiktok)
-                }}/>}
-
-            </div>
-                {!passwordProtected && product.cv &&
-                    <div className={'download-button-profile'}
-                         onClick={downloadCV}>{translatedText[product.previewLanguage]['Download document']}</div>}
-                <div className={'download-button-profile'}
-                     onClick={downloadVCard}>{translatedText[product.previewLanguage]["Save my contact details"]}</div>
-                <GetContact product={product}/>
-        </div>}
-        {!passwordProtected && product.preview === Preview.UPLOAD_FILE && <div className={'page-show-product'}>
-            {product.filename1 && <div className={'file-container'}>
-                <span>{product.filename1}</span>
-                <div className={'download-button'}
-                     onClick={downloadFile1}>{translatedText[product.previewLanguage].Download}</div>
-                {/*<div className={'share-button'} onClick={shareFile1}>Share</div>*/}
-            </div>}
-            {product.filename2 && <div className={'file-container'}>
-                <span>{product.filename2}</span>
-                <div className={'download-button'}
-                     onClick={downloadFile2}>{translatedText[product.previewLanguage].Download}</div>
-                {/*<div className={'share-button'} onClick={shareFile2}>Share</div>*/}
-            </div>}
-            {product.filename3 && <div className={'file-container'}>
-                <span>{product.filename3}</span>
-                <div className={'download-button'}
-                     onClick={downloadFile3}>{translatedText[product.previewLanguage].Download}</div>
-                {/*<div className={'share-button'} onClick={shareFile3}>Share</div>*/}
-            </div>}
-        </div>}
-        {!passwordProtected && product.preview === Preview.UPLOAD_VIDEO && <div className={'page-show-product'}>
-            <YouTube className={'youtube'} videoId={youtubeID} onReady={onReady} opts={
-                {
-                    playerVars: {
-                        start: 0,
-                        autoplay: 1,
-                        color: 'white',
-                        modestbranding: 1,
-                        controls: 1,
-                        rel: 0,
-                        loop: 1
-                    }
-                }
-            }/>
-        </div>}
-        {!passwordProtected && product.preview === Preview.UPLOAD_SONGS && <div className={'page-show-product'}>
-            <AudioPage songs={songs} language={product.previewLanguage}/>
-        </div>}
-        {!passwordProtected && product.preview === Preview.BABY_JOURNAL && <BabyJournalPreview/>}
-        {!passwordProtected && product.preview === Preview.ADULT_JOURNAL && <AdultJournalPreview/>}
-        {!passwordProtected && product.preview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
-
-    </div>)
-
+    return (
+        <PublicLanguageProvider productId={productId || ""} defaultLanguage={product.previewLanguage}>
+            <ShowProductView
+                loaded={loaded}
+                loadFailed={loadFailed}
+                product={product}
+                productId={productId || ""}
+                colorsStyle={colorsStyle}
+                passwordProtected={passwordProtected}
+                password={password}
+                setPassword={setPassword}
+                setPasswordProtected={setPasswordProtected}
+                publicRoutingMode={publicRoutingMode}
+                showSectionDashboard={showSectionDashboard}
+                visibleSections={visibleSections}
+                openedFromManageDevice={openedFromManageDevice}
+                activePreview={activePreview}
+                openedFromDashboard={openedFromDashboard}
+                profileImageURL={profileImageURL}
+                logoImageURL={logoImageURL}
+                downloadCV={downloadCV}
+            />
+        </PublicLanguageProvider>
+    );
 }
 
-const getYoutubeLink = (link: string) => {
-    const mobileStartPosition =link?.search('youtu.be')
-    if( mobileStartPosition > -1) {
-       const mobileEndPosition = link?.search('si=')
-        const videoCode = link?.substring(mobileStartPosition + 9, mobileEndPosition-1)
-        return `https://www.youtube.com/watch?v=${videoCode}`
-    } else {
-        return link
+function ShowProductView({
+    loaded,
+    loadFailed,
+    product,
+    productId,
+    colorsStyle,
+    passwordProtected,
+    password,
+    setPassword,
+    setPasswordProtected,
+    publicRoutingMode,
+    showSectionDashboard,
+    visibleSections,
+    openedFromManageDevice,
+    activePreview,
+    openedFromDashboard,
+    profileImageURL,
+    logoImageURL,
+    downloadCV,
+}: {
+    loaded: boolean;
+    loadFailed: boolean;
+    product: Product;
+    productId: string;
+    colorsStyle: CSSProperties;
+    passwordProtected: boolean;
+    password: string;
+    setPassword: (password: string) => void;
+    setPasswordProtected: (protectedPage: boolean) => void;
+    publicRoutingMode: string;
+    showSectionDashboard: boolean;
+    visibleSections: Preview[];
+    openedFromManageDevice: boolean;
+    activePreview: Preview | null;
+    openedFromDashboard: boolean;
+    profileImageURL: string;
+    logoImageURL: string;
+    downloadCV: () => void;
+}) {
+    const {t} = usePublicLanguage();
+
+    if (!loaded) {
+        return (
+            <div style={colorsStyle} className="public-loading-page">
+                <LoadingPanel text={t("public.loading")}/>
+            </div>
+        );
+    }
+
+    if (loadFailed) {
+        return <PublicUnavailable/>;
+    }
+
+    if (isPublicProductUnavailable(product)) {
+        return (
+            <div style={colorsStyle} className="public-routing-state public-inactive-state">
+                <div className="public-routing-card public-inactive-card">
+                    <FlexPayzLogo className="public-routing-logo"/>
+                    <PublicLanguagePicker/>
+                    <h1>{t("public.inactive.title")}</h1>
+                    <span>{t("public.inactive.message")}</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (passwordProtected) {
+        return (
+            <div style={colorsStyle} className="password-page">
+                <div className="public-routing-card password-card">
+                    <FlexPayzLogo className="public-routing-logo"/>
+                    <PublicLanguagePicker/>
+                    <p>{t("public.protected.kicker")}</p>
+                    <h1>{t("public.protected.title")}</h1>
+                    <span>{t("public.protected.message")}</span>
+                    <TextField
+                        label={t("public.password.label")}
+                        type="password"
+                        className="password-card-input"
+                        value={password}
+                        onChange={(e) => {
+                            setPassword(e.target.value)
+                            if (e.target.value === product.publicPagePassword) {
+                                setPasswordProtected(false)
+                            }
+                        }}
+                        variant="outlined"
+                        size="small"
+                        autoComplete="current-password"
+                        autoFocus
+                        fullWidth
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    return (<div style={colorsStyle}>
+        {loaded && !passwordProtected && publicRoutingMode === 'empty' && <PublicNotConfigured/>}
+        {loaded && !passwordProtected && showSectionDashboard && (
+            <PublicSectionDashboard
+                product={product}
+                sections={visibleSections}
+                productId={productId}
+                fromManageDevice={openedFromManageDevice}
+            />
+        )}
+        {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.BUSINESS_CARD &&
+            <BusinessCardPublicPage
+                product={product}
+                productId={productId}
+                profileImageURL={profileImageURL}
+                logoImageURL={logoImageURL}
+                onDownloadCV={downloadCV}
+                fromDashboard={openedFromDashboard}
+            />}
+        {loaded && !passwordProtected && !showSectionDashboard && activePreview === Preview.CUSTOM_LINK &&
+            <CustomLinkPublicPage
+                product={product}
+                productId={productId}
+                fromDashboard={openedFromDashboard}
+            />}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_FILE &&
+            <UploadFilesPublicPage product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_VIDEO &&
+            <UploadVideoPublicPage product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.UPLOAD_SONGS &&
+            <UploadSongsPublicPage product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.BABY_JOURNAL &&
+            <BabyJournalPreview product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.ADULT_JOURNAL &&
+            <AdultJournalPreview product={product} productId={productId} fromDashboard={openedFromDashboard}/>}
+        {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
+
+    </div>)
+}
+
+function PublicUnavailable() {
+    const {t} = usePublicLanguage();
+
+    return (
+        <div className="public-routing-state">
+            <div className="public-routing-card">
+                <FlexPayzLogo className="public-routing-logo"/>
+                <PublicLanguagePicker/>
+                <h1>{t("public.unavailable.title")}</h1>
+                <span>{t("public.unavailable.message")}</span>
+            </div>
+        </div>
+    );
+}
+
+function PublicNotConfigured() {
+    const {t} = usePublicLanguage();
+
+    return (
+        <div className="public-routing-state">
+            <div className="public-routing-card">
+                <FlexPayzLogo className="public-routing-logo"/>
+                <PublicLanguagePicker/>
+                <h1>{t("public.empty.title")}</h1>
+                <span>{t("public.empty.message")}</span>
+            </div>
+        </div>
+    );
+}
+
+function isPublicProductUnavailable(product: Pick<Product, "inactive" | "administrativeStatus">) {
+    return product.inactive || product.administrativeStatus === "suspended" || product.administrativeStatus === "archived";
+}
+
+function PublicSectionDashboard({product, sections, productId, fromManageDevice}: { product: Product; sections: Preview[]; productId: string; fromManageDevice: boolean }) {
+    const visibleDefinitions = PUBLIC_SECTION_ORDER.filter((section) => sections.includes(section.id));
+    const {language, t} = usePublicLanguage();
+
+    return (
+        <div className="public-routing-state">
+            <div className="public-routing-card public-routing-dashboard">
+                <div className="public-routing-toolbar">
+                    <FlexPayzLogo className="public-routing-logo"/>
+                    {fromManageDevice && <BackButton aria-label={t("public.back.device")} className="public-routing-back" href={`/manage-device?product_id=${encodeURIComponent(productId)}`}/>}
+                    <PublicLanguagePicker/>
+                </div>
+                <h1>{product.name || t("public.dashboard.titleFallback")}</h1>
+                <span>{t("public.dashboard.message")}</span>
+                <div className="public-routing-section-list">
+                    {visibleDefinitions.map((section) => (
+                        <a
+                            key={section.id}
+                            href={withPublicLanguageParam(`/show-product?product_id=${encodeURIComponent(productId)}&section=${encodeURIComponent(section.id)}&from=dashboard`, language)}
+                            className="public-routing-section"
+                        >
+                            <span className="public-routing-section-icon" aria-hidden="true">{getPublicSectionIcon(section.id)}</span>
+                            <span>
+                                <strong>{getPublicSectionTitle(section.id, t)}</strong>
+                                <small>{getPublicSectionDescription(section.id, t)}</small>
+                            </span>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function getPublicSectionTitle(sectionId: Preview, t: TranslatePublicCopy) {
+    switch (sectionId) {
+        case Preview.BUSINESS_CARD:
+            return t("section.businessCard.title");
+        case Preview.CUSTOM_LINK:
+            return t("section.customLink.title");
+        case Preview.UPLOAD_FILE:
+            return t("section.uploadFiles.title");
+        case Preview.UPLOAD_VIDEO:
+            return t("section.uploadVideo.title");
+        case Preview.UPLOAD_SONGS:
+            return t("section.uploadSongs.title");
+        case Preview.BABY_JOURNAL:
+            return t("section.babyJournal.title");
+        case Preview.ADULT_JOURNAL:
+            return t("section.adultJournal.title");
+        case Preview.ANIMAL_TAG:
+            return t("section.animalTag.title");
+    }
+}
+
+function getPublicSectionDescription(sectionId: Preview, t: TranslatePublicCopy) {
+    switch (sectionId) {
+        case Preview.BUSINESS_CARD:
+            return t("section.businessCard.description");
+        case Preview.CUSTOM_LINK:
+            return t("section.customLink.description");
+        case Preview.UPLOAD_FILE:
+            return t("section.uploadFiles.description");
+        case Preview.UPLOAD_VIDEO:
+            return t("section.uploadVideo.description");
+        case Preview.UPLOAD_SONGS:
+            return t("section.uploadSongs.description");
+        case Preview.BABY_JOURNAL:
+            return t("section.babyJournal.description");
+        case Preview.ADULT_JOURNAL:
+            return t("section.adultJournal.description");
+        case Preview.ANIMAL_TAG:
+            return t("section.animalTag.description");
+    }
+}
+
+function getPublicSectionIcon(sectionId: Preview) {
+    switch (sectionId) {
+        case Preview.BUSINESS_CARD:
+            return <ContactPageRoundedIcon fontSize="small"/>;
+        case Preview.CUSTOM_LINK:
+            return <OpenInNewRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_FILE:
+            return <DescriptionRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_VIDEO:
+            return <PlayArrowRoundedIcon fontSize="small"/>;
+        case Preview.UPLOAD_SONGS:
+            return <MusicNoteRoundedIcon fontSize="small"/>;
+        case Preview.BABY_JOURNAL:
+            return <ChildCareRoundedIcon fontSize="small"/>;
+        case Preview.ADULT_JOURNAL:
+            return <HealthAndSafetyRoundedIcon fontSize="small"/>;
+        case Preview.ANIMAL_TAG:
+            return <PetsRoundedIcon fontSize="small"/>;
     }
 }

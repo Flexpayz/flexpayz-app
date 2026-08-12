@@ -31,10 +31,8 @@ export const listFilesAndGetURLs = async (folderPath: any) => {
 
 export const deleteFile = async (filePath: any) => {
     const fileRef = ref(storage, filePath);
-    console.log("delete here", fileRef)
     try {
         await deleteObject(fileRef);
-        console.log(`File ${filePath} deleted successfully`);
     } catch (error) {
         console.error('Error deleting file:', error);
     }
@@ -51,15 +49,12 @@ interface AssetUpload3Props {
 
 function AssetUpload3({value, onChange, multiple = false, maxFiles = 1, storageFolder}: AssetUpload3Props) {
     const [files, setFiles] = useState([]);
-    const [uploading, setUploading] = useState(false);
-    const [progress, setProgress] = useState(0);
     const [uploadedFiles, setUploadedFiles] = useState<{ name: string, source: string }[]>([]);
     const productId = getProductIdFromURL()
     useEffect(() => {
         // Fetch files from Firebase Storage at initialization
         const fetchFiles = async () => {
             const urls = value; // Specify your folder path
-            console.log("urls", urls)
             const formattedFiles = await Promise.all(urls.map(async (file) => {
                 const assetRef = ref(storage, file.url);
                 const metadata = await getMetadata(assetRef)
@@ -92,11 +87,7 @@ function AssetUpload3({value, onChange, multiple = false, maxFiles = 1, storageF
 
         uploadTask.on(
             'state_changed',
-            (snapshot) => {
-                // Track the progress
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setProgress(progress);
-            },
+            () => {},
             (error) => {
                 console.error('Upload failed:', error);
             },
@@ -105,7 +96,6 @@ function AssetUpload3({value, onChange, multiple = false, maxFiles = 1, storageF
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     const url = new URL(decodeURIComponent(downloadURL));
                     const fileName = url.pathname.split('/').pop()!
-                    console.log(fileName)
                     setUploadedFiles((prev: any) => [...prev, {name: fileName, source: downloadURL}] as any);
                 });
             }
@@ -121,35 +111,25 @@ function AssetUpload3({value, onChange, multiple = false, maxFiles = 1, storageF
 
     const onUpdateFiles = (files: FilePondFile[]) => {
         setFiles(files as any)
-        console.log(JSON.stringify(files))
     }
 
     useEffect(() => {
         const tempFilesFormat: Asset[] = files.map((file: FilePondFile) => {
             let storageUrl = ""
-            console.log("HERE", "hello", file.source)
             if (typeof file.source === "string") {
                 storageUrl = file.source
             } else {
                 const justDownloadedFile = uploadedFiles.find((downloadedFile: any) => {
-                    console.log("only 1", decodeURIComponent(downloadedFile.name))
-                    console.log("only 2", file.filenameWithoutExtension)
-                    console.log("only 3", decodeURIComponent(downloadedFile.name).startsWith(file.filenameWithoutExtension))
                     return decodeURIComponent(downloadedFile.name).startsWith(file.filenameWithoutExtension)
                 })
                 storageUrl = justDownloadedFile?.source || ""
-                console.log("HeRE", justDownloadedFile)
-                console.log("HeRE name", file.filename)
             }
             return {
                 name: file.filename,
                 url: storageUrl
             } as Asset
         })
-        console.log("tempFiles", tempFilesFormat)
-        console.log("actualFiles", files)
         onChange(tempFilesFormat)
-        console.log("uploadedFiles", uploadedFiles)
     }, [files, uploadedFiles]);
 
     return (
@@ -165,8 +145,6 @@ function AssetUpload3({value, onChange, multiple = false, maxFiles = 1, storageF
                 acceptedFileTypes={['image/*', 'application/pdf']} // Adjust this according to your needs
                 server={{
                     process: (fieldName, file, metadata, load, error, progress, abort) => {
-                        console.log("ACTUAL FILE", file)
-                        setUploading(true);
                         handleUpload(file);
 
                         // Allow FilePond to call the necessary functions
@@ -179,7 +157,6 @@ function AssetUpload3({value, onChange, multiple = false, maxFiles = 1, storageF
                     },
                     remove: (source, load, error) => {
                         // Should somehow send `source` to server so server can remove the file with this source
-                        console.log("acualRemove", source)
                         handleRemove(source)
                         // load()
                         //

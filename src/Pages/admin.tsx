@@ -1,30 +1,20 @@
-import {ConfigInput} from "../components/config-input";
 import {Button, Checkbox, Input} from "@mui/material";
-import {useNavigate} from "react-router";
-import {useContext, useEffect, useMemo, useRef, useState} from "react";
-import {MainContext} from "../contexts";
-import {doc, setDoc, addDoc, collection, query, where, getDocs, updateDoc, getDoc} from "firebase/firestore"
+import {useEffect, useMemo, useRef, useState} from "react";
 import './admin.css'
 import {notify} from "./login-page";
-import {db} from "../App";
-import {DB_COLLECTIONS, DB_STORAGE} from "../components/baby-journal-settings";
 import {defaultPermissions, Permissions} from "../components/usePermission";
 import {QRCodeCanvas} from "qrcode.react";
 import SerialUploader from "../components/serial-number-uploader";
 import ExportSerialsCSVButton from "../components/serial-csv-buton";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Modular import for auth
-import { getIdTokenResult } from 'firebase/auth';  // To get custom claims
+import {Preview} from "../preview";
+import {createEmptyAdultJournal, createEmptyBabyJournal} from "../firestore/repositories/journals";
+import {createEmptyAnimalTag} from "../firestore/repositories/animalTags";
+import {createProduct, listInactiveProducts} from "../firestore/repositories/products";
+import {getPermissions, setPermissions, updatePermissions} from "../firestore/repositories/permissions";
+import type {FirestoreDocument} from "../firestore/schema/primitives";
+import type {Product as ProductData} from "../control-state";
 
-export enum Preview {
-    BUSINESS_CARD = 'business_card',
-    CUSTOM_LINK = 'custom_link',
-    UPLOAD_FILE = 'upload_file',
-    UPLOAD_VIDEO = "upload_video",
-    UPLOAD_SONGS = "upload-songs",
-    BABY_JOURNAL = "baby-journal",
-    ADULT_JOURNAL = "adult-journal",
-    ANIMAL_TAG = "animal_tag",
-}
+export {Preview};
 
 export const random_hex_code = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -33,65 +23,23 @@ export const random_hex_code = () => {
 
 export function AdminPage() {
     const [orderedProducts, setOrderedProducts] = useState(0)
-    const [products, setProducts] = useState<any[]>([])
-    const {db} = useContext(MainContext)
-    const navigate = useNavigate()
-
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [loading, setLoading] = useState(true); // To handle loading state
-
-    useEffect(() => {
-        const auth = getAuth(); // Get the auth instance
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          if (user) {
-            // Get ID token result to check for custom claims (like admin)
-            user.getIdTokenResult()
-              .then((idTokenResult) => {
-                if (idTokenResult.claims.admin) {
-                  setIsAdmin(true);
-                } else {
-                  setIsAdmin(false);
-                }
-              })
-              .catch((error) => {
-                console.error('Error checking admin claim:', error);
-                setIsAdmin(false);
-              })
-              .finally(() => setLoading(false)); // Set loading to false after the check
-          } else {
-            setIsAdmin(false);
-            setLoading(false); // If no user, set loading to false
-          }
-        });
-    
-        // Clean up the subscription when the component unmounts
-        return () => unsubscribe();
-      }, []);
-
-  console.log(isAdmin, 'isAdmin')
+    const [products, setProducts] = useState<FirestoreDocument<ProductData>[]>([])
 
     const createProducts = async () => {
 
         for (let i = 0; i < orderedProducts; i++) {
             const hexCode = random_hex_code()
-            addDoc(collection(db, 'products'), {
+            createProduct({
                 activated: false,
                 unlockCode: hexCode,
                 name: "New Product",
                 preview: Preview.BUSINESS_CARD,
-                processed: false
-            }).then((data) => {
-                setProducts((prev) => [...prev, {
-                    id: data.id, activated: false,
-                    unlockCode: hexCode,
-                    name: "New Product",
-                    preview: Preview.BUSINESS_CARD,
-                    processed: false
-                }])
-                setDoc(doc(db, DB_COLLECTIONS.PERMISSIONS, data.id), defaultPermissions)
-                setDoc(doc(db, DB_COLLECTIONS.ADULT_JOURNALS, data.id), {})
-                setDoc(doc(db, DB_COLLECTIONS.BABY_JOURNALS, data.id), {})
-                setDoc(doc(db, DB_COLLECTIONS.ANIMAL_TAG, data.id), {})
+            }).then((created) => {
+                setProducts((prev) => [...prev, created])
+                setPermissions(created.id, defaultPermissions)
+                createEmptyAdultJournal(created.id)
+                createEmptyBabyJournal(created.id)
+                createEmptyAnimalTag(created.id)
             })
         }
         notify(`You created ${orderedProducts} products.`)
@@ -101,33 +49,16 @@ export function AdminPage() {
 
 
     useEffect(() => {
-        if (!isAdmin) return;
         (async () => {
-            const q = query(collection(db, "products"), where("activated", "==", false));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach((doc) => {
-                console.log('doc', doc.data())
-                setProducts((prev: any) => [...prev, {id: doc.id, ...doc.data()}])
-            });
+            const inactiveProducts = await listInactiveProducts();
+            setProducts(inactiveProducts);
         })()
-    }, [isAdmin])
+    }, [])
 
     const [changePermissionsProduct, setChangePermissionsProduct] = useState<string>("")
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAdmin) {
-    return <div>You do not have admin permissions.</div>;
-  }
-
-
-    return (<div className={"page"}>
+    return (<div className={"admin-products-page"}>
         <div className={"modal"}>
-            <Button onClick={() => navigate("/admin/serial-migration")}>
-                Open Serial Migration Page
-            </Button>
             <Input value={orderedProducts} type={'number'} onChange={(e: any) => {
                 setOrderedProducts(e.target.value)
             }}/>
@@ -151,18 +82,13 @@ function ChangePermissionsModal({productId}: { productId: string }) {
     useEffect(() => {
         (async () => {
             if (productId) {
-                const productRef = doc(db, DB_COLLECTIONS.PERMISSIONS, productId)
-                const docSnap = await getDoc(productRef);
-                if (docSnap.exists()) {
-                    setCurrentPermissions((prev: Permissions) => ({...prev, ...docSnap.data() as Permissions}))
-                }
+                setCurrentPermissions(await getPermissions(productId))
             }
         })()
     }, [productId]);
 
     const onSave = async () => {
-        const docRef = doc(db, DB_COLLECTIONS.PERMISSIONS, productId)
-        await updateDoc(docRef, {...currentPermissions})
+        await updatePermissions(productId, currentPermissions)
     }
 
     return <div className={"permission-modal"}>
@@ -222,35 +148,17 @@ function QRCodeGenerator({productId}: { productId: string }) {
 }
 
 
-const Product = ({product, onChangePermissions}: any) => {
+const Product = ({product, onChangePermissions}: {product: FirestoreDocument<ProductData>; onChangePermissions: (productId: string) => void}) => {
     const copyLink = (productId: string) => {
         navigator.clipboard.writeText(`https://flexpayz.com/show-product?product_id=${productId}`)
     }
-    const [processed, setProcessed] = useState(false)
-
-    useEffect(() => {
-        setProcessed(product.processed)
-        console.log(product.processed, '222')
-    }, []);
-
-    const onProcessedProduct = async (e: any) => {
-        if (product.id) {
-            const productRef = doc(db, 'products', product.id)
-            console.log(e.target.checked, 'here22')
-            await updateDoc(productRef, {processed: e.target.checked})
-            console.log(e.target.checked, 'here')
-            setProcessed((prevState: boolean) => !prevState)
-        }
-    }
-
     return (<div>
         <span>{product.id}</span>
         <br/>
-        <span>{product.unlockCode}</span>
+        <span>{product.data.unlockCode}</span>
         <Button onClick={() => {
             copyLink(product.id)
         }}>Link</Button>
-        <Checkbox checked={processed} onChange={onProcessedProduct}/>
         <Button onClick={() => {
             onChangePermissions(product.id)
         }}>PERMISSIONS</Button>

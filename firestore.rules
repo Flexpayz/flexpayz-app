@@ -1,0 +1,499 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSystemAdmin() {
+      return signedIn()
+        && request.auth.token.role == "system-admin";
+    }
+
+    function isAdmin() {
+      return isSystemAdmin();
+    }
+
+    function productPath(productId) {
+      return /databases/$(database)/documents/products/$(productId);
+    }
+
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function productExists(productId) {
+      return exists(productPath(productId));
+    }
+
+    function productData(productId) {
+      return get(productPath(productId)).data;
+    }
+
+    function userExists(uid) {
+      return exists(userPath(uid));
+    }
+
+    function ownsProduct(productId) {
+      return signedIn()
+        && userExists(request.auth.uid)
+        && get(userPath(request.auth.uid)).data.products is list
+        && productId in get(userPath(request.auth.uid)).data.products;
+    }
+
+    function isPublicActiveProduct(productId) {
+      return productExists(productId)
+        && (!('activated' in productData(productId)) || productData(productId).activated == true || productData(productId).activated == null)
+        && productData(productId).inactive != true
+        && (!('administrativeStatus' in productData(productId)) || productData(productId).administrativeStatus == 'active');
+    }
+
+    function isPublicResolvableProduct(productId) {
+      return productExists(productId);
+    }
+
+    function optionalString(data, key, maxLength) {
+      return !(key in data) || data[key] == null || (data[key] is string && data[key].size() <= maxLength);
+    }
+
+    function optionalBool(data, key) {
+      return !(key in data) || data[key] is bool;
+    }
+
+    function optionalList(data, key, maxLength) {
+      return !(key in data) || (data[key] is list && data[key].size() <= maxLength);
+    }
+
+    function isPreviewValue(value) {
+      return value in [
+        'business_card',
+        'custom_link',
+        'upload_file',
+        'upload_video',
+        'upload-songs',
+        'baby-journal',
+        'adult-journal',
+        'animal_tag',
+        'upload_songs',
+        'baby_journal',
+        'adult_journal'
+      ];
+    }
+
+    function optionalPreview(data, key) {
+      return !(key in data) || (data[key] is string && isPreviewValue(data[key]));
+    }
+
+    function optionalLanguage(data, key) {
+      return !(key in data) || data[key] in ['english', 'swedish', 'french'];
+    }
+
+    function hasOnlyProductFields(data) {
+      return data.keys().hasOnly([
+        'name',
+        'activated',
+        'inactive',
+        'preview',
+        'visibleSections',
+        'unlockCode',
+        'firstName',
+        'lastName',
+        'title',
+        'email',
+        'email2',
+        'email3',
+        'phoneNumber',
+        'phoneNumber2',
+        'phoneNumber3',
+        'country',
+        'address',
+        'address2',
+        'zipCode',
+        'city',
+        'linkedIn',
+        'instagram',
+        'facebook',
+        'youtube',
+        'tiktok',
+        'about',
+        'companyName',
+        'companyRegNumber',
+        'companyAddress',
+        'companyCity',
+        'companyCountry',
+        'companyPhoneNumber',
+        'companyAbout',
+        'customLink',
+        'filename1',
+        'filename2',
+        'filename3',
+        'cv',
+        'website',
+        'website2',
+        'youtubeLink',
+        'publicPagePassword',
+        'publicPagePasswordActivated',
+        'color1',
+        'color2',
+        'logo',
+        'song1',
+        'song2',
+        'song3',
+        'businessFile',
+        'sharedContacts',
+        'previewLanguage',
+        'processed',
+        'category',
+        'productType',
+        'type',
+        'ownerId',
+        'serialNumber',
+        'administrativeStatus',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function isProductShape(data) {
+      return hasOnlyProductFields(data)
+        && optionalString(data, 'name', 120)
+        && optionalBool(data, 'activated')
+        && optionalBool(data, 'inactive')
+        && optionalPreview(data, 'preview')
+        && optionalList(data, 'visibleSections', 8)
+        && optionalString(data, 'unlockCode', 32)
+        && optionalString(data, 'firstName', 160)
+        && optionalString(data, 'lastName', 160)
+        && optionalString(data, 'title', 160)
+        && optionalString(data, 'email', 320)
+        && optionalString(data, 'email2', 320)
+        && optionalString(data, 'email3', 320)
+        && optionalString(data, 'phoneNumber', 80)
+        && optionalString(data, 'phoneNumber2', 80)
+        && optionalString(data, 'phoneNumber3', 80)
+        && optionalString(data, 'country', 120)
+        && optionalString(data, 'address', 300)
+        && optionalString(data, 'address2', 300)
+        && optionalString(data, 'zipCode', 40)
+        && optionalString(data, 'city', 120)
+        && optionalString(data, 'linkedIn', 500)
+        && optionalString(data, 'instagram', 500)
+        && optionalString(data, 'facebook', 500)
+        && optionalString(data, 'youtube', 500)
+        && optionalString(data, 'tiktok', 500)
+        && optionalString(data, 'about', 5000)
+        && optionalString(data, 'companyName', 200)
+        && optionalString(data, 'companyRegNumber', 120)
+        && optionalString(data, 'companyAddress', 300)
+        && optionalString(data, 'companyCity', 120)
+        && optionalString(data, 'companyCountry', 120)
+        && optionalString(data, 'companyPhoneNumber', 80)
+        && optionalString(data, 'companyAbout', 5000)
+        && optionalString(data, 'customLink', 1000)
+        && optionalString(data, 'filename1', 300)
+        && optionalString(data, 'filename2', 300)
+        && optionalString(data, 'filename3', 300)
+        && optionalBool(data, 'cv')
+        && optionalString(data, 'website', 1000)
+        && optionalString(data, 'website2', 1000)
+        && optionalString(data, 'youtubeLink', 1000)
+        && optionalString(data, 'publicPagePassword', 200)
+        && optionalBool(data, 'publicPagePasswordActivated')
+        && optionalString(data, 'color1', 80)
+        && optionalString(data, 'color2', 80)
+        && optionalString(data, 'logo', 1000)
+        && optionalString(data, 'song1', 300)
+        && optionalString(data, 'song2', 300)
+        && optionalString(data, 'song3', 300)
+        && optionalString(data, 'businessFile', 300)
+        && optionalList(data, 'sharedContacts', 1000)
+        && optionalLanguage(data, 'previewLanguage')
+        && optionalBool(data, 'processed')
+        && optionalString(data, 'category', 120)
+        && optionalString(data, 'productType', 120)
+        && optionalString(data, 'type', 120)
+        && optionalString(data, 'ownerId', 160)
+        && optionalString(data, 'serialNumber', 200)
+        && (!('administrativeStatus' in data) || data.administrativeStatus in ['active', 'suspended', 'archived']);
+    }
+
+    function ownerEditableProductKeys() {
+      return [
+        'name',
+        'inactive',
+        'preview',
+        'visibleSections',
+        'firstName',
+        'lastName',
+        'title',
+        'email',
+        'email2',
+        'email3',
+        'phoneNumber',
+        'phoneNumber2',
+        'phoneNumber3',
+        'country',
+        'address',
+        'address2',
+        'zipCode',
+        'city',
+        'linkedIn',
+        'instagram',
+        'facebook',
+        'youtube',
+        'tiktok',
+        'about',
+        'companyName',
+        'companyRegNumber',
+        'companyAddress',
+        'companyCity',
+        'companyCountry',
+        'companyPhoneNumber',
+        'companyAbout',
+        'customLink',
+        'filename1',
+        'filename2',
+        'filename3',
+        'cv',
+        'website',
+        'website2',
+        'youtubeLink',
+        'publicPagePassword',
+        'publicPagePasswordActivated',
+        'color1',
+        'color2',
+        'logo',
+        'song1',
+        'song2',
+        'song3',
+        'businessFile',
+        'sharedContacts',
+        'previewLanguage',
+        'updatedAt'
+      ];
+    }
+
+    function isOwnerProductUpdate(productId) {
+      return ownsProduct(productId)
+        && isProductShape(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(ownerEditableProductKeys());
+    }
+
+    function isActivationUpdate() {
+      return signedIn()
+        && resource.data.activated == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activated'])
+        && request.resource.data.activated == true;
+    }
+
+    function currentSharedContacts() {
+      return resource.data.sharedContacts is list ? resource.data.sharedContacts : [];
+    }
+
+    function isSharedContact(contact) {
+      return contact is map
+        && contact.keys().hasOnly([
+          'name',
+          'company',
+          'email',
+          'phone',
+          'date',
+          'message',
+          'consentAccepted',
+          'consentVersion'
+        ])
+        && optionalString(contact, 'name', 160)
+        && optionalString(contact, 'company', 200)
+        && optionalString(contact, 'email', 320)
+        && optionalString(contact, 'phone', 80)
+        && (!('date' in contact) || contact.date is number)
+        && optionalString(contact, 'message', 1000)
+        && (!('consentAccepted' in contact) || contact.consentAccepted == true)
+        && optionalString(contact, 'consentVersion', 80);
+    }
+
+    function isPublicSharedContactAppend() {
+      return resource.data.activated == true
+        && resource.data.inactive != true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedContacts'])
+        && request.resource.data.sharedContacts is list
+        && request.resource.data.sharedContacts.size() == currentSharedContacts().size() + 1
+        && request.resource.data.sharedContacts.hasAll(currentSharedContacts())
+        && isSharedContact(request.resource.data.sharedContacts[request.resource.data.sharedContacts.size() - 1]);
+    }
+
+    function isUserProfileShape(data) {
+      return data.keys().hasOnly(['country', 'products'])
+        && optionalString(data, 'country', 120)
+        && (!('products' in data) || (data.products is list && data.products.size() <= 100));
+    }
+
+    function isPermissionsShape(data) {
+      return data.keys().hasOnly([
+        'business_card',
+        'custom_link',
+        'upload_files',
+        'upload_video',
+        'upload_songs',
+        'baby_journal',
+        'adult_journal',
+        'animal_tag'
+      ])
+        && optionalBool(data, 'business_card')
+        && optionalBool(data, 'custom_link')
+        && optionalBool(data, 'upload_files')
+        && optionalBool(data, 'upload_video')
+        && optionalBool(data, 'upload_songs')
+        && optionalBool(data, 'baby_journal')
+        && optionalBool(data, 'adult_journal')
+        && optionalBool(data, 'animal_tag');
+    }
+
+    function isSerialNumberShape(data) {
+      return data.keys().hasOnly(['productID', 'type', 'redirectUrl', 'createdAt'])
+        && optionalString(data, 'productID', 200)
+        && (!('type' in data) || data.type in ['default', 'sanitas-payment-ring'])
+        && optionalString(data, 'redirectUrl', 1000);
+    }
+
+    function isJournalShape(data) {
+      return data is map && data.keys().size() <= 80;
+    }
+
+    function isAnimalContact(contact) {
+      return contact is map
+        && contact.keys().hasOnly(['name', 'phone', 'email', 'address'])
+        && optionalString(contact, 'name', 160)
+        && optionalString(contact, 'phone', 80)
+        && optionalString(contact, 'email', 320)
+        && optionalString(contact, 'address', 300);
+    }
+
+    function isAnimalTagShape(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'photo',
+          'name',
+          'breed',
+          'age',
+          'weight',
+          'color',
+          'gender',
+          'height',
+          'ownerMessage',
+          'contact',
+          'isLost'
+        ])
+        && optionalList(data, 'photo', 12)
+        && optionalString(data, 'name', 160)
+        && optionalString(data, 'breed', 160)
+        && optionalString(data, 'age', 80)
+        && optionalString(data, 'weight', 80)
+        && optionalString(data, 'color', 120)
+        && (!('gender' in data) || data.gender in ['male', 'female'])
+        && optionalString(data, 'height', 80)
+        && optionalString(data, 'ownerMessage', 2000)
+        && optionalBool(data, 'isLost')
+        && (!('contact' in data) || isAnimalContact(data.contact));
+    }
+
+    function isMailMessage(message) {
+      return message is map
+        && message.keys().hasOnly(['subject', 'text'])
+        && message.subject is string
+        && message.subject.size() <= 300
+        && message.text is string
+        && message.text.size() <= 2000;
+    }
+
+    function isValidPublicMailCreate() {
+      return request.resource.data.keys().hasOnly(['productId', 'to', 'message'])
+        && request.resource.data.productId is string
+        && request.resource.data.to is string
+        && request.resource.data.to.size() <= 320
+        && isMailMessage(request.resource.data.message)
+        && isPublicActiveProduct(request.resource.data.productId)
+        && exists(/databases/$(database)/documents/animal_tag/$(request.resource.data.productId))
+        && get(/databases/$(database)/documents/animal_tag/$(request.resource.data.productId)).data.isLost == true
+        && get(/databases/$(database)/documents/animal_tag/$(request.resource.data.productId)).data.contact.email == request.resource.data.to;
+    }
+
+    match /products/{productId} {
+      allow get: if isAdmin()
+        || ownsProduct(productId)
+        || isPublicResolvableProduct(productId);
+
+      allow list: if isAdmin()
+        || (
+          signedIn()
+          && request.query.limit != null
+          && request.query.limit <= 1
+        );
+
+      allow create: if isAdmin() && isProductShape(request.resource.data);
+
+      allow update: if isAdmin()
+        || isOwnerProductUpdate(productId)
+        || isActivationUpdate()
+        || isPublicSharedContactAppend();
+
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow get: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        || (signedIn() && request.auth.uid == userId && isUserProfileShape(request.resource.data));
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.uid == userId && isUserProfileShape(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    match /permissions/{productId} {
+      allow get: if isAdmin() || ownsProduct(productId);
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && isPermissionsShape(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /serial_numbers/{serialNumber} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && isSerialNumberShape(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /baby_journals/{productId} {
+      allow get: if isAdmin() || ownsProduct(productId) || isPublicActiveProduct(productId);
+      allow list: if isAdmin();
+      allow create, update: if (isAdmin() || ownsProduct(productId)) && isJournalShape(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /adult_journals/{productId} {
+      allow get: if isAdmin() || ownsProduct(productId) || isPublicActiveProduct(productId);
+      allow list: if isAdmin();
+      allow create, update: if (isAdmin() || ownsProduct(productId)) && isJournalShape(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /animal_tag/{productId} {
+      allow get: if isAdmin() || ownsProduct(productId) || isPublicActiveProduct(productId);
+      allow list: if isAdmin();
+      allow create, update: if (isAdmin() || ownsProduct(productId)) && isAnimalTagShape(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /mail/{mailId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin() || isValidPublicMailCreate();
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
