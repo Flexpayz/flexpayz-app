@@ -11,13 +11,12 @@ import {
     TextField,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import AdminPanelSettingsRoundedIcon from "@mui/icons-material/AdminPanelSettingsRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import {getAuth, getIdTokenResult, onAuthStateChanged, signOut} from "firebase/auth";
+import {getAuth, onAuthStateChanged, signOut} from "firebase/auth";
 import {FormEvent, KeyboardEvent, RefObject, useCallback, useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import {AppButton} from "../components/design-system/AppButton";
@@ -29,7 +28,6 @@ import {Surface} from "../components/design-system/Surface";
 import {findProductsByUnlockCode, getProductDocument, updateProduct} from "../firestore/repositories/products";
 import {addProductToUser, getUserProfile} from "../firestore/repositories/users";
 import type {Product} from "../control-state";
-import {isSystemAdminClaim, type AuthClaims} from "../admin/roles";
 
 type DashboardMode = 'dashboard' | 'activate';
 type WizardStep = 'code' | 'confirm' | 'success';
@@ -55,22 +53,13 @@ export function ManageDevices() {
     const [search, setSearch] = useState('');
     const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
     const [highlightedDeviceId, setHighlightedDeviceId] = useState('');
-    const [isSystemAdmin, setIsSystemAdmin] = useState(false);
 
     useEffect(() => {
         const auth = getAuth();
         return onAuthStateChanged(auth, (user) => {
             if (user) {
                 setUserId(user.uid);
-                getIdTokenResult(user)
-                    .then((token) => {
-                        setIsSystemAdmin(isSystemAdminClaim(token.claims as AuthClaims));
-                    })
-                    .catch(() => {
-                        setIsSystemAdmin(false);
-                    });
             } else {
-                setIsSystemAdmin(false);
                 navigate('/app');
             }
         });
@@ -153,16 +142,6 @@ export function ManageDevices() {
                             <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="devices-support-link">
                                 Help & support
                             </a>
-                            {isSystemAdmin && (
-                                <button
-                                    type="button"
-                                    className="devices-profile-button devices-admin-button"
-                                    aria-label="Open admin dashboard"
-                                    onClick={() => navigate('/admin')}
-                                >
-                                    <AdminPanelSettingsRoundedIcon aria-hidden="true"/>
-                                </button>
-                            )}
                             <button
                                 type="button"
                                 className={`devices-profile-button ${profileMenuOpen ? 'devices-profile-button-open' : ''}`}

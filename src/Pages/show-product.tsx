@@ -43,10 +43,20 @@ export function ShowProduct() {
     const [passwordProtected, setPasswordProtected] = useState(false)
     const [password, setPassword] = useState('')
     const [loaded, setLoaded] = useState(false)
+    const [loadFailed, setLoadFailed] = useState(false)
     useEffect(() => {
         (async () => {
             if (productId) {
-                const productData = await getProduct(productId);
+                let productData: Product | null = null;
+                try {
+                    productData = await getProduct(productId);
+                } catch (error) {
+                    console.error("Public product load failed", error);
+                    setLoadFailed(true);
+                    setPasswordProtected(false);
+                    setLoaded(true);
+                    return;
+                }
                 if (productData) {
                     if (!productData.activated) {
                         navigate('/app?product_id=' + productId)
@@ -136,6 +146,7 @@ export function ShowProduct() {
         <PublicLanguageProvider productId={productId || ""} defaultLanguage={product.previewLanguage}>
             <ShowProductView
                 loaded={loaded}
+                loadFailed={loadFailed}
                 product={product}
                 productId={productId || ""}
                 colorsStyle={colorsStyle}
@@ -159,6 +170,7 @@ export function ShowProduct() {
 
 function ShowProductView({
     loaded,
+    loadFailed,
     product,
     productId,
     colorsStyle,
@@ -177,6 +189,7 @@ function ShowProductView({
     downloadCV,
 }: {
     loaded: boolean;
+    loadFailed: boolean;
     product: Product;
     productId: string;
     colorsStyle: CSSProperties;
@@ -202,6 +215,10 @@ function ShowProductView({
                 <LoadingPanel text={t("public.loading")}/>
             </div>
         );
+    }
+
+    if (loadFailed) {
+        return <PublicUnavailable/>;
     }
 
     if (isPublicProductUnavailable(product)) {
@@ -286,6 +303,21 @@ function ShowProductView({
         {!passwordProtected && !showSectionDashboard && activePreview === Preview.ANIMAL_TAG && <AnimalTagPreviewWrapper/>}
 
     </div>)
+}
+
+function PublicUnavailable() {
+    const {t} = usePublicLanguage();
+
+    return (
+        <div className="public-routing-state">
+            <div className="public-routing-card">
+                <FlexPayzLogo className="public-routing-logo"/>
+                <PublicLanguagePicker/>
+                <h1>{t("public.unavailable.title")}</h1>
+                <span>{t("public.unavailable.message")}</span>
+            </div>
+        </div>
+    );
 }
 
 function PublicNotConfigured() {

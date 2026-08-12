@@ -95,4 +95,15 @@ describe("ShowProduct public i18n", () => {
         expect(screen.getByText("Carte de visite")).toBeInTheDocument();
         expect(screen.getByLabelText("Langue de la page publique")).toHaveValue(Languages.FRENCH);
     });
+
+    it("shows an unavailable state when an anonymous public read is rejected", async () => {
+        const errorSpy = jest.spyOn(console, "error").mockImplementation(() => undefined);
+        mockedGetDoc.mockRejectedValue({code: "permission-denied"});
+
+        renderPublicPage("/show-product?product_id=p1");
+
+        expect(await screen.findByRole("heading", {name: "This public page is unavailable."})).toBeInTheDocument();
+        expect(screen.getByText("The device could not be opened. Check the link or try again later.")).toBeInTheDocument();
+        errorSpy.mockRestore();
+    });
 });

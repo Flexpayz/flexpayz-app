@@ -44,9 +44,13 @@ service cloud.firestore {
 
     function isPublicActiveProduct(productId) {
       return productExists(productId)
-        && productData(productId).activated == true
+        && (!('activated' in productData(productId)) || productData(productId).activated == true || productData(productId).activated == null)
         && productData(productId).inactive != true
         && (!('administrativeStatus' in productData(productId)) || productData(productId).administrativeStatus == 'active');
+    }
+
+    function isPublicResolvableProduct(productId) {
+      return productExists(productId);
     }
 
     function optionalString(data, key, maxLength) {
@@ -418,7 +422,7 @@ service cloud.firestore {
     match /products/{productId} {
       allow get: if isAdmin()
         || ownsProduct(productId)
-        || isPublicActiveProduct(productId);
+        || isPublicResolvableProduct(productId);
 
       allow list: if isAdmin()
         || (

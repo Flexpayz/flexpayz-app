@@ -131,7 +131,7 @@ async function seedBaseData() {
             setDoc(doc(db, "products", "owned-product"), product({activated: true, inactive: false})),
             setDoc(doc(db, "products", "inactive-owned-product"), product({activated: true, inactive: true})),
             setDoc(doc(db, "products", "public-product"), product({activated: true, inactive: false})),
-            setDoc(doc(db, "products", "legacy-public-product"), productWithoutInactive()),
+            setDoc(doc(db, "products", "legacy-public-product"), legacyPublicProduct()),
             setDoc(doc(db, "products", "inactive-product"), product({activated: true, inactive: true})),
             setDoc(doc(db, "products", "admin-product"), product({activated: false, inactive: false})),
         ]);
@@ -201,10 +201,9 @@ function product(overrides: Record<string, unknown> = {}) {
     };
 }
 
-function productWithoutInactive() {
+function legacyPublicProduct() {
     return {
         name: "Legacy FlexPayz product",
-        activated: true,
         preview: "business_card",
         unlockCode: "LEGACY",
         sharedContacts: [],

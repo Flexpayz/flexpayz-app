@@ -18,6 +18,8 @@ const languageByCode: Record<PublicLanguageCode, Languages> = {
 const publicCopy = {
     [Languages.ENGLISH]: {
         "public.loading": "Loading public page",
+        "public.unavailable.title": "This public page is unavailable.",
+        "public.unavailable.message": "The device could not be opened. Check the link or try again later.",
         "public.inactive.title": "This device is inactive.",
         "public.inactive.message": "The owner has temporarily disabled this public page.",
         "public.protected.kicker": "PROTECTED PAGE",
@@ -291,6 +293,8 @@ const publicCopy = {
     },
     [Languages.SWEDISH]: {
         "public.loading": "Laddar offentlig sida",
+        "public.unavailable.title": "Den offentliga sidan är inte tillgänglig.",
+        "public.unavailable.message": "Enheten kunde inte öppnas. Kontrollera länken eller försök igen senare.",
         "public.inactive.title": "Den här enheten är inaktiv.",
         "public.inactive.message": "Ägaren har tillfälligt inaktiverat den offentliga sidan.",
         "public.protected.kicker": "SKYDDAD SIDA",
@@ -460,6 +464,8 @@ const publicCopy = {
     },
     [Languages.FRENCH]: {
         "public.loading": "Chargement de la page publique",
+        "public.unavailable.title": "Cette page publique est indisponible.",
+        "public.unavailable.message": "L’appareil n’a pas pu être ouvert. Vérifiez le lien ou réessayez plus tard.",
         "public.inactive.title": "Cet appareil est inactif.",
         "public.inactive.message": "Le propriétaire a temporairement désactivé cette page publique.",
         "public.protected.kicker": "PAGE PROTÉGÉE",

@@ -77,11 +77,13 @@ describeRules("Firestore security rules", () => {
         await assertFails(setDoc(doc(owner, "users", "owner"), {country: "Sweden", products: [], role: "admin"}));
     });
 
-    it("allows public product reads but denies inactive public products", async () => {
+    it("allows public product document reads by direct id while still denying collection listing", async () => {
         const db = publicDb();
 
         await assertSucceeds(getDoc(doc(db, "products", "public-product")));
-        await assertFails(getDoc(doc(db, "products", "inactive-product")));
+        await assertSucceeds(getDoc(doc(db, "products", "legacy-public-product")));
+        await assertSucceeds(getDoc(doc(db, "products", "inactive-product")));
+        await assertSucceeds(getDoc(doc(db, "products", "unactivated-product")));
         await assertFails(getDocs(query(collection(db, "products"), limit(1))));
     });
 
@@ -152,6 +154,7 @@ describeRules("Firestore security rules", () => {
         await assertSucceeds(getDoc(doc(publicClient, "baby_journals", "public-product")));
         await assertSucceeds(getDoc(doc(publicClient, "adult_journals", "public-product")));
         await assertSucceeds(getDoc(doc(publicClient, "animal_tag", "public-product")));
+        await assertFails(getDoc(doc(publicClient, "baby_journals", "inactive-product")));
         await assertSucceeds(updateDoc(doc(owner, "baby_journals", "owned-product"), {name: "Updated"}));
         await assertSucceeds(updateDoc(doc(owner, "adult_journals", "owned-product"), {name: "Updated"}));
         await assertSucceeds(updateDoc(doc(owner, "animal_tag", "owned-product"), {gender: "female"}));
@@ -179,6 +182,7 @@ async function seedBaseData() {
             setDoc(doc(db, "users", "other"), {country: "France", products: []}),
             setDoc(doc(db, "products", "owned-product"), product({activated: true, inactive: false, unlockCode: "OWNED"})),
             setDoc(doc(db, "products", "public-product"), product({activated: true, inactive: false, unlockCode: "PUBLIC", preview: "animal_tag"})),
+            setDoc(doc(db, "products", "legacy-public-product"), legacyProduct({inactive: false, unlockCode: "LEGACY"})),
             setDoc(doc(db, "products", "inactive-product"), product({activated: true, inactive: true, unlockCode: "INACTIVE"})),
             setDoc(doc(db, "products", "unactivated-product"), product({activated: false, inactive: false, unlockCode: "LOCKED"})),
             setDoc(doc(db, "permissions", "owned-product"), permissions()),
@@ -187,6 +191,7 @@ async function seedBaseData() {
             setDoc(doc(db, "adult_journals", "owned-product"), {name: "Owned adult"}),
             setDoc(doc(db, "animal_tag", "owned-product"), animalTag()),
             setDoc(doc(db, "baby_journals", "public-product"), {name: "Public baby"}),
+            setDoc(doc(db, "baby_journals", "inactive-product"), {name: "Inactive baby"}),
             setDoc(doc(db, "adult_journals", "public-product"), {name: "Public adult"}),
             setDoc(doc(db, "animal_tag", "public-product"), animalTag({isLost: true, contact: {name: "Owner", phone: "123", email: "owner@example.com", address: "Street"}})),
         ]);
@@ -224,6 +229,12 @@ function product(overrides: Record<string, unknown> = {}) {
         previewLanguage: "english",
         ...overrides,
     };
+}
+
+function legacyProduct(overrides: Record<string, unknown> = {}) {
+    const data: Record<string, unknown> = product(overrides);
+    delete data.activated;
+    return data;
 }
 
 function permissions() {
