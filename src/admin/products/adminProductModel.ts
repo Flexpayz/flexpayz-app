@@ -108,8 +108,10 @@ export interface AdminProductRelatedData {
 export interface PaginatedProductQueryResult {
     products: AdminProduct[];
     nextCursor: string | null;
-    hasMore: boolean;
     pageSize: number;
+    page: number;
+    totalCount: number;
+    totalPages: number;
     partialWarning?: string;
 }
 
@@ -214,8 +216,27 @@ export function normalizeSerialSummary(serialNumber: string, data: SerialNumberR
     };
 }
 
-export function getPublicProductUrl(productId: string) {
-    return `https://flexpayz.com/show-product?product_id=${productId}`;
+const PRODUCTION_PUBLIC_ORIGIN = "https://flexpayz.com";
+
+type PublicLocation = Pick<Location, "hostname" | "origin">;
+
+export function getPublicProductUrl(productId: string, origin = getPublicProductOrigin()) {
+    const params = new URLSearchParams({product_id: productId});
+    return `${origin}/show-product?${params.toString()}`;
+}
+
+export function getPublicProductOrigin(location: PublicLocation | null = getCurrentLocation()) {
+    if (location && isLocalHostname(location.hostname)) return location.origin;
+    if (process.env.NODE_ENV === "production") return PRODUCTION_PUBLIC_ORIGIN;
+    return location?.origin || PRODUCTION_PUBLIC_ORIGIN;
+}
+
+function getCurrentLocation(): PublicLocation | null {
+    return typeof window === "undefined" ? null : window.location;
+}
+
+function isLocalHostname(hostname: string) {
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".local");
 }
 
 export function getDisplayStatusLabel(status: ProductDisplayStatus) {

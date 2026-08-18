@@ -1,7 +1,7 @@
 import {defaultPermissions} from "../../firestore/schema/permissions";
 import {normalizeProduct, ProductFirestoreData} from "../../firestore/schema/products";
 import {Preview} from "../../preview";
-import {normalizeAdminProductDocument} from "./adminProductModel";
+import {getPublicProductOrigin, getPublicProductUrl, normalizeAdminProductDocument} from "./adminProductModel";
 
 function normalize(raw: ProductFirestoreData, related = {}) {
     return normalizeAdminProductDocument("product-1", raw, normalizeProduct(raw), related);
@@ -155,5 +155,32 @@ describe("admin product legacy adapter", () => {
 
         expect(suspended.displayStatus).toBe("suspended");
         expect(archived.displayStatus).toBe("archived");
+    });
+});
+
+describe("admin public product URLs", () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    afterEach(() => {
+        process.env.NODE_ENV = originalNodeEnv;
+    });
+
+    it("uses the current localhost origin for local admin sessions", () => {
+        process.env.NODE_ENV = "production";
+
+        expect(getPublicProductOrigin({hostname: "localhost", origin: "http://localhost:3000"})).toBe("http://localhost:3000");
+        expect(getPublicProductUrl("product 1", "http://localhost:3000")).toBe("http://localhost:3000/show-product?product_id=product+1");
+    });
+
+    it("uses the current origin for development admin sessions", () => {
+        process.env.NODE_ENV = "test";
+
+        expect(getPublicProductOrigin({hostname: "dev.flexpayz.test", origin: "https://dev.flexpayz.test"})).toBe("https://dev.flexpayz.test");
+    });
+
+    it("uses the canonical FlexPayz domain in production", () => {
+        process.env.NODE_ENV = "production";
+
+        expect(getPublicProductOrigin({hostname: "admin.flexpayz.com", origin: "https://admin.flexpayz.com"})).toBe("https://flexpayz.com");
     });
 });

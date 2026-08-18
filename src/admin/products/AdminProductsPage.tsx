@@ -1,7 +1,6 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import type {MouseEvent, ReactNode} from "react";
 import {useNavigate, useSearchParams} from "react-router-dom";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
@@ -11,9 +10,10 @@ import {Box, InputAdornment, Menu, MenuItem, Stack, TextField} from "@mui/materi
 import {AppButton, LoadingPanel, Surface} from "../../components/design-system";
 import {
     listAdminProducts,
-    ProductAdministrativeStatusFilter,
+    AccessFilter,
     ProductDisplayStatusFilter,
 } from "../../firestore/repositories/adminProducts";
+import type {Permissions} from "../../firestore/schema/permissions";
 import {Preview} from "../../preview";
 import {
     AdminProduct,
@@ -23,10 +23,20 @@ import {
 } from "./adminProductModel";
 
 const PAGE_SIZE = 25;
+const ACCESS_LABELS: Record<keyof Permissions, string> = {
+    business_card: "Business card",
+    custom_link: "Custom link",
+    upload_files: "Files",
+    upload_video: "Video",
+    upload_songs: "Songs",
+    baby_journal: "Baby journal",
+    adult_journal: "Adult journal",
+    animal_tag: "Animal tag",
+};
 
 type ListingState =
     | {status: "loading"}
-    | {status: "loaded"; products: AdminProduct[]; nextCursor: string | null; hasMore: boolean; warning?: string}
+    | {status: "loaded"; products: AdminProduct[]; page: number; totalCount: number; totalPages: number; nextCursor: string | null; isRefreshing: boolean; warning?: string}
     | {status: "empty"; warning?: string}
     | {status: "error"; message: string};
 
@@ -34,48 +44,70 @@ export function AdminProductsPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [state, setState] = useState<ListingState>({status: "loading"});
-    const [cursorStack, setCursorStack] = useState<string[]>([]);
+    const [cursorCache, setCursorCache] = useState<Record<number, string>>({});
     const [printAnchor, setPrintAnchor] = useState<HTMLElement | null>(null);
     const [printProduct, setPrintProduct] = useState<AdminProduct | null>(null);
+    const requestSequence = useRef(0);
 
     const queryState = useMemo(() => getQueryState(searchParams), [searchParams]);
     const [searchInput, setSearchInput] = useState(queryState.search);
+    const currentCursor = queryState.page > 1 ? cursorCache[queryState.page] || null : null;
 
     const loadProducts = useCallback(async () => {
-        setState({status: "loading"});
+        const requestId = requestSequence.current + 1;
+        requestSequence.current = requestId;
+
+        setState((current) => current.status === "loaded"
+            ? {...current, isRefreshing: true}
+            : {status: "loading"},
+        );
         try {
             const result = await listAdminProducts({
                 pageSize: PAGE_SIZE,
-                cursor: queryState.cursor,
+                page: queryState.page,
+                cursor: currentCursor,
                 search: queryState.search,
                 displayStatus: queryState.status,
-                administrativeStatus: queryState.adminStatus,
-                owned: queryState.owned,
-                productType: queryState.productType,
                 serial: queryState.serial,
-                content: queryState.content,
-                health: queryState.health,
+                access: queryState.access,
                 includeArchived: queryState.includeArchived,
             });
+            if (requestId !== requestSequence.current) return;
             if (result.products.length === 0) {
                 setState({status: "empty", warning: result.partialWarning});
                 return;
             }
+            if (result.nextCursor) {
+                setCursorCache((current) => ({
+                    ...current,
+                    [result.page + 1]: result.nextCursor || "",
+                }));
+            }
             setState({
                 status: "loaded",
                 products: result.products,
+                page: result.page,
+                totalCount: result.totalCount,
+                totalPages: result.totalPages,
                 nextCursor: result.nextCursor,
-                hasMore: result.hasMore,
+                isRefreshing: false,
                 warning: result.partialWarning,
             });
         } catch (error) {
+            if (requestId !== requestSequence.current) return;
             setState({status: "error", message: error instanceof Error ? error.message : "Products could not be loaded."});
         }
-    }, [queryState]);
+    }, [queryState, currentCursor]);
 
     useEffect(() => {
+        if (queryState.page > 1 && !currentCursor) {
+            const next = new URLSearchParams(searchParams);
+            next.delete("page");
+            setSearchParams(next, {replace: true});
+            return;
+        }
         loadProducts();
-    }, [loadProducts]);
+    }, [currentCursor, loadProducts, queryState.page, searchParams, setSearchParams]);
 
     const updateQuery = useCallback((key: string, value: string) => {
         const next = new URLSearchParams(searchParams);
@@ -84,8 +116,8 @@ export function AdminProductsPage() {
         } else {
             next.delete(key);
         }
-        next.delete("cursor");
-        setCursorStack([]);
+        next.delete("page");
+        setCursorCache({});
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
@@ -99,22 +131,15 @@ export function AdminProductsPage() {
         return () => window.clearTimeout(handle);
     }, [searchInput, queryState.search, updateQuery]);
 
-    const goNext = () => {
-        if (state.status !== "loaded" || !state.nextCursor) return;
+    const goToPage = (page: number) => {
+        if (state.status !== "loaded") return;
+        const boundedPage = Math.max(1, Math.min(page, state.totalPages));
+        if (boundedPage > state.page && !state.nextCursor) return;
         const next = new URLSearchParams(searchParams);
-        if (queryState.cursor) setCursorStack((current) => [...current, queryState.cursor || ""]);
-        next.set("cursor", state.nextCursor);
-        setSearchParams(next);
-    };
-
-    const goPrevious = () => {
-        const next = new URLSearchParams(searchParams);
-        const previous = cursorStack[cursorStack.length - 1];
-        setCursorStack((current) => current.slice(0, -1));
-        if (previous) {
-            next.set("cursor", previous);
+        if (boundedPage > 1) {
+            next.set("page", String(boundedPage));
         } else {
-            next.delete("cursor");
+            next.delete("page");
         }
         setSearchParams(next);
     };
@@ -132,13 +157,8 @@ export function AdminProductsPage() {
                         <Box>
                             <Box component="h2" className="fp-typography-heading">Products</Box>
                             <Box component="p" className="admin-muted">
-                                {state.status === "loaded" ? `Showing ${state.products.length} products on this page` : "Cursor-paginated inventory"}
+                                {state.status === "loaded" ? `${state.totalCount} ${state.totalCount === 1 ? "product" : "products"} found` : "Filtering product inventory"}
                             </Box>
-                        </Box>
-                        <Box className="admin-create-products">
-                            <AppButton variant="contained" onClick={() => navigate("/admin/products/create")} startIcon={<AddRoundedIcon/>}>
-                                Create products
-                            </AppButton>
                         </Box>
                     </Box>
 
@@ -164,57 +184,24 @@ export function AdminProductsPage() {
                             ["transfer-pending", "Transfer pending"],
                             ["legacy-data-issue", "Legacy issue"],
                         ]}/>
-                        <SelectFilter label="Admin status" value={queryState.adminStatus} onChange={(value) => updateQuery("adminStatus", value)} options={[
-                            ["all", "All admin status"],
-                            ["active", "Active"],
-                            ["suspended", "Suspended"],
-                            ["archived", "Archived"],
-                        ]}/>
-                        <SelectFilter label="Product type" value={queryState.productType} onChange={(value) => updateQuery("productType", value)} options={[
-                            ["all", "All product types"],
-                            ["Flex Ring", "Flex Ring"],
-                            ["Flex Card", "Flex Card"],
-                            ["Flex Bracelet", "Flex Bracelet"],
-                            ["Pet Tag", "Pet Tag"],
-                            ["Generic/Unknown Product", "Generic/Unknown Product"],
-                            ["Business card", "Business card"],
-                            ["Ring", "Ring"],
-                            ["Card", "Card"],
-                            ["Tag", "Tag"],
-                            ["Custom link", "Custom link"],
-                            ["Files", "Files"],
-                            ["Video", "Video"],
-                            ["Songs", "Songs"],
-                            ["Baby journal", "Baby journal"],
-                            ["Adult journal", "Adult journal"],
-                        ]}/>
-                        <SelectFilter label="Ownership" value={queryState.owned} onChange={(value) => updateQuery("owned", value)} options={[
-                            ["all", "All ownership"],
-                            ["owned", "Owned"],
-                            ["unowned", "Unowned"],
-                        ]}/>
                         <SelectFilter label="Serial" value={queryState.serial} onChange={(value) => updateQuery("serial", value)} options={[
                             ["all", "All serials"],
                             ["with-serial", "With serial"],
                             ["without-serial", "Without serial"],
                             ["serial-conflict", "Serial conflict"],
                         ]}/>
-                        <SelectFilter label="Content" value={queryState.content} onChange={(value) => updateQuery("content", value)} options={[
-                            ["all", "All content"],
-                            ...Object.entries(CONTENT_LABELS),
-                        ]}/>
-                        <SelectFilter label="Health" value={queryState.health} onChange={(value) => updateQuery("health", value)} options={[
-                            ["all", "All health"],
-                            ["with-issues", "With issues"],
+                        <SelectFilter label="Access" value={queryState.access} onChange={(value) => updateQuery("access", value)} options={[
+                            ["all", "All access"],
+                            ...Object.entries(ACCESS_LABELS),
                         ]}/>
                     </Box>
                     <Box className="admin-muted">
-                        Search is exact for product ID, unlock code and serial. Owner/name global search requires a backend search index.
+                        Search is exact for product ID, unlock code and serial. Access and serial relationship filters are applied to the loaded page in this fast view.
                     </Box>
                 </Stack>
             </Surface>
 
-            {state.status === "loading" && <LoadingPanel text="Loading products"/>}
+            {state.status === "loading" && <LoadingPanel text="Loading products" className="admin-products-loading"/>}
             {state.status === "error" && (
                 <Surface className="admin-products-state" role="alert">
                     <strong>Could not load products</strong>
@@ -231,15 +218,20 @@ export function AdminProductsPage() {
             {state.status === "loaded" && (
                 <>
                     {state.warning && <Surface className="admin-products-warning">{state.warning}</Surface>}
+                    <ProductPageControls
+                        page={state.page}
+                        totalPages={state.totalPages}
+                        totalCount={state.totalCount}
+                        pageSize={PAGE_SIZE}
+                        isRefreshing={state.isRefreshing}
+                        hasNext={Boolean(state.nextCursor) && state.page < state.totalPages}
+                        onPageChange={goToPage}
+                    />
                     <ProductTable
                         products={state.products}
                         onDetails={(productId) => navigate(`/admin/products/${productId}`)}
                         onPrint={openPrintMenu}
                     />
-                    <Box className="admin-pagination">
-                        <AppButton variant="outlined" onClick={goPrevious} disabled={!queryState.cursor}>Previous</AppButton>
-                        <AppButton variant="outlined" onClick={goNext} disabled={!state.hasMore || !state.nextCursor}>Next</AppButton>
-                    </Box>
                 </>
             )}
 
@@ -271,11 +263,9 @@ function ProductTable({
                     <tr>
                         <th>Product</th>
                         <th>Status</th>
-                        <th>Owner</th>
                         <th>Serial</th>
                         <th>Content</th>
                         <th>Access</th>
-                        <th>Updated</th>
                         <th>Action</th>
                     </tr>
                     </thead>
@@ -295,6 +285,40 @@ function ProductTable({
     );
 }
 
+function ProductPageControls({
+    page,
+    totalPages,
+    totalCount,
+    pageSize,
+    isRefreshing,
+    hasNext,
+    onPageChange,
+}: {
+    page: number;
+    totalPages: number;
+    totalCount: number;
+    pageSize: number;
+    isRefreshing: boolean;
+    hasNext: boolean;
+    onPageChange: (page: number) => void;
+}) {
+    const firstItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+    const lastItem = Math.min(page * pageSize, totalCount);
+
+    return (
+        <Box className="admin-product-page-controls">
+            <Box className="admin-product-page-summary">
+                Page {page} of {totalPages}
+                <span>{isRefreshing ? "Loading..." : `Showing ${firstItem}-${lastItem} of ${totalCount}`}</span>
+            </Box>
+            <Box className="admin-product-page-buttons" aria-label="Product pages">
+                <AppButton variant="outlined" onClick={() => onPageChange(page - 1)} disabled={isRefreshing || page <= 1}>Previous</AppButton>
+                <AppButton variant="outlined" onClick={() => onPageChange(page + 1)} disabled={isRefreshing || !hasNext}>Next</AppButton>
+            </Box>
+        </Box>
+    );
+}
+
 function ProductRow({
     product,
     onDetails,
@@ -307,15 +331,13 @@ function ProductRow({
     return (
         <tr>
             <td>
-                <strong>{product.name}</strong>
-                <span>{product.productType || "Unknown product type"} · {shortId(product.id)}</span>
+                <strong>{product.id}</strong>
+                <span>{product.name || "Unnamed product"}</span>
             </td>
             <td><StatusPill product={product}/></td>
-            <td>{formatOwner(product)}</td>
             <td>{product.serials[0]?.serialNumber || "Not assigned"}{product.serialState === "conflict" ? " · conflict" : ""}</td>
-            <td>{getContentLabels(product.selectedContent).join(", ")}</td>
-            <td>{product.dataHealth.length ? `${product.dataHealth.length} issue(s)` : "Allowed by capabilities"}</td>
-            <td>{formatDate(product.updatedAt)}</td>
+            <td><ContentPills content={product.selectedContent}/></td>
+            <td><AccessPills permissions={product.capabilities.permissions}/></td>
             <td>
                 <Box className="admin-row-actions">
                     <IconAction label="View details" onClick={() => onDetails(product.id)} icon={<VisibilityRoundedIcon/>}/>
@@ -342,16 +364,15 @@ function ProductCard({
             <Stack spacing={2}>
                 <Box className="admin-product-card-header">
                     <Box>
-                        <strong>{product.name}</strong>
-                        <span>{product.productType || "Unknown product type"} · {shortId(product.id)}</span>
+                        <strong>{product.id}</strong>
+                        <span>{product.name || "Unnamed product"}</span>
                     </Box>
                     <StatusPill product={product}/>
                 </Box>
                 <dl>
-                    <dt>Owner</dt><dd>{formatOwner(product)}</dd>
                     <dt>Serial</dt><dd>{product.serials[0]?.serialNumber || "Not assigned"}</dd>
-                    <dt>Content</dt><dd>{getContentLabels(product.selectedContent).join(", ")}</dd>
-                    <dt>Updated</dt><dd>{formatDate(product.updatedAt)}</dd>
+                    <dt>Content</dt><dd><ContentPills content={product.selectedContent}/></dd>
+                    <dt>Access</dt><dd><AccessPills permissions={product.capabilities.permissions}/></dd>
                 </dl>
                 <Box className="admin-row-actions">
                     <AppButton variant="contained" onClick={() => onDetails(product.id)}>View details</AppButton>
@@ -383,34 +404,46 @@ function StatusPill({product}: {product: AdminProduct}) {
     return <span className={`admin-status-pill admin-status-${product.displayStatus}`}>{getDisplayStatusLabel(product.displayStatus)}</span>;
 }
 
+function ContentPills({content}: {content: Preview[]}) {
+    const uniqueContent = content.filter((section, index, sections) => sections.indexOf(section) === index);
+    const labels = uniqueContent.length === Object.keys(CONTENT_LABELS).length
+        ? ["All content"]
+        : getContentLabels(uniqueContent);
+
+    return (
+        <span className="admin-content-pills">
+            {labels.map((label) => (
+                <span key={label} className="admin-content-pill">{label}</span>
+            ))}
+        </span>
+    );
+}
+
+function AccessPills({permissions}: {permissions: Permissions}) {
+    const entries = Object.entries(ACCESS_LABELS) as Array<[keyof Permissions, string]>;
+    const enabledLabels = entries
+        .filter(([permission]) => permissions[permission])
+        .map(([, label]) => label);
+    const labels = enabledLabels.length === entries.length ? ["All access"] : enabledLabels.length > 0 ? enabledLabels : ["No access"];
+
+    return (
+        <span className="admin-content-pills">
+            {labels.map((label) => (
+                <span key={label} className="admin-content-pill">{label}</span>
+            ))}
+        </span>
+    );
+}
+
 function getQueryState(searchParams: URLSearchParams) {
     return {
         search: searchParams.get("q") || "",
         status: (searchParams.get("status") || "all") as ProductDisplayStatusFilter,
-        adminStatus: (searchParams.get("adminStatus") || "all") as ProductAdministrativeStatusFilter,
-        productType: searchParams.get("productType") || "all",
-        owned: (searchParams.get("owned") || "all") as "all" | "owned" | "unowned",
         serial: (searchParams.get("serial") || "all") as "all" | "with-serial" | "without-serial" | "serial-conflict",
-        content: (searchParams.get("content") || "all") as Preview | "all",
-        health: (searchParams.get("health") || "all") as "all" | "with-issues",
+        access: (searchParams.get("access") || "all") as AccessFilter,
         includeArchived: searchParams.get("status") === "archived",
-        cursor: searchParams.get("cursor"),
+        page: Math.max(1, Number(searchParams.get("page")) || 1),
     };
-}
-
-function formatOwner(product: AdminProduct) {
-    if (product.ownershipState === "available") return "Available";
-    if (product.ownershipState === "legacy-unresolved") return "Legacy owner unresolved";
-    if (!product.owner) return product.ownership.ownerId || "Unknown owner";
-    return product.owner.email || product.owner.displayName || product.owner.uid;
-}
-
-function formatDate(value: Date | null) {
-    return value ? new Intl.DateTimeFormat("en", {dateStyle: "medium"}).format(value) : "Unknown";
-}
-
-function shortId(productId: string) {
-    return productId.length > 10 ? `${productId.slice(0, 6)}…${productId.slice(-4)}` : productId;
 }
 
 function copyText(value: string) {

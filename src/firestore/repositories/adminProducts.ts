@@ -1,5 +1,6 @@
 import {
     documentId,
+    getCountFromServer,
     getDoc,
     getDocs,
     limit,
@@ -42,9 +43,11 @@ export type ProductAdministrativeStatusFilter = "all" | ProductAdministrativeSta
 export type OwnedFilter = "all" | "owned" | "unowned";
 export type SerialFilter = "all" | "with-serial" | "without-serial" | "serial-conflict";
 export type HealthFilter = "all" | "with-issues";
+export type AccessFilter = "all" | keyof Permissions;
 
 export interface AdminProductListQuery {
     pageSize: number;
+    page?: number;
     cursor?: string | null;
     search?: string;
     displayStatus?: ProductDisplayStatusFilter;
@@ -53,6 +56,7 @@ export interface AdminProductListQuery {
     productType?: string;
     serial?: SerialFilter;
     content?: Preview | "all";
+    access?: AccessFilter;
     health?: HealthFilter;
     includeArchived?: boolean;
 }
@@ -70,29 +74,40 @@ type OwnerByProductId = Map<string, UserOwnerSummary>;
 
 export async function listAdminProducts(input: AdminProductListQuery): Promise<PaginatedProductQueryResult> {
     const pageSize = clampPageSize(input.pageSize);
+    const requestedPage = clampPage(input.page);
     const search = normalizeSearch(input.search);
 
     if (search) {
-        return searchAdminProducts({...input, pageSize, search});
+        return searchAdminProducts({...input, pageSize, page: requestedPage, search});
     }
 
-    const constraints: QueryConstraint[] = [orderBy(documentId())];
-    if (input.cursor) constraints.push(startAfter(input.cursor));
-    constraints.push(limit(Math.min(pageSize * 2, 50)));
+    const serverConstraints = buildServerProductConstraints(input);
+    const baseQuery = query(collectionRef<ProductFirestoreData>(db, DB_COLLECTIONS.PRODUCTS), ...serverConstraints);
+    const countSnapshot = await getCountFromServer(baseQuery);
+    const totalCount = countSnapshot.data().count;
+    const totalPages = getTotalPages(totalCount, pageSize);
+    const page = Math.min(requestedPage, totalPages);
+    const pageConstraints: QueryConstraint[] = [
+        ...serverConstraints,
+        orderBy(documentId()),
+    ];
+    if (input.cursor) pageConstraints.push(startAfter(input.cursor));
+    pageConstraints.push(limit(pageSize));
 
-    const snapshot = await getDocs(query(collectionRef<ProductFirestoreData>(db, DB_COLLECTIONS.PRODUCTS), ...constraints));
+    const snapshot = await getDocs(query(collectionRef<ProductFirestoreData>(db, DB_COLLECTIONS.PRODUCTS), ...pageConstraints));
     const rawDocs = snapshot.docs.map(toRawProductDocument);
     const {products, partialWarning} = await normalizeAdminProductPage(rawDocs);
-    const filtered = applyClientFilters(products, input);
-    const visible = filtered.slice(0, pageSize);
-    const lastSnapshot = rawDocs[rawDocs.length - 1]?.snapshot;
+    const visible = applyClientFilters(products, input);
+    const nextCursor = snapshot.docs[snapshot.docs.length - 1]?.id || null;
 
     return {
         products: visible,
-        nextCursor: lastSnapshot?.id || null,
-        hasMore: rawDocs.length >= Math.min(pageSize * 2, 50),
+        nextCursor,
         pageSize,
-        partialWarning,
+        page,
+        totalCount,
+        totalPages,
+        partialWarning: getPartialWarning(partialWarning, input),
     };
 }
 
@@ -114,7 +129,7 @@ export async function getAdminProduct(productId: string): Promise<AdminProduct |
     return product || null;
 }
 
-async function searchAdminProducts(input: AdminProductListQuery & {search: string}): Promise<PaginatedProductQueryResult> {
+async function searchAdminProducts(input: AdminProductListQuery & {pageSize: number; page: number; search: string}): Promise<PaginatedProductQueryResult> {
     const rawDocsById = new Map<string, RawProductDocument>();
     const directProduct = await getRawProduct(input.search);
     if (directProduct) rawDocsById.set(directProduct.id, directProduct);
@@ -136,16 +151,61 @@ async function searchAdminProducts(input: AdminProductListQuery & {search: strin
         }
     }
 
-    const rawDocs = Array.from(rawDocsById.values()).slice(0, input.pageSize);
+    const rawDocs = Array.from(rawDocsById.values());
     const {products, partialWarning} = await normalizeAdminProductPage(rawDocs);
+    const filtered = applyClientFilters(products, input);
+    const totalCount = filtered.length;
+    const totalPages = getTotalPages(totalCount, input.pageSize);
+    const page = Math.min(input.page, totalPages);
 
     return {
-        products: applyClientFilters(products, input),
+        products: slicePage(filtered, page, input.pageSize),
         nextCursor: null,
-        hasMore: false,
         pageSize: input.pageSize,
+        page,
+        totalCount,
+        totalPages,
         partialWarning: partialWarning || "Search supports exact product ID, exact unlock code and exact serial number. Owner/name full-text search needs a backend search index.",
     };
+}
+
+function buildServerProductConstraints(input: AdminProductListQuery) {
+    const constraints: QueryConstraint[] = [];
+    const displayStatus = input.displayStatus || "all";
+    const adminStatus = input.administrativeStatus || "all";
+
+    if (adminStatus !== "all") {
+        constraints.push(where("administrativeStatus", "==", adminStatus));
+    } else if (displayStatus === "suspended" || displayStatus === "archived") {
+        constraints.push(where("administrativeStatus", "==", displayStatus));
+    }
+
+    if (displayStatus === "active") {
+        constraints.push(where("activated", "==", true));
+    }
+    if (displayStatus === "available") {
+        constraints.push(where("activated", "==", false));
+    }
+
+    return constraints;
+}
+
+function getPartialWarning(partialWarning: string | undefined, input: AdminProductListQuery) {
+    const pageScopedFilters = [
+        input.displayStatus === "legacy-data-issue" || input.displayStatus === "transfer-pending",
+        input.owned && input.owned !== "all",
+        input.productType && input.productType !== "all",
+        input.serial && input.serial !== "all",
+        input.content && input.content !== "all",
+        input.access && input.access !== "all",
+        input.health === "with-issues",
+    ].some(Boolean);
+
+    const pageScopedWarning = pageScopedFilters
+        ? "Some selected filters use related records and are applied to the loaded page only in this fast pagination view."
+        : "";
+
+    return [partialWarning, pageScopedWarning].filter(Boolean).join(" ");
 }
 
 async function getRawProduct(productId: string): Promise<RawProductDocument | null> {
@@ -280,6 +340,7 @@ function applyClientFilters(products: AdminProduct[], input: AdminProductListQue
         if (input.serial === "without-serial" && product.serialState !== "none") return false;
         if (input.serial === "serial-conflict" && product.serialState !== "conflict") return false;
         if (input.content && input.content !== "all" && !product.selectedContent.includes(input.content)) return false;
+        if (input.access && input.access !== "all" && !product.capabilities.permissions[input.access]) return false;
         if (input.health === "with-issues" && product.dataHealth.length === 0) return false;
         return true;
     });
@@ -298,7 +359,21 @@ function toRawProductDocument(snapshot: QueryDocumentSnapshot<ProductFirestoreDa
 
 function clampPageSize(pageSize: number) {
     if (!Number.isFinite(pageSize)) return 25;
-    return Math.max(5, Math.min(Math.floor(pageSize), 50));
+    return Math.max(5, Math.min(Math.floor(pageSize), 25));
+}
+
+function clampPage(page: number | undefined) {
+    if (!Number.isFinite(page)) return 1;
+    return Math.max(1, Math.floor(page || 1));
+}
+
+function getTotalPages(totalCount: number, pageSize: number) {
+    return Math.max(1, Math.ceil(totalCount / pageSize));
+}
+
+function slicePage<T>(items: T[], page: number, pageSize: number) {
+    const start = (page - 1) * pageSize;
+    return items.slice(start, start + pageSize);
 }
 
 function normalizeSearch(value: string | undefined) {

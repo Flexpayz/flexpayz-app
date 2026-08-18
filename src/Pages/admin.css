@@ -411,6 +411,71 @@
     background: var(--fp-color-surface-primary);
 }
 
+.admin-product-page-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-3);
+    padding: var(--fp-space-3);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-sm);
+    background: var(--fp-color-surface-primary);
+}
+
+.admin-product-page-summary {
+    display: grid;
+    gap: var(--fp-space-1);
+    color: var(--fp-color-ink);
+    font-weight: 800;
+}
+
+.admin-product-page-summary span {
+    color: var(--fp-color-text-muted);
+    font-size: var(--fp-font-size-caption);
+    font-weight: 700;
+}
+
+.admin-product-page-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--fp-space-2);
+}
+
+.admin-product-page-button {
+    min-width: var(--fp-size-interactive-min);
+    min-height: var(--fp-size-interactive-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--fp-space-2);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-sm);
+    background: var(--fp-color-surface-primary);
+    color: var(--fp-color-ink);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.admin-product-page-button-active {
+    border-color: var(--fp-color-champagne-dark);
+    background: var(--fp-color-champagne-dark);
+    color: var(--fp-color-surface-primary);
+}
+
+.admin-product-page-button:focus-visible {
+    outline: 2px solid var(--fp-color-champagne-dark);
+    outline-offset: 2px;
+}
+
+.admin-product-page-ellipsis {
+    min-width: var(--fp-size-interactive-min);
+    color: var(--fp-color-text-muted);
+    text-align: center;
+    font-weight: 800;
+}
+
 .admin-product-table {
     width: 100%;
     border-collapse: collapse;
@@ -437,6 +502,12 @@
 .admin-product-card strong {
     display: block;
     color: var(--fp-color-ink);
+}
+
+.admin-product-table td:first-child strong,
+.admin-product-card-header strong {
+    max-width: 24rem;
+    overflow-wrap: anywhere;
 }
 
 .admin-product-table td span,
@@ -468,39 +539,70 @@
 }
 
 .admin-status-pill {
-    min-height: 2rem;
-    display: inline-flex;
+    min-width: 6rem;
+    min-height: 1.625rem;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     padding: 0 var(--fp-space-2);
     border: 1px solid var(--fp-color-border);
     border-radius: var(--fp-radius-pill);
-    background: var(--fp-color-surface-primary);
-    color: var(--fp-color-ink);
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-ink) !important;
     font-size: var(--fp-font-size-caption);
     font-weight: 800;
+    line-height: 1;
+    text-align: center;
     white-space: nowrap;
 }
 
 .admin-status-active,
 .admin-status-available {
     border-color: var(--fp-color-success);
-    color: var(--fp-color-success);
+    background: var(--fp-color-success-soft);
+    color: var(--fp-color-success) !important;
 }
 
 .admin-status-suspended,
 .admin-status-legacy-data-issue {
     border-color: var(--fp-color-danger);
-    color: var(--fp-color-danger);
+    background: color-mix(in srgb, var(--fp-color-danger) 12%, var(--fp-color-surface-primary));
+    color: var(--fp-color-danger) !important;
 }
 
 .admin-status-archived {
-    color: var(--fp-color-text-muted);
+    border-color: var(--fp-color-text-muted);
+    background: color-mix(in srgb, var(--fp-color-text-muted) 14%, var(--fp-color-surface-primary));
+    color: var(--fp-color-ink) !important;
 }
 
 .admin-status-transfer-pending {
     border-color: var(--fp-color-champagne-dark);
-    color: var(--fp-color-champagne-dark);
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-champagne-dark) !important;
+}
+
+.admin-content-pills {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: var(--fp-space-1);
+    max-width: 18rem;
+}
+
+.admin-content-pill {
+    min-height: 1.5rem;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--fp-space-2);
+    border: 1px solid var(--fp-color-border);
+    border-radius: var(--fp-radius-pill);
+    background: var(--fp-color-champagne-soft);
+    color: var(--fp-color-ink) !important;
+    font-size: var(--fp-font-size-caption);
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .admin-product-cards {
@@ -539,8 +641,13 @@
 
 .admin-products-state,
 .admin-products-warning,
+.admin-products-loading,
 .admin-health-panel {
     width: 100%;
+}
+
+.admin-products-loading {
+    margin: 0;
 }
 
 .admin-products-state p,
@@ -1009,6 +1116,7 @@
     .admin-products-title-row,
     .admin-product-detail-title,
     .admin-product-card-header,
+    .admin-product-page-controls,
     .admin-section-heading {
         flex-direction: column;
     }

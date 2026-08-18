@@ -41,6 +41,7 @@ function renderAdmin(initialEntry: string) {
       <MemoryRouter initialEntries={[initialEntry]}>
         <Routes>
           {createAdminRouteElements({
+            overviewElement: <h2>Admin dashboard</h2>,
             productsElement: <h2>Protected Products</h2>,
             serialMigrationElement: <h2>Serial Migration Tool</h2>,
             productLookupElement: <h2>Lookup Tool</h2>,
@@ -87,7 +88,7 @@ describe("admin route protection", () => {
 
     expect(await screen.findByText("Protected Products")).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Admin navigation" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Back to Device Manager" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back to Admin Dashboard" })).toBeInTheDocument();
     expect(screen.getByText("System admin")).toBeInTheDocument();
     expect(screen.getByText("admin@example.com")).toBeInTheDocument();
   });
@@ -164,6 +165,14 @@ describe("admin route protection", () => {
 });
 
 describe("admin shell routing", () => {
+  it("goes from the products page back to the admin dashboard", async () => {
+    renderAdmin("/admin/products");
+
+    expect(await screen.findByText("Protected Products")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Back to Admin Dashboard" }));
+    expect(await screen.findByText("Admin dashboard")).toBeInTheDocument();
+  });
+
   it("renders breadcrumbs for nested routes and goes back to Device Manager", async () => {
     renderAdmin("/admin/serials/migrate");
 

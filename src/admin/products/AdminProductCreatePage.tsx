@@ -32,6 +32,7 @@ import {
     validateProductCreationDraft,
     productCreationResultsToCsvRows,
 } from "./productCreationModel";
+import {getPublicProductUrl} from "./adminProductModel";
 
 type Step = "configure" | "review" | "create" | "results";
 
@@ -519,7 +520,7 @@ function ResultsTable({results}: {results: ProductCreationResultItem[]}) {
 
 function SingleSuccessAssets({result}: {result: ProductCreationResultItem}) {
     const qrRef = useRef<HTMLCanvasElement>(null);
-    const publicUrl = result.productId ? `https://flexpayz.com/show-product?product_id=${result.productId}` : "";
+    const publicUrl = result.productId ? getPublicProductUrl(result.productId) : "";
 
     const downloadQr = () => {
         const canvas = qrRef.current;

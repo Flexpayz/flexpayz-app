@@ -23,6 +23,8 @@ export function AdminShell() {
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
   const breadcrumbs = useMemo(() => getAdminBreadcrumbLabels(location.pathname), [location.pathname]);
   const pageTitle = useMemo(() => getAdminPageTitle(location.pathname), [location.pathname]);
+  const backTarget = location.pathname === "/admin/products" ? "/admin" : "/manage-devices";
+  const backLabel = location.pathname === "/admin/products" ? "Back to Admin Dashboard" : "Back to Device Manager";
   const environment = getAdminEnvironment();
   const environmentDetail = getAdminEnvironmentDetail();
   const email = state.status === "authorized" ? state.user.email : null;
@@ -59,7 +61,7 @@ export function AdminShell() {
       <Box className="admin-main">
         <Box component="header" className="admin-topbar">
           <Stack direction="row" spacing={2} alignItems="center" className="admin-title-row">
-            <IconButton className="admin-back-button" aria-label="Back to Device Manager" onClick={() => navigate("/manage-devices")}>
+            <IconButton className="admin-back-button" aria-label={backLabel} onClick={() => navigate(backTarget)}>
               <ArrowBackRoundedIcon />
             </IconButton>
             <Box>
