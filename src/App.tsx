@@ -23,6 +23,7 @@ import { SerialNumberRedirect } from './Pages/serial-number-redirect';
 import { DesignSystemPreview } from "./components/design-system/DesignSystemPreview";
 import {db} from "./firebase";
 import { createAdminRouteElements } from "./admin/adminRoutes";
+import {RequireProductSession} from "./components/require-product-session";
 
 export {db, storage} from "./firebase";
 
@@ -49,17 +50,19 @@ function App() {
                     <Route path={'/app'} element={<FirstPageWrapper/>}/>
                     <Route path={'/login'} element={<LoginPageWrapper/>}/>
                     {createAdminRouteElements()}
-                    <Route path={'/manage-devices'} element={<ManageDevices/>}/>
-                    <Route path={'/manage-device'} element={<ManageDevice/>}/>
-                    <Route path={'/manage-device/business-card'} element={<BusinessSettingsWrapper/>}/>
-                    <Route path={'/manage-device/custom-link'} element={<CustomLinkSettingsWrapper/>}/>
-                    <Route path={'/manage-device/upload-files'} element={<UploadFileSettingsWrapper/>}/>
-                    <Route path={'/manage-device/upload-video'} element={<UploadVideoSettingsWrapper/>}/>
-                    <Route path={'/manage-device/upload-songs'} element={<UploadSongsSettingsWrapper/>}/>
-                    <Route path={'/manage-device/shared-contacts'} element={<SharedContacts/>}/>
-                    <Route path={'/manage-device/baby-journal'} element={<BabyJournalSettings/>}/>
-                    <Route path={'/manage-device/adult-journal'} element={<AdultJournalSettings/>}/>
-                    <Route path={'/manage-device/animal-tag'} element={<AnimalTagSettingsWrapper/>}/>
+                    <Route element={<RequireProductSession/>}>
+                        <Route path={'/manage-devices'} element={<ManageDevices/>}/>
+                        <Route path={'/manage-device'} element={<ManageDevice/>}/>
+                        <Route path={'/manage-device/business-card'} element={<BusinessSettingsWrapper/>}/>
+                        <Route path={'/manage-device/custom-link'} element={<CustomLinkSettingsWrapper/>}/>
+                        <Route path={'/manage-device/upload-files'} element={<UploadFileSettingsWrapper/>}/>
+                        <Route path={'/manage-device/upload-video'} element={<UploadVideoSettingsWrapper/>}/>
+                        <Route path={'/manage-device/upload-songs'} element={<UploadSongsSettingsWrapper/>}/>
+                        <Route path={'/manage-device/shared-contacts'} element={<SharedContacts/>}/>
+                        <Route path={'/manage-device/baby-journal'} element={<BabyJournalSettings/>}/>
+                        <Route path={'/manage-device/adult-journal'} element={<AdultJournalSettings/>}/>
+                        <Route path={'/manage-device/animal-tag'} element={<AnimalTagSettingsWrapper/>}/>
+                    </Route>
                     <Route path={'/redirect'} element={<SerialNumberRedirect/>}/>
 
                     <Route path={'/show-product'} element={<ShowProduct/>}/>
