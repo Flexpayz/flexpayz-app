@@ -387,6 +387,20 @@
         0 0.45rem 1rem rgba(255, 252, 247, 0.18);
 }
 
+.entry-product-image-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.entry-product-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--fp-radius-xl);
+    object-fit: contain;
+}
+
 .entry-product-shine {
     position: absolute;
     top: 16%;

@@ -108,21 +108,61 @@ describeRules("Firestore security rules", () => {
         await assertFails(updateDoc(doc(user, "products", "unactivated-product"), {activated: true, name: "Claimed"}));
     });
 
-    it("allows public shared contact appends but rejects malformed public writes", async () => {
+    it("allows public shared contact appends for legacy products missing optional status and contact fields", async () => {
+        const db = publicDb();
+        const productRef = doc(db, "products", "legacy-public-product");
+
+        await assertSucceeds(updateDoc(productRef, {
+            sharedContacts: arrayUnion(sharedContact({email: "legacy@example.com"})),
+        }));
+    });
+
+    it("allows public shared contact appends for modern active products", async () => {
         const db = publicDb();
         const productRef = doc(db, "products", "public-product");
 
         await assertSucceeds(updateDoc(productRef, {
-            sharedContacts: arrayUnion({
-                name: "Visitor",
-                email: "visitor@example.com",
-                phone: "",
-                date: Date.now(),
-                consentAccepted: true,
-            }),
+            sharedContacts: arrayUnion(sharedContact()),
         }));
-        await assertFails(updateDoc(productRef, {name: "Public overwrite"}));
-        await assertFails(updateDoc(productRef, {sharedContacts: arrayUnion({email: 42})}));
+    });
+
+    it("rejects public shared contact appends for inactive and suspended products", async () => {
+        const db = publicDb();
+
+        await assertFails(updateDoc(doc(db, "products", "inactive-product"), {
+            sharedContacts: arrayUnion(sharedContact({email: "inactive@example.com"})),
+        }));
+        await assertFails(updateDoc(doc(db, "products", "suspended-product"), {
+            sharedContacts: arrayUnion(sharedContact({email: "suspended@example.com"})),
+        }));
+    });
+
+    it("rejects public shared contact writes that change another product field", async () => {
+        await assertFails(updateDoc(doc(publicDb(), "products", "public-product"), {
+            name: "Public overwrite",
+            sharedContacts: arrayUnion(sharedContact()),
+        }));
+    });
+
+    it("rejects public shared contact writes that append more than one contact", async () => {
+        await assertFails(updateDoc(doc(publicDb(), "products", "public-product"), {
+            sharedContacts: arrayUnion(
+                sharedContact({email: "one@example.com"}),
+                sharedContact({email: "two@example.com"}),
+            ),
+        }));
+    });
+
+    it("rejects malformed public shared contact appends", async () => {
+        await assertFails(updateDoc(doc(publicDb(), "products", "public-product"), {
+            sharedContacts: arrayUnion({email: 42}),
+        }));
+    });
+
+    it("rejects public shared contact appends beyond 1000 contacts", async () => {
+        await assertFails(updateDoc(doc(publicDb(), "products", "full-contacts-product"), {
+            sharedContacts: arrayUnion(sharedContact({email: "too-many@example.com"})),
+        }));
     });
 
     it("keeps permissions write access admin-only while owners can read their product permissions", async () => {
@@ -182,9 +222,11 @@ async function seedBaseData() {
             setDoc(doc(db, "users", "other"), {country: "France", products: []}),
             setDoc(doc(db, "products", "owned-product"), product({activated: true, inactive: false, unlockCode: "OWNED"})),
             setDoc(doc(db, "products", "public-product"), product({activated: true, inactive: false, unlockCode: "PUBLIC", preview: "animal_tag"})),
-            setDoc(doc(db, "products", "legacy-public-product"), legacyProduct({inactive: false, unlockCode: "LEGACY"})),
+            setDoc(doc(db, "products", "legacy-public-product"), legacyProduct({unlockCode: "LEGACY"})),
             setDoc(doc(db, "products", "inactive-product"), product({activated: true, inactive: true, unlockCode: "INACTIVE"})),
+            setDoc(doc(db, "products", "suspended-product"), product({activated: true, inactive: false, administrativeStatus: "suspended", unlockCode: "SUSPENDED"})),
             setDoc(doc(db, "products", "unactivated-product"), product({activated: false, inactive: false, unlockCode: "LOCKED"})),
+            setDoc(doc(db, "products", "full-contacts-product"), product({sharedContacts: manySharedContacts(1000), unlockCode: "FULL"})),
             setDoc(doc(db, "permissions", "owned-product"), permissions()),
             setDoc(doc(db, "serial_numbers", "SERIAL-1"), serial("public-product")),
             setDoc(doc(db, "baby_journals", "owned-product"), {name: "Owned baby"}),
@@ -234,7 +276,25 @@ function product(overrides: Record<string, unknown> = {}) {
 function legacyProduct(overrides: Record<string, unknown> = {}) {
     const data: Record<string, unknown> = product(overrides);
     delete data.activated;
+    delete data.inactive;
+    delete data.administrativeStatus;
+    delete data.sharedContacts;
     return data;
+}
+
+function sharedContact(overrides: Record<string, unknown> = {}) {
+    return {
+        name: "Visitor",
+        email: "visitor@example.com",
+        phone: "",
+        date: Date.now(),
+        consentAccepted: true,
+        ...overrides,
+    };
+}
+
+function manySharedContacts(count: number) {
+    return Array.from({length: count}, (_, index) => sharedContact({email: `visitor-${index}@example.com`, date: index}));
 }
 
 function permissions() {

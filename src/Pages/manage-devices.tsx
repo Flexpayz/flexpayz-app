@@ -42,6 +42,7 @@ type ManagedDevice = {
 } & Product;
 
 const SUPPORT_URL = 'https://www.flexpayz.se/pages/get-started';
+const ACTIVATION_GUIDE_URL = 'https://www.flexpayz.se/steg-for-steg/';
 const CODE_LENGTH = 6;
 
 export function ManageDevices() {
@@ -824,7 +825,7 @@ function ActivationGuideCard() {
             <Box>
                 <strong>Where can I find the code?</strong>
                 <p>Look for the activation card inside your FlexPayz product packaging.</p>
-                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">View the full activation guide</a>
+                <a href={ACTIVATION_GUIDE_URL} target="_blank" rel="noopener noreferrer">View the full activation guide</a>
             </Box>
         </Surface>
     );

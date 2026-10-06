@@ -123,7 +123,13 @@ export function BusinessCardPublicPage({product, productId, profileImageURL, log
             });
             setShareStatus("sent");
             setShareForm({name: "", company: "", email: "", phone: "", message: "", consent: false});
-        } catch {
+        } catch (error) {
+            const firebaseError = error as {code?: unknown; message?: unknown};
+            console.error("Failed to share public business card contact details", {
+                productId,
+                code: typeof firebaseError.code === "string" ? firebaseError.code : undefined,
+                message: typeof firebaseError.message === "string" ? firebaseError.message : undefined,
+            });
             setShareStatus("failed");
         }
     };

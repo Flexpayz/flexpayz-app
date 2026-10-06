@@ -44,9 +44,9 @@ service cloud.firestore {
 
     function isPublicActiveProduct(productId) {
       return productExists(productId)
-        && (!('activated' in productData(productId)) || productData(productId).activated == true || productData(productId).activated == null)
-        && productData(productId).inactive != true
-        && (!('administrativeStatus' in productData(productId)) || productData(productId).administrativeStatus == 'active');
+        && productData(productId).get('activated', true) != false
+        && productData(productId).get('inactive', false) != true
+        && productData(productId).get('administrativeStatus', 'active') == 'active';
     }
 
     function isPublicResolvableProduct(productId) {
@@ -288,7 +288,13 @@ service cloud.firestore {
     }
 
     function currentSharedContacts() {
-      return resource.data.sharedContacts is list ? resource.data.sharedContacts : [];
+      return resource.data.get('sharedContacts', []) is list ? resource.data.get('sharedContacts', []) : [];
+    }
+
+    function isPublicProductActiveForContactSharing() {
+      return resource.data.get('activated', true) != false
+        && resource.data.get('inactive', false) != true
+        && resource.data.get('administrativeStatus', 'active') == 'active';
     }
 
     function isSharedContact(contact) {
@@ -314,11 +320,11 @@ service cloud.firestore {
     }
 
     function isPublicSharedContactAppend() {
-      return resource.data.activated == true
-        && resource.data.inactive != true
+      return isPublicProductActiveForContactSharing()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedContacts'])
         && request.resource.data.sharedContacts is list
         && request.resource.data.sharedContacts.size() == currentSharedContacts().size() + 1
+        && request.resource.data.sharedContacts.size() <= 1000
         && request.resource.data.sharedContacts.hasAll(currentSharedContacts())
         && isSharedContact(request.resource.data.sharedContacts[request.resource.data.sharedContacts.size() - 1]);
     }

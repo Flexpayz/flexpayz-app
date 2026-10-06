@@ -12,6 +12,7 @@ import {AppButton} from "../components/design-system/AppButton";
 import {FlexPayzLogo} from "../components/design-system/FlexPayzLogo";
 import {PageShell} from "../components/design-system/PageShell";
 import {Surface} from "../components/design-system/Surface";
+import flexPayzRing from "../assets/flexpayz-ring.png";
 
 const WEBSHOP_URL = 'https://www.flexpayz.se';
 const SUPPORT_URL = 'https://www.flexpayz.se/pages/get-started';
@@ -142,9 +143,14 @@ function ProductBadge({children, className}: {children: ReactNode; className: st
 
 function ProductVisual() {
     return (
-        <Box className="entry-product-visual" aria-hidden="true">
-            <Box className="entry-product-ring"/>
-            <Box className="entry-product-shine"/>
+        <Box className="entry-product-visual entry-product-image-visual" aria-hidden="true">
+            <img
+                src={flexPayzRing}
+                alt=""
+                className="entry-product-image"
+                loading="eager"
+                decoding="async"
+            />
         </Box>
     );
 }

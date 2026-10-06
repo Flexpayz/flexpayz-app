@@ -84,6 +84,8 @@ describeRules("Cloud Storage security rules", () => {
         await assertSucceeds(storage.ref("images/logo-public-product").getMetadata());
         await assertSucceeds(storage.ref("images/legacy-public-product").getMetadata());
         await assertFails(storage.ref("images/inactive-product").getMetadata());
+        await assertFails(storage.ref("images/unactivated-product").getMetadata());
+        await assertFails(storage.ref("images/suspended-product").getMetadata());
     });
 
     it("denies non-owner writes to owned product paths", async () => {
@@ -133,6 +135,8 @@ async function seedBaseData() {
             setDoc(doc(db, "products", "public-product"), product({activated: true, inactive: false})),
             setDoc(doc(db, "products", "legacy-public-product"), legacyPublicProduct()),
             setDoc(doc(db, "products", "inactive-product"), product({activated: true, inactive: true})),
+            setDoc(doc(db, "products", "unactivated-product"), product({activated: false, inactive: false})),
+            setDoc(doc(db, "products", "suspended-product"), product({activated: true, inactive: false, administrativeStatus: "suspended"})),
             setDoc(doc(db, "products", "admin-product"), product({activated: false, inactive: false})),
         ]);
     });
@@ -146,6 +150,8 @@ async function seedStorageObjects() {
             putObject(storage, "images/logo-public-product", "image/png"),
             putObject(storage, "images/legacy-public-product", "image/png"),
             putObject(storage, "images/inactive-product", "image/png"),
+            putObject(storage, "images/unactivated-product", "image/png"),
+            putObject(storage, "images/suspended-product", "image/png"),
             putObject(storage, "animal_tag/owned-product/pet.png", "image/png"),
             putObject(storage, "uploads/public-product/legacy.pdf", "application/pdf"),
             putObject(storage, "uploads/inactive-product/legacy.pdf", "application/pdf"),
