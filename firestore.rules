@@ -275,9 +275,21 @@ service cloud.firestore {
     }
 
     function isOwnerProductUpdate(productId) {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      // Ownership and the editable-field allowlist are the authorization boundary.
+      // Do not revalidate every unchanged profile string on every editor save.
+      // Keep checks for changed fields that control routing, visibility and collections.
       return ownsProduct(productId)
-        && isProductShape(request.resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(ownerEditableProductKeys());
+        && changed.hasOnly(ownerEditableProductKeys())
+        && (!changed.hasAny(['inactive']) || optionalBool(data, 'inactive'))
+        && (!changed.hasAny(['preview']) || optionalPreview(data, 'preview'))
+        && (!changed.hasAny(['visibleSections']) || optionalList(data, 'visibleSections', 8))
+        && (!changed.hasAny(['previewLanguage']) || optionalLanguage(data, 'previewLanguage'))
+        && (!changed.hasAny(['cv']) || optionalBool(data, 'cv'))
+        && (!changed.hasAny(['publicPagePasswordActivated']) || optionalBool(data, 'publicPagePasswordActivated'))
+        && (!changed.hasAny(['publicPagePassword']) || optionalString(data, 'publicPagePassword', 200))
+        && (!changed.hasAny(['sharedContacts']) || optionalList(data, 'sharedContacts', 1000));
     }
 
     function isActivationUpdate() {

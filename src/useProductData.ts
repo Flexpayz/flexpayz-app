@@ -1,4 +1,5 @@
 import VCard from "vcard-creator";
+import {createBusinessCardSaveTrace} from "./business-card-save-diagnostics";
 import {notify} from "./Pages/login-page";
 import {getDownloadURL, ref, uploadBytes, deleteObject} from "firebase/storage";
 import {storage} from "./App";
@@ -151,21 +152,28 @@ export function useSaveBusinessCardData() {
     return async () => {
         if (!productId) return;
 
-        await updateProduct(productId, serializeBusinessCardUpdate(productState));
+        const payload = serializeBusinessCardUpdate(productState);
+        const trace = createBusinessCardSaveTrace("manual", productId, payload);
+        await trace.run("firestore-update", () => updateProduct(productId, payload));
 
-        const logoRef = ref(storage, `images/logo-${productId}`);
-        let logoURL = '';
-        try {
-            logoURL = await getDownloadURL(logoRef);
-        } catch (error: any) {
-            if (error?.code !== 'storage/object-not-found') {
+        const logoURL = await trace.run("logo-lookup", async () => {
+            const logoRef = ref(storage, `images/logo-${productId}`);
+            try {
+                return await getDownloadURL(logoRef);
+            } catch (error: any) {
+                // A card without a company logo is valid.
+                if (error?.code === 'storage/object-not-found') return '';
                 throw error;
             }
-        }
+        });
 
-        const blob = new Blob([buildBusinessVCard(productState, logoURL)], {type: "text/vcard"});
-        const file = new File([blob], 'vCard.vcf', {type: "text/vcard"});
-        const documentRef = ref(storage, `documents/${productId}/vCard`);
-        await uploadBytes(documentRef, file);
+        const file = await trace.run("vcard-build", () => {
+            const blob = new Blob([buildBusinessVCard(productState, logoURL)], {type: "text/vcard"});
+            return new File([blob], 'vCard.vcf', {type: "text/vcard"});
+        });
+        await trace.run("vcard-upload", () => {
+            const documentRef = ref(storage, `documents/${productId}/vCard`);
+            return uploadBytes(documentRef, file);
+        });
     };
 }

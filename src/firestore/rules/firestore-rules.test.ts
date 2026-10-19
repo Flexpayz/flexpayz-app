@@ -1,3 +1,4 @@
+import {defaultProduct, serializeProductUpdate} from "../schema/products";
 import * as fs from "fs";
 import * as path from "path";
 import {
@@ -97,6 +98,47 @@ describeRules("Firestore security rules", () => {
         await assertFails(updateDoc(doc(owner, "products", "owned-product"), {processed: true}));
         await assertFails(updateDoc(doc(owner, "products", "owned-product"), {preview: "bad-preview"}));
         await assertFails(updateDoc(doc(other, "products", "owned-product"), {name: "Stolen"}));
+    });
+
+    it("saves a populated business card without exhausting rule expressions", async () => {
+        await testEnv.withSecurityRulesDisabled(async context => {
+            await setDoc(doc(context.firestore(), "products", "owned-product"), serializeProductUpdate({
+                ...defaultProduct, about: "Existing profile", visibleSections: [defaultProduct.preview],
+            }));
+        });
+        await assertSucceeds(updateDoc(doc(authedDb("owner"), "products", "owned-product"), {
+            about: "Updated profile",
+        }));
+        await assertSucceeds(updateDoc(doc(authedDb("owner"), "products", "owned-product"), serializeProductUpdate({
+            ...defaultProduct, about: "Bulk editor update", visibleSections: [defaultProduct.preview],
+        })));
+    });
+
+    it("allows ordinary content edits without applying every profile length limit", async () => {
+        await assertSucceeds(updateDoc(doc(authedDb("owner"), "products", "owned-product"), {
+            title: "x".repeat(161), about: "x".repeat(5001),
+        }));
+    });
+
+    it("does not let unchanged legacy content block an owner edit", async () => {
+        await testEnv.withSecurityRulesDisabled(async context => {
+            await updateDoc(doc(context.firestore(), "products", "owned-product"), {title: null, previewLanguage: null});
+        });
+        await assertSucceeds(updateDoc(doc(authedDb("owner"), "products", "owned-product"), {about: "Updated"}));
+    });
+
+    it("retains control-field validation and rejects unknown and protected field updates", async () => {
+        const productRef = doc(authedDb("owner"), "products", "owned-product");
+        for (const patch of [
+            {inactive: "yes"}, {cv: "yes"}, {preview: "invalid"}, {previewLanguage: "invalid"},
+            {visibleSections: Array(9).fill("business_card")}, {sharedContacts: Array(1001).fill({})},
+            {publicPagePasswordActivated: "yes"}, {publicPagePassword: "x".repeat(201)},
+            {ownerId: "other"}, {administrativeStatus: "active"}, {unknownField: "value"},
+        ]) {
+            await assertFails(updateDoc(productRef, patch));
+        }
+        await assertFails(updateDoc(doc(authedDb("other"), "products", "owned-product"), {about: "No access"}));
+        await assertFails(updateDoc(doc(publicDb(), "products", "owned-product"), {about: "No access"}));
     });
 
     it("supports bounded signed-in activation lookup and activation-only update", async () => {

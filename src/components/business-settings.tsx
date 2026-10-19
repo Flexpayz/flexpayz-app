@@ -27,6 +27,8 @@ import YouTubeIcon from "../assets/social/youtube.svg?react";
 import "../Pages/manager.css";
 import {getProduct, updateProduct} from "../firestore/repositories/products";
 
+import {createBusinessCardSaveTrace} from "../business-card-save-diagnostics";
+
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "failed";
 type UploadState = "idle" | "uploading" | "ready" | "failed";
 
@@ -193,7 +195,10 @@ export function BusinessSettings() {
             setSaveState("saving");
             setSaveMessage("Autosaving");
             try {
-                await updateProduct(productId, serializeBusinessCardUpdate(productState));
+                const update = serializeBusinessCardUpdate(productState);
+                await createBusinessCardSaveTrace("autosave", productId, update).run(
+                    "firestore-update", () => updateProduct(productId, update)
+                );
                 lastSavedPayload.current = payload;
                 setSaveState("saved");
                 setSaveMessage("Autosaved just now");

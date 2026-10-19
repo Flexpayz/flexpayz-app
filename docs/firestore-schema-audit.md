@@ -96,3 +96,13 @@ The main regression risk is accidentally making sparse legacy documents invalid.
 The bootstrap scanner uses 100-document reads and up to 10 concurrent subcollection checks, preserving traversal under nonexistent parent documents. Destination creates run with concurrency 10 and retain create-only semantics. Errors propagate after in-flight work settles; no failed records are silently skipped.
 
 Bootstrap `--only auth|firestore|storage` selects independent inventory/copy phases and destination emptiness checks. Firestore-only copies preserve the same validation/URL transformation and exclude mail, but dependent Auth users and Storage files must be copied separately for full app behavior.
+
+## Business card save diagnostics (2026-10-19)
+
+After a business card Firestore write returns `permission-denied`, `businessCardDiagnostics` performs a server read of `users/{authUid}` to report document existence, whether raw `products` is a list, and exact product-ID membership. This diagnostic reader does not normalize the ownership fields, change data, or treat a failed read as missing ownership. Browser logs include the UID and document paths but exclude profile values and token contents. These checks describe local rule prerequisites, not the deployed server's rule evaluation; a separate server read of `products/{productId}` now reports the submitted field metadata, resulting document field types/lengths, and changed field names to investigate shape and editable-key failures. It excludes field values and does not normalize legacy data or modify it. This post-failure read may reflect concurrent changes.
+
+## Owner editor validation simplification (2026-10-20)
+
+The deployed rules reproduced a 1,000-expression-limit failure when an owner edited `about` on a populated 51-field product. Owner updates now enforce ownership and the existing editable-field allowlist, then validate only changed routing/visibility fields (`inactive`, `preview`, `visibleSections`, `previewLanguage`), `cv`, password controls, and the `sharedContacts` list limit. Ordinary profile text no longer receives full-document type/length validation in rules; editor validation remains UX protection, not a security boundary. Unchanged legacy fields no longer block unrelated edits. No collection, field, canonical repository payload, or ID contract changes.
+
+Admin product creation still uses full `isProductShape` validation. Public reads, activation, public contact submission, ownership assignment, and Storage rules are unchanged. In particular, this change does not resolve the existing user-writable ownership-list risk or separate public/private product fields. Rules changes require deployment before editor behavior changes on the hosted Firebase project.
