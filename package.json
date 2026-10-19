@@ -75,7 +75,8 @@
     "build:prod": "npm run build",
     "deploy:prod": "npm run build && firebase deploy --project bussiness-card-bda7f",
     "deploy:dev": "npm run build:dev && firebase deploy --project flexpayz-app-dev",
-    "test:dev-copy": "node --test admin-scripts/copyToDev.test.cjs"
+    "test:dev-copy": "node --test admin-scripts/copyToDev.test.cjs",
+    "test:dev-mirror": "node --test admin-scripts/mirrorToDev.test.cjs"
   },
   "browserslist": {
     "production": [

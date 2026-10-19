@@ -128,3 +128,39 @@ node admin-scripts/copyToDev.cjs --only storage --resume-storage --apply
 ```
 
 New uploads use create-only generation preconditions and CRC32C validation, followed by a metadata/checksum comparison. Reads pin the inspected source object generation. If a connection resets after the server completes an upload, rerunning resume verifies that object and skips it if it matches. Network failures still stop the run; this mode resumes completed files, not bytes inside an unfinished upload. Avoid simultaneous copies of the same service. Keep the Mac awake and connected while transferring; a long log gap alone does not prove whether sleep or networking caused a reset.
+
+## Periodic mirror refresh (recommended for disposable dev data)
+
+Use `mirrorToDev.cjs` for refreshes; the initial-copy/resume script deliberately does not mirror existing data. The mirror is destructive **only to flexpayz-app-dev** and treats production as authoritative. It does not deploy code, rules, indexes or Functions.
+
+First preview all services (read-only):
+
+```sh
+PROJECT_ID=flexpayz-app-dev \
+GOOGLE_APPLICATION_CREDENTIALS=./secrets/firebase-dev-admin.json \
+SOURCE_GOOGLE_APPLICATION_CREDENTIALS=./secrets/firebase-prod-reader.json \
+caffeinate -i node admin-scripts/mirrorToDev.cjs
+```
+
+Review the counts, then apply:
+
+```sh
+PROJECT_ID=flexpayz-app-dev \
+GOOGLE_APPLICATION_CREDENTIALS=./secrets/firebase-dev-admin.json \
+SOURCE_GOOGLE_APPLICATION_CREDENTIALS=./secrets/firebase-prod-reader.json \
+caffeinate -i node admin-scripts/mirrorToDev.cjs --apply --confirm-project flexpayz-app-dev
+```
+
+Add `--only auth`, `--only firestore` or `--only storage` to either command for a single service. Omit `caffeinate -i` on systems without macOS. Keep the lid open and maintain connectivity. Run one mirror/copy per service at a time, and avoid editing dev while mirroring. There is no scheduled automatic refresh.
+
+Behavior:
+
+- **Auth:** deletes all dev Auth accounts, then recreates current production accounts with their original UIDs, profile fields, disabled state and custom claims. Email accounts receive `test123`; accounts without email cannot use email/password login. The preview explicitly reports total deletions, same-UID rebuilds and dev-only deletions. This invalidates existing dev sessions and removes dev-only OAuth links/MFA. Production provider links, MFA enrollment and login history are not imported. Sign in again after refresh. This rebuild handles changed/reassigned emails without merging different UIDs.
+- **Firestore:** reads full documents/subcollections (including beneath missing parent documents), applies the existing URL/reference transformation, creates missing documents, fully replaces changed documents (removing dev-only fields) and deletes dev-only documents. Native types are compared without JSON conversion loss. Production `mail` is excluded; any dev `mail` documents/subcollections are deleted. Existing document mutations use inspected update times to reject concurrent changes.
+- **Storage:** compares size, CRC32C and copied metadata including download tokens. Only missing/changed files are uploaded, with pinned source generations and destination generation preconditions. Dev-only files are deleted conditionally. Unchanged files are retained. New/replaced uploads are verified by checksum/metadata. This operates on live objects only; bucket version history and soft-deleted objects are not purged.
+
+All selected services are fully inventoried before any writes. Apply computes and prints a fresh plan; it does not persist or lock the preceding preview. Production is not a transactionally consistent snapshot. Keep dev mail extensions and other outbound integrations disabled: mirrored writes and Auth deletions/creations may trigger deployed integrations. The mirror copies the raw source schema; dev schema experiments will be discarded. It does not resolve source inconsistencies such as orphaned Firestore ownership records after a production Auth deletion.
+
+A network/permission failure can leave a partial mirror, including temporarily missing Auth users. Do not erase the project. Run another preview and then apply the newly computed plan; Firestore/Storage converge from their current state, while Auth is rebuilt again. Nothing is silently skipped. Existing initial-copy commands keep their previous empty-target/create-only safeguards.
+
+Validation: `npm run test:dev-copy`, `npm run test:dev-mirror`, relevant Firestore schema/repository tests and `npm run build`. These are local mocked tests, not evidence of a completed live refresh.

@@ -108,7 +108,7 @@ function failureMessage(writesStarted) {
     ? 'Copying had started; destination may be partial. Inspect it before any reset; this script will not overwrite it.'
     : 'Inventory/preflight failed before copying started. This run made no cloud writes. You can rerun the same command.';
 }
-async function* documents(db) {
+async function* documents(db, {includeMail = false} = {}) {
   async function* visit(collection) {
     // Preserve discovery of subcollections whose parent document is missing.
     const references = await retryRead(() => collection.listDocuments(), 'Listing document references');
@@ -129,7 +129,7 @@ async function* documents(db) {
     }
   }
   for (const collection of await retryRead(() => db.listCollections(), 'Listing root collections')) {
-    if (collection.id === 'mail') continue; // Never replay production email.
+    if (collection.id === 'mail' && !includeMail) continue; // Never replay production email.
     yield* visit(collection);
   }
 }
@@ -232,13 +232,13 @@ async function planStorageResume(sourceBucket, targetBucket, onComplete) {
     return {name: file.name, metadata, exists: Boolean(existing)};
   });
 }
-async function transferStorageFile(file, destination, metadata) {
+async function transferStorageFile(file, destination, metadata, ifGenerationMatch = 0) {
   await new Promise((resolve, reject) => {
     const input = file.createReadStream({decompress: false});
     const output = destination.createWriteStream({
       resumable: true,
       validation: 'crc32c',
-      preconditionOpts: {ifGenerationMatch: 0},
+      preconditionOpts: {ifGenerationMatch},
       metadata: {
         contentType: metadata.contentType,
         ...(metadata.cacheControl ? {cacheControl: metadata.cacheControl} : {}),
@@ -383,4 +383,4 @@ if (require.main === module) {
     process.exitCode = 1;
   });
 }
-module.exports = {validateEnvironment, rewriteString, transform, userInput, assertEmpty, createProgress, documents, mapBounded, copyDocuments, retryRead, failureMessage, parseArgs, planAuthResume, applyAuthPlan, verifyStorageMetadata, planStorageResume, transferStorageFile};
+module.exports = {SOURCE, TARGET, SOURCE_BUCKET, TARGET_BUCKET, readCredential, users, validateEnvironment, rewriteString, transform, userInput, assertEmpty, createProgress, documents, mapBounded, copyDocuments, retryRead, failureMessage, parseArgs, planAuthResume, applyAuthPlan, verifyStorageMetadata, planStorageResume, transferStorageFile};
