@@ -1,3 +1,4 @@
+import {isDevelopmentFirebase} from "../../firebaseConfig";
 import {Preview} from "../../preview";
 import type {Permissions} from "../../firestore/schema/permissions";
 import {defaultPermissions} from "../../firestore/schema/permissions";
@@ -227,6 +228,7 @@ export function getPublicProductUrl(productId: string, origin = getPublicProduct
 
 export function getPublicProductOrigin(location: PublicLocation | null = getCurrentLocation()) {
     if (location && isLocalHostname(location.hostname)) return location.origin;
+    if (isDevelopmentFirebase) return location?.origin || "https://flexpayz-app-dev.web.app";
     if (process.env.NODE_ENV === "production") return PRODUCTION_PUBLIC_ORIGIN;
     return location?.origin || PRODUCTION_PUBLIC_ORIGIN;
 }

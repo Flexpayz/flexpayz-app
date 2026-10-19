@@ -1,3 +1,4 @@
+import {getPublicProductUrl} from "../admin/products/adminProductModel";
 import {Button, Checkbox, Input} from "@mui/material";
 import {useEffect, useMemo, useRef, useState} from "react";
 import './admin.css'
@@ -125,7 +126,7 @@ function ChangePermissionsModal({productId}: { productId: string }) {
 
 function QRCodeGenerator({productId}: { productId: string }) {
 
-    const qrLink = useMemo(() => `https://flexpayz.com/show-product?product_id=${productId}`, [productId])
+    const qrLink = useMemo(() => getPublicProductUrl(productId), [productId])
 
     const qrRef = useRef<HTMLCanvasElement>(null);
 
@@ -150,7 +151,7 @@ function QRCodeGenerator({productId}: { productId: string }) {
 
 const Product = ({product, onChangePermissions}: {product: FirestoreDocument<ProductData>; onChangePermissions: (productId: string) => void}) => {
     const copyLink = (productId: string) => {
-        navigator.clipboard.writeText(`https://flexpayz.com/show-product?product_id=${productId}`)
+        navigator.clipboard.writeText(getPublicProductUrl(productId))
     }
     return (<div>
         <span>{product.id}</span>

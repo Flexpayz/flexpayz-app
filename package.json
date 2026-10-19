@@ -56,21 +56,26 @@
     "zod": "^3.25.76"
   },
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
+    "start": "vite --mode development",
+    "dev": "vite --mode development",
     "build": "tsc --noEmit && vite build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "deploy": "npm run build && firebase deploy",
+    "deploy": "npm run deploy:prod",
     "functions:build": "npm --prefix functions run build",
-    "deploy:firestore:rules": "firebase deploy --only firestore:rules",
-    "deploy:storage:rules": "firebase deploy --only storage",
+    "deploy:firestore:rules": "firebase deploy --project bussiness-card-bda7f --only firestore:rules",
+    "deploy:storage:rules": "firebase deploy --project bussiness-card-bda7f --only storage",
     "deploy:functions": "firebase deploy --project bussiness-card-bda7f --only functions",
     "admin:set-claim": "PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs",
     "admin:cleanup-legacy-claim": "PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs cleanup-legacy",
     "admin:revoke-claim": "PROJECT_ID=bussiness-card-bda7f GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json node admin-scripts/setAdminClaim.cjs revoke",
     "test:firestore:rules": "firebase emulators:exec --only firestore \"npm test -- --watchAll=false src/firestore/rules/firestore-rules.test.ts\"",
-    "test:storage:rules": "firebase emulators:exec --only firestore,storage \"npm test -- --watchAll=false src/storage/rules/storage-rules.test.ts\""
+    "test:storage:rules": "firebase emulators:exec --only firestore,storage \"npm test -- --watchAll=false src/storage/rules/storage-rules.test.ts\"",
+    "build:dev": "tsc --noEmit && vite build --mode development",
+    "build:prod": "npm run build",
+    "deploy:prod": "npm run build && firebase deploy --project bussiness-card-bda7f",
+    "deploy:dev": "npm run build:dev && firebase deploy --project flexpayz-app-dev",
+    "test:dev-copy": "node --test admin-scripts/copyToDev.test.cjs"
   },
   "browserslist": {
     "production": [

@@ -1,5 +1,7 @@
 import { firebaseApp } from "../firebase";
 
+import {isDevelopmentFirebase} from "../firebaseConfig";
+
 export type AdminEnvironment = "Production" | "Development" | "Local";
 
 export function getAdminEnvironment(hostname = window.location.hostname): AdminEnvironment {
@@ -7,7 +9,7 @@ export function getAdminEnvironment(hostname = window.location.hostname): AdminE
     return "Local";
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  if (isDevelopmentFirebase || process.env.NODE_ENV !== "production") {
     return "Development";
   }
 

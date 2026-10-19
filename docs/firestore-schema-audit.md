@@ -88,3 +88,11 @@ The main regression risk is accidentally making sparse legacy documents invalid.
 - Cloud Storage reads are aligned to the same public-active product state and owner/admin checks for `images`, `documents`, `audio`, `baby_journal`, `adult_journal`, `animal_tag`, and legacy `uploads` reads.
 - Cloud Storage writes are limited to known current paths and bounded content types/sizes. Legacy `uploads` writes are denied while legacy reads remain compatible.
 - Stronger privacy requires a backend boundary for public password-gated reads, public media reads, activation, serial redirects, and mail enqueue. Firestore and Storage rules cannot make browser-fetched password-gated content truly private.
+
+## Development bootstrap (2026-10-19)
+
+`admin-scripts/copyToDev.cjs` is a manual, one-way Admin SDK bootstrap from `bussiness-card-bda7f` to the allowlisted `flexpayz-app-dev`. It preserves raw fields/types and document IDs, visits subcollections, redirects document references and recognized production asset/app URLs to dev, and excludes the `mail` queue to avoid replaying outbound mail. Auth UIDs/custom claims remain aligned with copied ownership records. Production schemas and application repository contracts are unchanged. This is an additional offline reader/writer, not an application data-access path. It defaults to read-only inventory and rejects nonempty targets. See `docs/firebase-development.md` for credentials, commands, partial-copy recovery limits, access risks and verification.
+
+The bootstrap scanner uses 100-document reads and up to 10 concurrent subcollection checks, preserving traversal under nonexistent parent documents. Destination creates run with concurrency 10 and retain create-only semantics. Errors propagate after in-flight work settles; no failed records are silently skipped.
+
+Bootstrap `--only auth|firestore|storage` selects independent inventory/copy phases and destination emptiness checks. Firestore-only copies preserve the same validation/URL transformation and exclude mail, but dependent Auth users and Storage files must be copied separately for full app behavior.
