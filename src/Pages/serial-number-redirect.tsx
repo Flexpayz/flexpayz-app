@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {getSerialNumber} from "../firestore/repositories/serialNumbers";
 
+import {PublicLoadingPage} from "../components/public-loading-page";
+
 const SANITAS_URL_TEMPLATE = (productID: string) =>
     `https://app.sanitas.org.ro/show/dashboard?product_id=${productID}`;
 
@@ -68,7 +70,7 @@ export function SerialNumberRedirect() {
 
     // UI de fallback
     if (state.status === "loading") {
-        return <div style={{ padding: "2rem", textAlign: "center" }}>Se redirecționează…</div>;
+        return <PublicLoadingPage/>;
     }
 
     if (state.status === "error") {

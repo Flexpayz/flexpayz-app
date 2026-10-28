@@ -27,9 +27,10 @@ import {CustomLinkPublicPage} from "../components/custom-link-public";
 import {UploadFilesPublicPage} from "../components/upload-files-public";
 import {UploadSongsPublicPage} from "../components/upload-songs-public";
 import {UploadVideoPublicPage} from "../components/upload-video-public";
-import {BackButton, FlexPayzLogo, LoadingPanel} from "../components/design-system";
+import {BackButton, FlexPayzLogo} from "../components/design-system";
 import {PublicLanguageProvider, TranslatePublicCopy, usePublicLanguage, withPublicLanguageParam} from "../public-i18n";
 import {PublicLanguagePicker} from "../components/public-page-header";
+import {PublicLoadingPage} from "../components/public-loading-page";
 import {getProduct} from "../firestore/repositories/products";
 
 export function ShowProduct() {
@@ -210,11 +211,7 @@ function ShowProductView({
     const {t} = usePublicLanguage();
 
     if (!loaded) {
-        return (
-            <div style={colorsStyle} className="public-loading-page">
-                <LoadingPanel text={t("public.loading")}/>
-            </div>
-        );
+        return <PublicLoadingPage/>;
     }
 
     if (loadFailed) {

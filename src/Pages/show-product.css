@@ -41,17 +41,6 @@
         linear-gradient(180deg, var(--fp-color-canvas) 0%, var(--fp-color-canvas) 54%, color-mix(in srgb, var(--fp-color-champagne-soft) 72%, var(--fp-color-canvas)) 100%);
 }
 
-.public-loading-page {
-    min-height: 100svh;
-    display: grid;
-    place-items: center;
-    padding: var(--fp-space-4);
-    background:
-        radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--fp-color-champagne-soft) 78%, transparent), transparent 24rem),
-        radial-gradient(circle at 12% 92%, color-mix(in srgb, var(--fp-color-champagne) 16%, transparent), transparent 20rem),
-        var(--fp-color-canvas);
-    color: var(--fp-color-ink);
-}
 
 .business-public-shell {
     width: min(100%, 82rem);
