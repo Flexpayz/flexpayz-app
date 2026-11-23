@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import {LinearProgress, Stack, Typography} from "@mui/material";
+import UploadRoundedIcon from "@mui/icons-material/UploadRounded";
+import {AppButton, AppTextField} from "./design-system";
+import "./serial-number-uploader.css";
 import { Preview, random_hex_code } from "../Pages/admin";
 import { defaultPermissions } from "./usePermission";
 import {createFirestoreBatch} from "../firestore/repositories/batches";
@@ -206,70 +210,70 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
 
 
     return (
-        <div style={{ padding: 20 }}>
-            <h2>Upload Serial Numbers</h2>
+        <Stack spacing={4} className="serial-number-uploader">
+            <Typography variant="h3">Upload Serial Numbers</Typography>
 
-            {/* dropdown pentru tip */}
-            <label>
-                Upload type:{" "}
-                <select
-                    value={uploadType}
-                    onChange={(e) => setUploadType(e.target.value as UploadType)}
-                    disabled={loading}
-                >
-                    <option value="default">Default Products (generate)</option>
-                    <option value="sanitas">Sanitas Payment Ring (CSV with productID)</option>
-                </select>
-            </label>
-
-            <br /><br />
-
-            <input
-                type="file"
-                accept=".csv,.txt"
-                onChange={handleFileUpload}
+            <AppTextField
+                select
+                fullWidth
+                label="Upload type"
+                SelectProps={{native: true}}
+                value={uploadType}
+                onChange={(e) => setUploadType(e.target.value as UploadType)}
                 disabled={loading}
-            />
+            >
+                <option value="default">Default Products (generate)</option>
+                <option value="sanitas">Sanitas Payment Ring (CSV with productID)</option>
+            </AppTextField>
 
-            {fileName && (
-                <p>
-                    Loaded file: <strong>{fileName}</strong>
-                </p>
-            )}
+            <Stack spacing={2}>
+                <Typography component="label" htmlFor="serial-upload-file" variant="body2">
+                    Serial numbers file
+                </Typography>
+                <input
+                    id="serial-upload-file"
+                    className="serial-number-uploader-file"
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={handleFileUpload}
+                    disabled={loading}
+                    aria-describedby="serial-upload-formats"
+                />
+                <Typography id="serial-upload-formats" variant="body2" color="text.secondary">
+                    CSV or TXT
+                </Typography>
+            </Stack>
 
-            {serials.length > 0 && (
-                <p>
-                    Detected {serials.length} rows for <strong>{uploadType}</strong> upload.
-                </p>
-            )}
+            <Stack spacing={1} aria-live="polite" className="serial-number-uploader-summary">
+                {fileName && (
+                    <Typography variant="body2">
+                        Loaded file: <strong>{fileName}</strong>
+                    </Typography>
+                )}
+                {serials.length > 0 && (
+                    <Typography variant="body2">
+                        Detected {serials.length} rows for <strong>{uploadType}</strong> upload.
+                    </Typography>
+                )}
+            </Stack>
 
-            <button
+            <AppButton
+                variant="contained"
+                startIcon={<UploadRoundedIcon/>}
                 onClick={handleUpload}
                 disabled={loading || serials.length === 0}
-                style={{
-                    marginTop: 10,
-                    padding: "8px 16px",
-                    cursor: loading ? "not-allowed" : "pointer",
-                }}
+                sx={{alignSelf: {xs: "stretch", sm: "flex-start"}}}
             >
                 {loading ? "Uploading..." : "Upload to Firebase"}
-            </button>
+            </AppButton>
 
             {loading && (
-                <div style={{ marginTop: 10, width: "100%", backgroundColor: "#eee", borderRadius: 4 }}>
-                    <div
-                        style={{
-                            height: 10,
-                            width: `${progress}%`,
-                            backgroundColor: "#4caf50",
-                            borderRadius: 4,
-                            transition: "width 0.2s ease",
-                        }}
-                    />
-                    <div style={{ marginTop: 5, fontSize: 12 }}>{progress}%</div>
-                </div>
+                <Stack spacing={2}>
+                    <LinearProgress variant="determinate" value={progress} aria-label="Serial upload progress"/>
+                    <Typography variant="body2" color="text.secondary">{progress}%</Typography>
+                </Stack>
             )}
-        </div>
+        </Stack>
     );
 };
 
