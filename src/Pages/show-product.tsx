@@ -344,7 +344,9 @@ function PublicSectionDashboard({product, sections, productId, fromManageDevice}
         <div className="public-routing-state">
             <div className="public-routing-card public-routing-dashboard">
                 <div className="public-routing-toolbar">
-                    <FlexPayzLogo className="public-routing-logo"/>
+                    <a href="/login" className="public-logo-link" aria-label={t("public.header.login")}>
+                        <FlexPayzLogo className="public-routing-logo"/>
+                    </a>
                     {fromManageDevice && <BackButton aria-label={t("public.back.device")} className="public-routing-back" href={`/manage-device?product_id=${encodeURIComponent(productId)}`}/>}
                     <PublicLanguagePicker/>
                 </div>

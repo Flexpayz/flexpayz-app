@@ -3425,10 +3425,16 @@ h2.pinline span:after {
 
 .upload-files-slot-header {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: calc(var(--fp-space-12) + var(--fp-space-1)) minmax(0, 1fr) calc(var(--fp-space-12) + var(--fp-space-1));
     gap: var(--fp-space-3);
     align-items: center;
     min-width: 0;
+}
+
+.upload-files-slot-header > div {
+    min-width: 0;
+    text-align: center;
+    overflow-wrap: anywhere;
 }
 
 .upload-files-slot-header strong,
@@ -3451,6 +3457,8 @@ h2.pinline span:after {
 }
 
 .upload-files-slot-header em {
+    grid-column: 1 / -1;
+    justify-self: center;
     min-height: 2rem;
     display: inline-flex;
     align-items: center;

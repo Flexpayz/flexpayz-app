@@ -41,7 +41,9 @@ export function PublicPageHeader({
 
     return (
         <header className="business-public-topbar public-page-header">
-            <FlexPayzLogo className="business-public-logo"/>
+            <a href="/login" className="public-logo-link" aria-label={t("public.header.login")}>
+                <FlexPayzLogo className="business-public-logo"/>
+            </a>
             <div>
                 {fromDashboard && <BackButton aria-label={t("public.back.dashboard")} href={withPublicLanguageParam(`/show-product?product_id=${encodeURIComponent(productId)}`, language)}/>}
                 <PublicLanguagePicker/>

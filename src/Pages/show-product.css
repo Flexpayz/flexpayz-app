@@ -68,6 +68,19 @@
     width: 12rem;
 }
 
+.public-logo-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--fp-size-interactive-min);
+    min-width: var(--fp-size-interactive-min);
+}
+
+.public-logo-link:focus-visible {
+    outline: var(--fp-focus-outline);
+    outline-offset: var(--fp-focus-offset);
+    box-shadow: var(--fp-focus-ring);
+}
+
 .business-public-topbar > div {
     display: flex;
     align-items: center;
@@ -1073,7 +1086,8 @@
 
 
 .password-page{
-    min-height: 100svh;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: var(--fp-space-5);
@@ -1117,7 +1131,8 @@
 
 }
 .public-routing-state {
-    min-height: 100svh;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: var(--fp-space-5);
@@ -1156,6 +1171,10 @@
     justify-content: flex-start;
     gap: var(--fp-space-3);
     margin-bottom: var(--fp-space-5);
+}
+
+.public-routing-toolbar .public-logo-link {
+    margin-right: auto;
 }
 
 .public-routing-toolbar .public-routing-logo {

@@ -4,6 +4,7 @@ import {Navigate, Outlet, useLocation} from "react-router";
 import {firebaseApp} from "../firebase";
 import {createLoginPath, getRequestedPath} from "../admin/returnTo";
 import {LoadingPanel} from "./design-system/LoadingPanel";
+import "./require-product-session.css";
 
 export function RequireProductSession() {
     // Undefined means Firebase has not finished restoring the browser session.
@@ -20,7 +21,11 @@ export function RequireProductSession() {
         },
     ), []);
 
-    if (userId === undefined) return <LoadingPanel text="Restoring your session"/>;
+    if (userId === undefined) return (
+        <div className="product-session-loading-page">
+            <LoadingPanel text="Restoring your session"/>
+        </div>
+    );
     if (userId === null) return <Navigate to={createLoginPath(getRequestedPath(location))} replace/>;
     return <Outlet key={userId}/>;
 }

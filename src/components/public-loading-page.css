@@ -1,5 +1,6 @@
 .public-loading-page {
-    min-height: 100svh;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: var(--fp-space-4);
