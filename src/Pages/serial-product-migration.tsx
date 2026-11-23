@@ -5,6 +5,7 @@ import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import {AppButton, LoadingPanel, Surface} from "../components/design-system";
+import {useNavigate} from "react-router-dom";
 import {
     dryRunSerialMigration,
     executeSerialMigration,
@@ -242,8 +243,18 @@ export function SerialProductMigrationPage() {
 }
 
 function ModeStep({selectedMode, onSelect}: {selectedMode: SerialMigrationMode | null; onSelect: (mode: SerialMigrationMode) => void}) {
+    const navigate = useNavigate();
+
     return (
         <Box className="admin-migration-mode-grid">
+            <button
+                type="button"
+                className="admin-migration-mode-card"
+                onClick={() => navigate("/admin/serials/add")}
+            >
+                <strong>Add new serials</strong>
+                <span>Upload serial numbers and create linked products, or import Sanitas product mappings.</span>
+            </button>
             <button type="button" className={`admin-migration-mode-card${selectedMode === "generic" ? " admin-capability-card-selected" : ""}`} onClick={() => onSelect("generic")}>
                 <strong>Generic FlexPayz migration</strong>
                 <span>Move a serial from one FlexPayz product to another unowned FlexPayz target. Ownership transfers only from source to target; personal content is reset, not copied.</span>

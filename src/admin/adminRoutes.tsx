@@ -12,6 +12,7 @@ import { RequireSystemAdmin } from "./RequireSystemAdmin";
 import { AdminProductCreatePage } from "./products/AdminProductCreatePage";
 import { AdminProductDetailsPage } from "./products/AdminProductDetailsPage";
 import { AdminProductsPage } from "./products/AdminProductsPage";
+import { AdminSerialCreatePage } from "./serials/AdminSerialCreatePage";
 
 export type AdminRouteId = "dashboard" | "products" | "serial-migration" | "product-lookup";
 export type AdminRouteGroup = "OVERVIEW" | "INVENTORY" | "OPERATIONS";
@@ -85,6 +86,7 @@ export function createAdminRouteElements(options: AdminRouteElementsOptions = {}
         <Route path="products/create" element={options.productCreateElement || <AdminProductCreatePage />} />
         <Route path="products/:productId" element={options.productDetailsElement || <AdminProductDetailsPage />} />
         <Route path="serials/migrate" element={options.serialMigrationElement || <SerialProductMigrationPage />} />
+        <Route path="serials/add" element={<AdminSerialCreatePage />} />
         <Route path="tools/product-lookup" element={options.productLookupElement || <GetUnlockCode />} />
         <Route path="unlock-code" element={<Navigate to="/admin/tools/product-lookup" replace />} />
         <Route path="serial-migration" element={<Navigate to="/admin/serials/migrate" replace />} />
@@ -101,12 +103,14 @@ export function findAdminRoute(pathname: string) {
 }
 
 export function getAdminBreadcrumbLabels(pathname: string) {
+  if (pathname === "/admin/serials/add") return ["Admin", "Serial numbers", "Add new serials"];
   if (pathname === "/admin/products/create") return ["Admin", "Products", "Create products"];
   if (pathname === "/admin/serials/migrate") return ["Admin", "Serial numbers", "Migration"];
   return ["Admin", findAdminRoute(pathname).label];
 }
 
 export function getAdminPageTitle(pathname: string) {
+  if (pathname === "/admin/serials/add") return "Add new serials";
   if (pathname === "/admin/products/create") return "Create products";
   if (pathname === "/admin/serials/migrate") return "Migration";
   return findAdminRoute(pathname).title;
