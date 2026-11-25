@@ -165,6 +165,13 @@ describe("admin route protection", () => {
 });
 
 describe("admin shell routing", () => {
+  it("returns from adding serials to migration using the header back arrow", async () => {
+    renderAdmin("/admin/serials/add");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Back to Migration" }));
+    expect(await screen.findByText("Serial Migration Tool")).toBeInTheDocument();
+  });
+
   it("goes from the products page back to the admin dashboard", async () => {
     renderAdmin("/admin/products");
 
@@ -173,13 +180,21 @@ describe("admin shell routing", () => {
     expect(await screen.findByText("Admin dashboard")).toBeInTheDocument();
   });
 
-  it("renders breadcrumbs for nested routes and goes back to Device Manager", async () => {
+  it("renders breadcrumbs for nested routes and goes back to the admin dashboard", async () => {
     renderAdmin("/admin/serials/migrate");
 
     expect(await screen.findByText("Serial Migration Tool")).toBeInTheDocument();
     expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Admin");
     expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Serial numbers");
     expect(screen.getByLabelText("Admin breadcrumbs")).toHaveTextContent("Migration");
+    fireEvent.click(screen.getByRole("button", { name: "Back to Admin Dashboard" }));
+    expect(await screen.findByText("Admin dashboard")).toBeInTheDocument();
+  });
+
+  it("goes from the admin dashboard back to Device Manager", async () => {
+    renderAdmin("/admin");
+
+    expect(await screen.findByText("Admin dashboard")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Back to Device Manager" }));
     expect(await screen.findByRole("heading", { name: "Device Manager" })).toBeInTheDocument();
   });

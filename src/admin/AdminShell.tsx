@@ -23,8 +23,10 @@ export function AdminShell() {
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
   const breadcrumbs = useMemo(() => getAdminBreadcrumbLabels(location.pathname), [location.pathname]);
   const pageTitle = useMemo(() => getAdminPageTitle(location.pathname), [location.pathname]);
-  const backTarget = location.pathname === "/admin/products" ? "/admin" : "/manage-devices";
-  const backLabel = location.pathname === "/admin/products" ? "Back to Admin Dashboard" : "Back to Device Manager";
+  const isDashboard = location.pathname.replace(/\/+$/, "") === "/admin";
+  const isSerialCreate = location.pathname.replace(/\/+$/, "") === "/admin/serials/add";
+  const backTarget = isSerialCreate ? "/admin/serials/migrate" : isDashboard ? "/manage-devices" : "/admin";
+  const backLabel = isSerialCreate ? "Back to Migration" : isDashboard ? "Back to Device Manager" : "Back to Admin Dashboard";
   const environment = getAdminEnvironment();
   const environmentDetail = getAdminEnvironmentDetail();
   const email = state.status === "authorized" ? state.user.email : null;
