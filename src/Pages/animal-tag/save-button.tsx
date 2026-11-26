@@ -1,9 +1,8 @@
 import {getProductIdFromURL} from "../../utils";
-import {doc, updateDoc} from "firebase/firestore";
-import {db} from "../../App";
 import {notify} from "../login-page";
 import {DB_COLLECTIONS} from "../../components/baby-journal-settings";
 import "./save-button.css"
+import {updateAnimalTag} from "../../firestore/repositories/animalTags";
 
 interface SaveButtonProps {
     state: any,
@@ -15,8 +14,9 @@ export function SaveButton({collection, setOriginalState, state}: SaveButtonProp
     const productId = getProductIdFromURL()
     const onSave = async () => {
         if (productId) {
-            const productRef = doc(db, collection, productId)
-            await updateDoc(productRef, {...state})
+            if (collection === DB_COLLECTIONS.ANIMAL_TAG) {
+                await updateAnimalTag(productId, state)
+            }
             notify('Saved modifications')
             setOriginalState(state)
         }

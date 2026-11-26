@@ -4,7 +4,7 @@ import {onChangeWrapper} from "../utils";
 import "./journal-segment.css"
 import {DatePickerConverted} from "./date-picker-converted";
 import {TimePickerConverted} from "./time-picker-converted";
-import AssetUpload3 from "./asset-upload-3";
+import {JournalFileUpload} from "./journal-file-upload";
 import {ProfileUpload} from "./profile-upload";
 import {AdultJournalEditContext, InvestigationHandler} from "./adult-journal-settings";
 import {DB_COLLECTIONS, DB_STORAGE} from "./baby-journal-settings";
@@ -39,8 +39,8 @@ export function InvestigationInput({
                    className={"j-segment-investigation-input-textfield"}
                    onChange={onChangeWrapper(handler.description)} variant={"outlined"} size={"small"} multiline
                    maxRows={5}/>
-        <AssetUpload3 value={handler.assets.value} onChange={handler.assets.onChange} multiple={true} maxFiles={5}
-                      storageFolder={DB_STORAGE.ADULT_JOURNAL}/>
+        <JournalFileUpload value={handler.assets.value} onChange={handler.assets.onChange} multiple maxFiles={5}
+                           storageFolder={DB_STORAGE.ADULT_JOURNAL} storageKey={`investigation-${slugifyJournalStorageKey(label || "record")}`} label={`${label || "Investigation"} file`}/>
     </div>
 }
 
@@ -109,4 +109,8 @@ export function InvestigationsAdultJournalSegment() {
         <MultipleInvestigationsInput label={"Bone Densitometry (DEXA)"} handler={boneDensitometry}/>
 
     </div>
+}
+
+function slugifyJournalStorageKey(value: string) {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "record";
 }

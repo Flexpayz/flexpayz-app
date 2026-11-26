@@ -3,7 +3,7 @@ import {TextField} from "@mui/material";
 import {onChangeWrapper} from "../utils";
 import {BabyJournalEditContext, DB_STORAGE} from "./baby-journal-settings";
 import "./journal-segment.css"
-import AssetUpload3 from "./asset-upload-3";
+import {JournalFileUpload} from "./journal-file-upload";
 import {ProfileUpload} from "./profile-upload";
 import {MultipleInvestigationsInput} from "./home-adult-journal-segment";
 
@@ -22,8 +22,8 @@ export function HealthJournalSegment() {
     } = useContext(BabyJournalEditContext)! //TODO
     return <div className={"j-segment-container"}>
         <h1 className={"j-segment-title"}>Medical Records</h1>
-        <AssetUpload3 value={medicalRecords.value} onChange={medicalRecords.onChange} multiple={true} maxFiles={10}
-                      storageFolder={DB_STORAGE.BABY_JOURNAL}/>
+        <JournalFileUpload value={medicalRecords.value} onChange={medicalRecords.onChange} multiple maxFiles={10}
+                           storageFolder={DB_STORAGE.BABY_JOURNAL} storageKey="medical-record" label="Medical record"/>
 
         <h1 className={"j-segment-title"}>Allergies, Health Info, Vaccines</h1>
         <MultipleInvestigationsInput label={"Health Problems"} handler={healthProblems}/>
@@ -40,8 +40,8 @@ export function HealthJournalSegment() {
         />
 
         <h1 className={"j-preview-title"}>European Health Card</h1>
-        <AssetUpload3 value={europeanHealthCard.value} onChange={europeanHealthCard.onChange}
-                      storageFolder={DB_STORAGE.BABY_JOURNAL}/>
+        <JournalFileUpload value={europeanHealthCard.value} onChange={europeanHealthCard.onChange}
+                           storageFolder={DB_STORAGE.BABY_JOURNAL} storageKey="european-health-card" label="European Health Card"/>
 
         <h1 className={"j-segment-title"}>Mom</h1>
         <ProfileUpload value={mother.profilePicture.value} onChange={mother.profilePicture.onChange}

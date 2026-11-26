@@ -29,8 +29,7 @@
 }
 
 .flexpayz-logo {
-    width: 60%;
-    min-width: 220px;
+    width: min(60%, 40vw);
 }
 
 .website-button {

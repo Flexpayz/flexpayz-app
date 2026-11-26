@@ -1,11 +1,11 @@
 import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
-import {db, storage} from "./App";
+import {storage} from "./App";
 import {Product, useProductInformation} from "./control-state";
 import {useContext} from "react";
 import {ManageProductContext} from "./contexts";
-import {Preview} from "./Pages/admin";
-import {doc, updateDoc} from "firebase/firestore";
+import {Preview} from "./preview";
 import {notify} from "./Pages/login-page";
+import {updateProduct} from "./firestore/repositories/products";
 
 export const onChangeWrapper = (key: any) => {
     return (e: any) => {
@@ -41,8 +41,7 @@ export function useSaveLanguage() {
     return async (e: any) => {
         setProductState((prev: Product) => ({...prev, previewLanguage: e.target.value}))
         if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {previewLanguage: e.target.value})
+            await updateProduct(productId, {previewLanguage: e.target.value})
             notify('Changed the preview language.')
         }
     }
@@ -95,8 +94,7 @@ export function useSetPreview(preview: Preview) {
     return async () => {
         setProductState((prev: Product) => ({...prev, preview: preview}))
         if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {preview: preview})
+            await updateProduct(productId, {preview: preview})
             notify('Changed the public page.')
         }
     }

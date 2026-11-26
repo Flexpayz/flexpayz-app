@@ -44,7 +44,9 @@ function AnimalTagSettings() {
     return <div className={"settings-box"}>
         <h1>About</h1>
         <ProfileUpload value={photo.value} onChange={photo.onChange}
-                       storageFolder={DB_STORAGE.ANIMAL_TAG}/>
+                       storageFolder={DB_STORAGE.ANIMAL_TAG}
+                       shape="square"
+                       label="Animal photo"/>
         <InputLabel>Is your animal lost?</InputLabel>
         <Switch checked={isLost.value} onChange={(event, checked) => isLost.onChange(checked)}/>
         <TextField label={'Name'} placeholder={"Name"} value={name.value} className={"textfield"}
@@ -80,5 +82,4 @@ function AnimalTagSaveButton() {
     const {state, setOriginalState} = useContext(AnimalTagInformationContext)
     return <SaveButton state={state} setOriginalState={setOriginalState} collection={DB_COLLECTIONS.ANIMAL_TAG}/>
 }
-
 

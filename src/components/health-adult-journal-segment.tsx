@@ -2,7 +2,7 @@ import React, {useContext} from "react";
 import {TextField} from "@mui/material";
 import {onChangeWrapper} from "../utils";
 import "./journal-segment.css"
-import AssetUpload3 from "./asset-upload-3";
+import {JournalFileUpload} from "./journal-file-upload";
 import {AdultJournalEditContext} from "./adult-journal-settings";
 import {DB_STORAGE} from "./baby-journal-settings";
 import {MultipleVitalSignsInput} from "./home-adult-journal-segment";
@@ -42,7 +42,7 @@ export function HealthAdultJournalSegment() {
         />
 
         <h1 className={"j-preview-title"}>European Health Card</h1>
-        <AssetUpload3 value={europeanHealthCard.value} onChange={europeanHealthCard.onChange} storageFolder={DB_STORAGE.ADULT_JOURNAL}/>
+        <JournalFileUpload value={europeanHealthCard.value} onChange={europeanHealthCard.onChange} storageFolder={DB_STORAGE.ADULT_JOURNAL} storageKey="european-health-card" label="European Health Card"/>
 
         <h1 className={"j-segment-title"}>Clinical Examination</h1>
         <TextField label={'General Physical Examination'} placeholder={"General Physical Examination"}

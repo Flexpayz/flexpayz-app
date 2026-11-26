@@ -1,22 +1,26 @@
 import VCard from "vcard-creator";
-import {doc, updateDoc} from "firebase/firestore";
+import {createBusinessCardSaveTrace} from "./business-card-save-diagnostics";
 import {notify} from "./Pages/login-page";
 import {getDownloadURL, ref, uploadBytes, deleteObject} from "firebase/storage";
-import {db, storage} from "./App";
+import {storage} from "./App";
 import {useContext, useState} from "react";
 import {ManageProductContext} from "./contexts";
 import {getProductIdFromURL} from "./utils";
-import {defaultProduct, Product, useProductInformation} from "./control-state";
+import {defaultProduct, Product} from "./control-state";
+import {Preview} from "./preview";
+import {buildBusinessVCard, serializeBusinessCardUpdate} from "./business-card";
+import {updateProduct} from "./firestore/repositories/products";
 
 
 export function useResetDevice() {
-    const {productState, setProductState} = useProductInformation()
+    const {productState, setProductState} = useContext(ManageProductContext)
     const productId = getProductIdFromURL()
     const newProduct: Product = {
         ...defaultProduct,
         name: productState.name,
         activated: productState.activated,
         unlockCode: productState.unlockCode,
+        visibleSections: [Preview.BUSINESS_CARD],
     }
 
     const vCardRef = ref(storage, `documents/${productId}/vCard`)
@@ -31,10 +35,9 @@ export function useResetDevice() {
 
 return async () =>{
     if (productId) {
-        const productRef = doc(db, 'products', productId)
-        await updateDoc(productRef,  {...newProduct})
+        await updateProduct(productId, {...newProduct})
         await Promise.allSettled([vCardRef, logoRef, file1Ref, file2Ref, file3Ref, cvRef, imageRef].map((ref) =>  deleteObject(ref)))
-        setProductState(newProduct)
+        setProductState?.(newProduct)
         notify('Device has been restored to default')
     }
 }
@@ -45,8 +48,7 @@ export function useSaveName() {
     const productId = getProductIdFromURL()
     return async () => {
         if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {name: productState.name})
+            await updateProduct(productId, {name: productState.name})
             notify('Saved device name')
         }
 
@@ -126,8 +128,7 @@ export function useSaveProductData () {
 
 
         if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {...productState, activated: true})
+            await updateProduct(productId, {...productState, activated: true})
             notify('Saved modifications')
         }
         const tempDoc = file
@@ -142,4 +143,37 @@ export function useSaveProductData () {
             console.log('document uploaded')
         }
     }
+}
+
+export function useSaveBusinessCardData() {
+    const {productState} = useContext(ManageProductContext);
+    const productId = getProductIdFromURL();
+
+    return async () => {
+        if (!productId) return;
+
+        const payload = serializeBusinessCardUpdate(productState);
+        const trace = createBusinessCardSaveTrace("manual", productId, payload);
+        await trace.run("firestore-update", () => updateProduct(productId, payload));
+
+        const logoURL = await trace.run("logo-lookup", async () => {
+            const logoRef = ref(storage, `images/logo-${productId}`);
+            try {
+                return await getDownloadURL(logoRef);
+            } catch (error: any) {
+                // A card without a company logo is valid.
+                if (error?.code === 'storage/object-not-found') return '';
+                throw error;
+            }
+        });
+
+        const file = await trace.run("vcard-build", () => {
+            const blob = new Blob([buildBusinessVCard(productState, logoURL)], {type: "text/vcard"});
+            return new File([blob], 'vCard.vcf', {type: "text/vcard"});
+        });
+        await trace.run("vcard-upload", () => {
+            const documentRef = ref(storage, `documents/${productId}/vCard`);
+            return uploadBytes(documentRef, file);
+        });
+    };
 }

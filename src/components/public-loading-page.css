@@ -1,0 +1,12 @@
+.public-loading-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: var(--fp-space-4);
+    background:
+        radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--fp-color-champagne-soft) 78%, transparent), transparent 24rem),
+        radial-gradient(circle at 12% 92%, color-mix(in srgb, var(--fp-color-champagne) 16%, transparent), transparent 20rem),
+        var(--fp-color-canvas);
+    color: var(--fp-color-ink);
+}

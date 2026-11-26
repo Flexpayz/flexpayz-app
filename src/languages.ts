@@ -1,6 +1,7 @@
 export enum Languages {
     ENGLISH = 'english',
-    SWEDISH = 'swedish'
+    SWEDISH = 'swedish',
+    FRENCH = 'french'
 }
 
 export const translatedText = {
@@ -21,5 +22,14 @@ export const translatedText = {
         'Share': 'Dela med sig',
         'Select a song': 'Välj en låt',
         'Download': 'Ladda ner'
+    },
+    french: {
+        'About me': 'À propos de moi',
+        'Download document': 'Télécharger le document',
+        'Save my contact details': 'Enregistrer mes coordonnées',
+        'Share your contact with me': 'Partager vos coordonnées avec moi',
+        'Share': 'Partager',
+        'Select a song': 'Sélectionner une chanson',
+        'Download': 'Télécharger'
     }
 }

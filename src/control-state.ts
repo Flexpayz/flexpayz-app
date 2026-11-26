@@ -1,119 +1,14 @@
-import {Preview} from "./Pages/admin";
 import {useContext, useEffect, useState} from "react";
 import {ManageProductContext} from "./contexts";
-import {Languages} from "./languages";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
-import {doc, getDoc} from "firebase/firestore";
-import {db} from "./App";
 import {notify} from "./Pages/login-page";
 import {useNavigate} from "react-router";
+import {getProduct} from "./firestore/repositories/products";
+import {defaultProduct, Product} from "./firestore/schema/products";
+import {Languages} from "./languages";
 
-export const defaultProduct: Product = {
-    name: '',
-    activated: true,
-    preview: Preview.BUSINESS_CARD,
-    unlockCode: '',
-    firstName: '',
-    lastName: '',
-    title: '',
-    email: '',
-    email2: '',
-    email3: '',
-    phoneNumber: '',
-    phoneNumber2: '',
-    phoneNumber3: '',
-    country: '',
-    address: '',
-    address2: '',
-    zipCode: '',
-    city: '',
-    linkedIn: '',
-    instagram: '',
-    facebook: '',
-    youtube: '',
-    tiktok: '',
-    about: '',
-    companyName: '',
-    companyRegNumber: '',
-    companyAddress: '',
-    companyCity: '',
-    companyCountry: '',
-    companyPhoneNumber: '',
-    companyAbout: '',
-    customLink: '',
-    filename1: '',
-    filename2: '',
-    filename3: '',
-    cv: false,
-    website: '',
-    website2: '',
-    youtubeLink: '',
-    publicPagePassword: '',
-    publicPagePasswordActivated: false,
-    color1: '#467083',
-    color2: '#A3B0B5',
-    logo: '',
-    song1: '',
-    song2: '',
-    song3: '',
-    businessFile: '',
-    sharedContacts: [],
-    previewLanguage: Languages.ENGLISH
-}
-
-export interface Product {
-    name: string
-    activated: boolean,
-    preview: Preview
-    unlockCode: string,
-    firstName: string,
-    lastName: string,
-    title: string,
-    email: string,
-    email2: string,
-    email3: string,
-    phoneNumber: string,
-    phoneNumber2: string
-    phoneNumber3: string
-    country: string,
-    address: string,
-    address2: string,
-    zipCode: string,
-    city: string,
-    linkedIn: string,
-    instagram: string,
-    facebook: string,
-    youtube: string,
-    tiktok: string,
-    about: string
-    companyName: string,
-    companyRegNumber: string,
-    companyAddress: string,
-    companyCity: string,
-    companyCountry: string,
-    companyPhoneNumber: string,
-    companyAbout: string,
-    customLink: string,
-    filename1: string,
-    filename2: string,
-    filename3: string,
-    cv: boolean,
-    website: string,
-    website2: string,
-    youtubeLink: string
-    publicPagePassword: string,
-    publicPagePasswordActivated: boolean,
-    color1: string,
-    color2: string,
-    logo: string,
-    song1: string,
-    song2: string,
-    song3: string,
-    businessFile: string,
-    sharedContacts: any[],
-    previewLanguage: Languages
-
-}
+export {defaultProduct};
+export type {Product};
 
 
 export const useProductInformation = () => {
@@ -134,11 +29,9 @@ export const useProductInformation = () => {
             const urlParams = new URLSearchParams(window.location.search)
             const productId = urlParams.get('product_id')
             if (productId) {
-                const productRef = doc(db, 'products', productId)
-                const docSnap = await getDoc(productRef);
-                if (docSnap.exists()) {
-                    setProductState((prev: Product) => ({...prev, ...docSnap.data() as Product}))
-
+                const product = await getProduct(productId);
+                if (product) {
+                    setProductState((prev: Product) => ({...prev, ...product}))
                 }
             }
         })()

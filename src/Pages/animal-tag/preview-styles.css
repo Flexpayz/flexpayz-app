@@ -8,8 +8,8 @@ html {
 .frame {
     padding-top: 60px;
     height: 43vh;
-    border-radius: 0 0 20% 20%;
-    background: linear-gradient(rgba(99, 16, 42, 0.6), rgba(99, 16, 42, 1));
+    border-radius: 0;
+    background: transparent;
     position: relative;
 
 }
@@ -20,6 +20,10 @@ html {
     overflow: scroll;
     height: 100vh;
     position: relative;
+    background:
+        radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--fp-color-champagne-soft) 78%, transparent), transparent 24rem),
+        radial-gradient(circle at 12% 92%, color-mix(in srgb, var(--fp-color-champagne) 16%, transparent), transparent 20rem),
+        linear-gradient(180deg, var(--fp-color-canvas) 0%, var(--fp-color-canvas) 54%, color-mix(in srgb, var(--fp-color-champagne-soft) 72%, var(--fp-color-canvas)) 100%);
 }
 
 .frame .profile-preview-image {
@@ -46,7 +50,7 @@ html {
 
 .frame .name-container .name {
     color: #333333;
-    font-weight: bold;
+    font-weight: 600;
     text-align: left;
     font-size: 36px;
 }
@@ -68,7 +72,7 @@ html {
     text-align: left;
     color: #333333;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     margin: 24px 0 12px 0;
 }
 
@@ -116,7 +120,7 @@ html {
     text-align: left;
     color: #333333;
     font-size: 16px;
-    font-weight: normal;
+    font-weight: 400;
     margin: 0;
 }
 
@@ -134,7 +138,7 @@ html {
     justify-content: center;
     align-items: center;
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 
@@ -173,7 +177,7 @@ html {
     text-align: left;
     color: #333333;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     margin: 0;
 }
 
@@ -189,7 +193,7 @@ html {
     justify-content: center;
     align-items: center;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-decoration: none;

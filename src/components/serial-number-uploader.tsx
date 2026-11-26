@@ -1,17 +1,15 @@
 import React, { useState } from "react";
-import {
-    collection,
-    addDoc,
-    doc,
-    setDoc,
-    getDoc,
-    serverTimestamp,
-    writeBatch,
-} from "firebase/firestore";
-import { db } from "../App";
-import { DB_COLLECTIONS } from "./baby-journal-settings";
+import {LinearProgress, Stack, Typography} from "@mui/material";
+import UploadRoundedIcon from "@mui/icons-material/UploadRounded";
+import {AppButton, AppTextField} from "./design-system";
+import "./serial-number-uploader.css";
 import { Preview, random_hex_code } from "../Pages/admin";
 import { defaultPermissions } from "./usePermission";
+import {createFirestoreBatch} from "../firestore/repositories/batches";
+import {getProduct, createProductDocumentReference, setProductInBatch} from "../firestore/repositories/products";
+import {setPermissionsInBatch} from "../firestore/repositories/permissions";
+import {getSerialNumber, setSerialNumberInBatch} from "../firestore/repositories/serialNumbers";
+import {normalizeProduct} from "../firestore/schema/products";
 
 type UploadType = "default" | "sanitas";
 
@@ -75,31 +73,27 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                     const chunk = serials.slice(i, i + batchSize);
 
                     // verificăm ce seriale există deja
-                    const existingSnaps = await Promise.all(
-                        chunk.map((serial) => getDoc(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial)))
-                    );
+                    const existingSerials = await Promise.all(chunk.map((serial) => getSerialNumber(serial)));
 
-                    const batch = writeBatch(db);
+                    const batch = createFirestoreBatch();
 
                     for (let j = 0; j < chunk.length; j++) {
                         const serial = chunk[j];
-                        const snap = existingSnaps[j];
+                        const serialDoc = existingSerials[j];
 
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            const productID = data.productID || "";
+                        if (serialDoc) {
+                            const productID = serialDoc.data.productID || "";
                             let unlockCode = "";
                             let status: "skipped" | "misscreated" = "skipped";
 
                             if (productID) {
-                                const prodSnap = await getDoc(doc(db, DB_COLLECTIONS.PRODUCTS, productID));
-                                if (!prodSnap.exists()) {
+                                const product = await getProduct(productID);
+                                if (!product) {
                                     status = "misscreated";
                                     misscreated++;
                                 } else {
                                     skipped++;
-                                    const prodData = prodSnap.data();
-                                    unlockCode = prodData?.unlockCode || "";
+                                    unlockCode = product.unlockCode || "";
                                 }
                             } else {
                                 status = "misscreated";
@@ -115,22 +109,21 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                         } else {
                             // create new product
                             const hexCode = random_hex_code();
-                            const productRef = doc(collection(db, DB_COLLECTIONS.PRODUCTS));
-
-                            batch.set(productRef, {
+                            const productRef = createProductDocumentReference();
+                            const productInput = {
                                 activated: false,
                                 unlockCode: hexCode,
                                 name: "New Product",
                                 preview: Preview.BUSINESS_CARD,
-                                processed: false,
-                            });
+                            };
 
-                            batch.set(doc(db, DB_COLLECTIONS.PERMISSIONS, productRef.id), defaultPermissions);
+                            setProductInBatch(batch, productRef, productInput);
 
-                            batch.set(doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, serial), {
+                            setPermissionsInBatch(batch, productRef.id, defaultPermissions);
+
+                            setSerialNumberInBatch(batch, serial, {
                                 productID: productRef.id,
                                 type: "default",
-                                createdAt: serverTimestamp(),
                             });
 
                             results.push({
@@ -144,11 +137,7 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                                 ...prev,
                                 {
                                     id: productRef.id,
-                                    activated: false,
-                                    unlockCode: hexCode,
-                                    name: "New Product",
-                                    preview: Preview.BUSINESS_CARD,
-                                    processed: false,
+                                    data: normalizeProduct(productInput),
                                 },
                             ]);
 
@@ -195,15 +184,13 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
                 const batchSize = 400;
                 for (let i = 0; i < serials.length; i += batchSize) {
                     const chunk = serials.slice(i, i + batchSize);
-                    const batch = writeBatch(db);
+                    const batch = createFirestoreBatch();
 
                     chunk.forEach((row) => {
                         if (!row.serialNumber || !row.productID) return;
-                        const ref = doc(db, DB_COLLECTIONS.SERIAL_NUMBERS, row.serialNumber.trim());
-                        batch.set(ref, {
+                        setSerialNumberInBatch(batch, row.serialNumber.trim(), {
                             productID: row.productID.trim(),
                             type: "sanitas-payment-ring",
-                            createdAt: serverTimestamp(),
                         });
                     });
 
@@ -223,70 +210,70 @@ const SerialUploader = ({ setProducts }: { setProducts: any }) => {
 
 
     return (
-        <div style={{ padding: 20 }}>
-            <h2>Upload Serial Numbers</h2>
+        <Stack spacing={4} className="serial-number-uploader">
+            <Typography variant="h3">Upload Serial Numbers</Typography>
 
-            {/* dropdown pentru tip */}
-            <label>
-                Upload type:{" "}
-                <select
-                    value={uploadType}
-                    onChange={(e) => setUploadType(e.target.value as UploadType)}
-                    disabled={loading}
-                >
-                    <option value="default">Default Products (generate)</option>
-                    <option value="sanitas">Sanitas Payment Ring (CSV with productID)</option>
-                </select>
-            </label>
-
-            <br /><br />
-
-            <input
-                type="file"
-                accept=".csv,.txt"
-                onChange={handleFileUpload}
+            <AppTextField
+                select
+                fullWidth
+                label="Upload type"
+                SelectProps={{native: true}}
+                value={uploadType}
+                onChange={(e) => setUploadType(e.target.value as UploadType)}
                 disabled={loading}
-            />
+            >
+                <option value="default">Default Products (generate)</option>
+                <option value="sanitas">Sanitas Payment Ring (CSV with productID)</option>
+            </AppTextField>
 
-            {fileName && (
-                <p>
-                    Loaded file: <strong>{fileName}</strong>
-                </p>
-            )}
+            <Stack spacing={2}>
+                <Typography component="label" htmlFor="serial-upload-file" variant="body2">
+                    Serial numbers file
+                </Typography>
+                <input
+                    id="serial-upload-file"
+                    className="serial-number-uploader-file"
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={handleFileUpload}
+                    disabled={loading}
+                    aria-describedby="serial-upload-formats"
+                />
+                <Typography id="serial-upload-formats" variant="body2" color="text.secondary">
+                    CSV or TXT
+                </Typography>
+            </Stack>
 
-            {serials.length > 0 && (
-                <p>
-                    Detected {serials.length} rows for <strong>{uploadType}</strong> upload.
-                </p>
-            )}
+            <Stack spacing={1} aria-live="polite" className="serial-number-uploader-summary">
+                {fileName && (
+                    <Typography variant="body2">
+                        Loaded file: <strong>{fileName}</strong>
+                    </Typography>
+                )}
+                {serials.length > 0 && (
+                    <Typography variant="body2">
+                        Detected {serials.length} rows for <strong>{uploadType}</strong> upload.
+                    </Typography>
+                )}
+            </Stack>
 
-            <button
+            <AppButton
+                variant="contained"
+                startIcon={<UploadRoundedIcon/>}
                 onClick={handleUpload}
                 disabled={loading || serials.length === 0}
-                style={{
-                    marginTop: 10,
-                    padding: "8px 16px",
-                    cursor: loading ? "not-allowed" : "pointer",
-                }}
+                sx={{alignSelf: {xs: "stretch", sm: "flex-start"}}}
             >
                 {loading ? "Uploading..." : "Upload to Firebase"}
-            </button>
+            </AppButton>
 
             {loading && (
-                <div style={{ marginTop: 10, width: "100%", backgroundColor: "#eee", borderRadius: 4 }}>
-                    <div
-                        style={{
-                            height: 10,
-                            width: `${progress}%`,
-                            backgroundColor: "#4caf50",
-                            borderRadius: 4,
-                            transition: "width 0.2s ease",
-                        }}
-                    />
-                    <div style={{ marginTop: 5, fontSize: 12 }}>{progress}%</div>
-                </div>
+                <Stack spacing={2}>
+                    <LinearProgress variant="determinate" value={progress} aria-label="Serial upload progress"/>
+                    <Typography variant="body2" color="text.secondary">{progress}%</Typography>
+                </Stack>
             )}
-        </div>
+        </Stack>
     );
 };
 

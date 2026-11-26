@@ -6,12 +6,11 @@ import {ManageProductContext} from "../contexts";
 import {getProductIdFromURL, onChangeWrapper, useSetPreview} from "../utils";
 import {Product, useEditState, useProductInformation} from "../control-state";
 import {Button, TextField} from "@mui/material";
-import {doc, updateDoc} from "firebase/firestore";
-import {db} from "../App";
 import {notify} from "../Pages/login-page";
 import BurgerMenuIcon from "../assets/burger-menu.svg"
 import {SelectLanguage} from "../Pages/manage-device";
 import {PermissionContext} from "./usePermission";
+import {updateProduct} from "../firestore/repositories/products";
 
 export function PreviewSettings() {
     const {productState, setProductState} = useContext(ManageProductContext)
@@ -37,8 +36,7 @@ export function PreviewSettings() {
 
     const onSavePublicPage = async () => {
         if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {publicPagePassword: productState.publicPagePassword})
+            await updateProduct(productId, {publicPagePassword: productState.publicPagePassword})
             notify('Changed the public page password.')
         }
     }
@@ -46,8 +44,7 @@ export function PreviewSettings() {
     const onActivatePasswordPublicPage = async (e: any) => {
         setProductState((prev: Product) => ({...prev, publicPagePasswordActivated: e.target.checked}))
         if (productId) {
-            const productRef = doc(db, 'products', productId)
-            await updateDoc(productRef, {publicPagePasswordActivated: e.target.checked})
+            await updateProduct(productId, {publicPagePasswordActivated: e.target.checked})
             notify(`Public page password is ${e.target.checked ? 'activated' : 'deactivated'}.`)
         }
     }

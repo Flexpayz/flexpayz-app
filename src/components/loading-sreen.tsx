@@ -1,12 +1,10 @@
-import {CircularProgress, Stack} from "@mui/material";
 import "./loading-screen.css"
 import {createContext} from "react";
+import {LoadingPanel} from "./design-system";
 
-export function LoadingScreen() {
+export function LoadingScreen({text = "Loading workspace"}: {text?: string}) {
     return <div className={"loading-screen-container"}>
-        <Stack sx={{color: '#606060'}} spacing={2} direction="row">
-            <CircularProgress color="inherit"/>
-        </Stack>
+        <LoadingPanel text={text}/>
     </div>
 }
 

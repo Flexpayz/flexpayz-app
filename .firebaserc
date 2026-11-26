@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "bussiness-card-bda7f"
+    "default": "bussiness-card-bda7f",
+    "prod": "bussiness-card-bda7f",
+    "dev": "flexpayz-app-dev"
   }
 }

@@ -5,8 +5,7 @@ import {
     Consultation, FollowUp,
     Investigation, Multiple,
     MultipleInvestigations,
-    MultipleVitalSigns,
-    MultipleVitalSignsHandler
+    MultipleVitalSigns
 } from "./adult-journal-settings";
 import {MediaPreview} from "./media-preview";
 import {MenuItem, Select, SelectChangeEvent} from "@mui/material";
@@ -63,7 +62,6 @@ export function MultipleInvestigationPreview({investigations, label}: {
     const [selectedDay, setSelectedDay] = useState("")
 
     useEffect(() => {
-        console.log("insideEffect", selectedDay, filledDays[0])
         // if (!filledDays.includes(selectedDay)) {
         setSelectedDay(filledDays[0] || "")
         // }
@@ -103,7 +101,6 @@ export function MultipleVitalSignsPreview({signs}: { signs: MultipleVitalSigns }
     const [selectedDay, setSelectedDay] = useState("")
 
     useEffect(() => {
-        console.log("insideEffect", selectedDay, filledDays[0])
         // if (!filledDays.includes(selectedDay)) {
         setSelectedDay(filledDays[0] || "")
         // }
@@ -149,7 +146,6 @@ export function MultipleSleepSchedulePreview({schedules}: { schedules: MultipleS
     const [selectedDay, setSelectedDay] = useState("")
 
     useEffect(() => {
-        console.log("insideEffect", selectedDay, filledDays[0])
         // if (!filledDays.includes(selectedDay)) {
         setSelectedDay(filledDays[0] || "")
         // }
@@ -196,7 +192,6 @@ export function MultipleConsultationPreview({consultations}: { consultations: Mu
     const [selectedDay, setSelectedDay] = useState("")
 
     useEffect(() => {
-        console.log("insideEffect", selectedDay, filledDays[0])
         // if (!filledDays.includes(selectedDay)) {
         setSelectedDay(filledDays[0] || "")
         // }
@@ -239,7 +234,6 @@ export function MultipleFollowUpPreview({followUp}: { followUp: Multiple<FollowU
     const [selectedDay, setSelectedDay] = useState("")
 
     useEffect(() => {
-        console.log("insideEffect", selectedDay, filledDays[0])
         // if (!filledDays.includes(selectedDay)) {
         setSelectedDay(filledDays[0] || "")
         // }
